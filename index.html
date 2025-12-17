@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Match-3 Browsergame</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #1e1e2f;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 { margin-bottom: 10px; }
+    #game {
+      display: grid;
+      grid-template-columns: repeat(8, 60px);
+      grid-template-rows: repeat(8, 60px);
+      gap: 4px;
+      background: #111;
+      padding: 6px;
+      border-radius: 12px;
+    }
+    .cell {
+      position: relative;
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+    .cell:hover { transform: scale(1.05); }
+    .selected { outline: 3px solid #fff; }
+
+    /* Bomben */
+    .bomb-line {
+      box-shadow: 0 0 15px 4px #ffeb3b;
+    }
+    .bomb-radius {
+      box-shadow: 0 0 18px 6px #ff5722;
+    }
+    .bomb-icon {
+      pointer-events: none;
+    }
+
+    .explode {
+      animation: explode 0.35s ease-out forwards;
+    }
+    @keyframes explode {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+
+    #hud { margin-top: 15px; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <h1>Match-3 Spiel</h1>
+  <div id="game"></div>
+  <div id="hud">
+    <span id="level">Level: 1</span> | 
+    <span id="score">Punkte: 0</span> | 
+    <span id="target">Ziel: 300</span> | 
+    <span id="moves">Züge: 20</span>
+  </div>
+
+  <script>
+    const size = 8;
+    const colors = ['red', 'yellow', 'green', 'blue', 'purple'];
+
+    const game = document.getElementById('game');
+    const scoreEl = document.getElementById('score');
+    const levelEl = document.getElementById('level');
+    const targetEl = document.getElementById('target');
+    const movesEl = document.getElementById('moves');
+
+    let board = [];
+    let selected = null;
+    let score = 0;
+    let level = 1;
+    let targetScore = 300;
+    let movesLeft = 20;
+
+    function randomColor() {
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function createBoard() {
+      board = [];
+      game.innerHTML = '';
+      for (let i = 0; i < size * size; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.style.background = randomColor();
+        cell.dataset.index = i;
+        cell.dataset.booster = 'none';
+        cell.addEventListener('click', () => onCellClick(cell));
+        game.appendChild(cell);
+        board.push(cell);
+      }
+      updateHud();
+    }
+
+    function updateHud() {
+      scoreEl.textContent = 'Punkte: ' + score;
+      levelEl.textContent = 'Level: ' + level;
+      targetEl.textContent = 'Ziel: ' + targetScore;
+      movesEl.textContent = 'Züge: ' + movesLeft;
+    }
+
+    function onCellClick(cell) {
+      if (movesLeft <= 0) return;
+
+      // Bombe manuell aktivieren
+      if (cell.dataset.booster !== 'none') {
+        activateBooster(cell);
+        movesLeft--;
+        updateHud();
+        setTimeout(dropCells, 300);
+        return;
+      }
+
+      if (!selected) {
+        selected = cell;
+        cell.classList.add('selected');
+      } else if (cell === selected) {
+        selected.classList.remove('selected');
+        selected = null;
+      } else {
+        swapCells(selected, cell);
+        selected.classList.remove('selected');
+        selected = null;
+        movesLeft--;
+        updateHud();
+        setTimeout(checkMatches, 120);
+      }
+    }
+
+    function swapCells(a, b) {
+      [a.style.background, b.style.background] = [b.style.background, a.style.background];
+      [a.dataset.booster, b.dataset.booster] = [b.dataset.booster, a.dataset.booster];
+      updateBoosterVisual(a);
+      updateBoosterVisual(b);
+    }
+
+    function updateBoosterVisual(cell) {
+      cell.classList.remove('bomb-line', 'bomb-radius');
+      cell.textContent = '';
+      if (cell.dataset.booster === 'line') {
+        cell.classList.add('bomb-line');
+        cell.textContent = '💣';
+      }
+      if (cell.dataset.booster === 'radius') {
+        cell.classList.add('bomb-radius');
+        cell.textContent = '💥';
+      }
+    }
+
+    function checkMatches() {
+      let matched = new Set();
+      let boostersToCreate = [];
+
+      const checkLine = (indices) => {
+        let streak = 1;
+        for (let i = 1; i <= indices.length; i++) {
+          const curr = i < indices.length ? board[indices[i]].style.background : null;
+          const prev = board[indices[i - 1]].style.background;
+          if (curr === prev && curr) streak++;
+          else {
+            if (streak >= 3 && prev) {
+              const streakCells = [];
+              for (let k = 0; k < streak; k++) streakCells.push(indices[i - 1 - k]);
+              streakCells.forEach(i => matched.add(i));
+              if (streak === 4) boostersToCreate.push({ index: streakCells[1], type: 'line' });
+              if (streak >= 5) boostersToCreate.push({ index: streakCells[2], type: 'radius' });
+            }
+            streak = 1;
+          }
+        }
+      };
+
+      for (let r = 0; r < size; r++) checkLine([...Array(size)].map((_, c) => r * size + c));
+      for (let c = 0; c < size; c++) checkLine([...Array(size)].map((_, r) => r * size + c));
+
+      if (matched.size > 0) {
+        matched.forEach(i => destroyCell(i));
+        setTimeout(() => {
+          boostersToCreate.forEach(b => createBooster(b.index, b.type));
+          dropCells();
+        }, 350);
+      } else if (movesLeft <= 0) {
+        endLevel();
+      }
+    }
+
+    function destroyCell(i) {
+      const cell = board[i];
+      cell.classList.add('explode');
+      setTimeout(() => {
+        cell.classList.remove('explode');
+        cell.style.background = '';
+        cell.dataset.booster = 'none';
+        cell.textContent = '';
+        score += 10;
+        updateHud();
+      }, 300);
+    }
+
+    function createBooster(i, type) {
+      const cell = board[i];
+      cell.style.background = randomColor();
+      cell.dataset.booster = type;
+      updateBoosterVisual(cell);
+    }
+
+    function activateBooster(cell) {
+      const index = Number(cell.dataset.index);
+      const row = Math.floor(index / size);
+      const col = index % size;
+
+      if (cell.dataset.booster === 'line') {
+        for (let c = 0; c < size; c++) destroyCell(row * size + c);
+      }
+      if (cell.dataset.booster === 'radius') {
+        for (let dx = -1; dx <= 1; dx++) {
+          for (let dy = -1; dy <= 1; dy++) {
+            const r = row + dx;
+            const c = col + dy;
+            if (r >= 0 && r < size && c >= 0 && c < size) destroyCell(r * size + c);
+          }
+        }
+      }
+    }
+
+    function dropCells() {
+      for (let c = 0; c < size; c++) {
+        for (let r = size - 1; r >= 0; r--) {
+          const i = r * size + c;
+          if (!board[i].style.background) {
+            for (let k = r - 1; k >= 0; k--) {
+              const above = k * size + c;
+              if (board[above].style.background) {
+                board[i].style.background = board[above].style.background;
+                board[i].dataset.booster = board[above].dataset.booster;
+                updateBoosterVisual(board[i]);
+                board[above].style.background = '';
+                board[above].dataset.booster = 'none';
+                board[above].textContent = '';
+                break;
+              }
+            }
+            if (!board[i].style.background) {
+              board[i].style.background = randomColor();
+            }
+          }
+        }
+      }
+      setTimeout(checkMatches, 200);
+    }
+
+    function endLevel() {
+      if (score >= targetScore) {
+        alert('Level ' + level + ' geschafft!');
+        level++;
+        targetScore += 200;
+        movesLeft += 5;
+      } else {
+        alert('Level verloren!');
+        movesLeft = 20;
+      }
+      score = 0;
+      createBoard();
+    }
+
+    createBoard();
+  </script>
+</body>
+</html>
