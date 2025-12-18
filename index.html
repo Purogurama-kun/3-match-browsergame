@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>Match-3 Browsergame</title>
+  <title>Match-3 Browsergame mit Sounds</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -59,6 +59,25 @@
     }
 
     #hud { margin-top: 15px; font-size: 18px; }
+
+    /* Screenshake */
+    @keyframes shake {
+      0% { transform: translate(0, 0); }
+      10% { transform: translate(-5px, 5px); }
+      20% { transform: translate(5px, -5px); }
+      30% { transform: translate(-5px, 5px); }
+      40% { transform: translate(5px, -5px); }
+      50% { transform: translate(-5px, 5px); }
+      60% { transform: translate(5px, -5px); }
+      70% { transform: translate(-5px, 5px); }
+      80% { transform: translate(5px, -5px); }
+      90% { transform: translate(-5px, 5px); }
+      100% { transform: translate(0, 0); }
+    }
+
+    .shake {
+      animation: shake 0.35s ease-in-out;
+    }
   </style>
 </head>
 <body>
@@ -81,12 +100,34 @@
     const targetEl = document.getElementById('target');
     const movesEl = document.getElementById('moves');
 
+    // Sounds
+    const soundMatch = new Audio( // Sound bei Steinkombination
+      'https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg'
+    );
+
+    const soundExplosion = new Audio( // Sound bei Booster-Explosion
+      'https://actions.google.com/sounds/v1/explosions/explosion.ogg'
+    );
+
+    const soundLevelUp = new Audio(  // Sound bei Levelgewinn
+      'https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg'
+    );
+
+    const soundLevelFail = new Audio( // Sound bei Levelverlust
+      'https://actions.google.com/sounds/v1/cartoon/boing.ogg'
+    );
+
     let board = [];
     let selected = null;
     let score = 0;
     let level = 1;
     let targetScore = 300;
     let movesLeft = 20;
+
+    function screenShake() {
+      game.classList.add('shake');
+      setTimeout(() => game.classList.remove('shake'), 350);
+    }
 
     function randomColor() {
       return colors[Math.floor(Math.random() * colors.length)];
@@ -190,6 +231,9 @@
       for (let c = 0; c < size; c++) checkLine([...Array(size)].map((_, r) => r * size + c));
 
       if (matched.size > 0) {
+        soundMatch.currentTime = 0;
+        soundMatch.play();
+        screenShake();
         matched.forEach(i => destroyCell(i));
         setTimeout(() => {
           boostersToCreate.forEach(b => createBooster(b.index, b.type));
@@ -203,6 +247,8 @@
     function destroyCell(i) {
       const cell = board[i];
       cell.classList.add('explode');
+      soundExplosion.currentTime = 0;
+      soundExplosion.play();
       setTimeout(() => {
         cell.classList.remove('explode');
         cell.style.background = '';
@@ -210,6 +256,7 @@
         cell.textContent = '';
         score += 10;
         updateHud();
+        if (score >= targetScore) endLevel(); // <--- HIER Level-Up prüfen
       }, 300);
     }
 
@@ -267,11 +314,15 @@
 
     function endLevel() {
       if (score >= targetScore) {
+        soundLevelUp.currentTime = 0;
+        soundLevelUp.play();
         alert('Level ' + level + ' geschafft!');
         level++;
         targetScore += 200;
         movesLeft += 5;
       } else {
+        soundLevelFail.currentTime = 0;
+        soundLevelFail.play();
         alert('Level verloren!');
         movesLeft = 20;
       }
