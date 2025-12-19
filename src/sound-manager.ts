@@ -10,9 +10,11 @@ const SOUND_FILES: Record<SoundKey, string> = {
 class SoundManager {
     private sounds: Record<SoundKey, HTMLAudioElement>;
     private enabled: boolean;
+    private unlocked: boolean;
 
     constructor() {
         this.enabled = this.supportsOgg();
+        this.unlocked = false;
         this.sounds = {
             match: this.createAudio('match'),
             lineBomb: this.createAudio('lineBomb'),
@@ -20,10 +22,16 @@ class SoundManager {
             levelUp: this.createAudio('levelUp'),
             levelFail: this.createAudio('levelFail')
         };
+        if (this.enabled) {
+            this.addUnlockListeners();
+        }
     }
 
     setEnabled(enabled: boolean): boolean {
         this.enabled = enabled && this.supportsOgg();
+        if (this.enabled && !this.unlocked) {
+            this.addUnlockListeners();
+        }
         return this.enabled;
     }
 
@@ -33,6 +41,7 @@ class SoundManager {
 
     play(key: SoundKey): void {
         if (!this.enabled) return;
+        this.unlockIfNeeded();
         const sound = this.sounds[key];
         if (!sound) return;
         const instance = sound.cloneNode(true) as HTMLAudioElement;
@@ -49,12 +58,55 @@ class SoundManager {
         const audio = new Audio(SOUND_FILES[key]);
         audio.preload = 'auto';
         audio.crossOrigin = 'anonymous';
+        audio.load();
         return audio;
     }
 
     private supportsOgg(): boolean {
         const probe = document.createElement('audio');
         return probe.canPlayType('audio/ogg; codecs=\"vorbis\"') !== '';
+    }
+
+    private addUnlockListeners(): void {
+        const unlock = (): void => {
+            this.unlockSounds();
+        };
+        document.addEventListener('pointerdown', unlock, { once: true });
+        document.addEventListener('keydown', unlock, { once: true });
+    }
+
+    private unlockIfNeeded(): void {
+        if (!this.unlocked) {
+            this.unlockSounds();
+        }
+    }
+
+    private unlockSounds(): void {
+        if (this.unlocked || !this.enabled) return;
+        this.unlocked = true;
+        Object.values(this.sounds).forEach((audio) => {
+            try {
+                audio.muted = true;
+                const playPromise = audio.play();
+                if (playPromise && typeof playPromise.then === 'function') {
+                    playPromise
+                        .then(() => {
+                            audio.pause();
+                            audio.currentTime = 0;
+                            audio.muted = false;
+                        })
+                        .catch(() => {
+                            audio.muted = false;
+                        });
+                } else {
+                    audio.pause();
+                    audio.currentTime = 0;
+                    audio.muted = false;
+                }
+            } catch {
+                audio.muted = false;
+            }
+        });
     }
 }
 
