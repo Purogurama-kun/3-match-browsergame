@@ -7,6 +7,7 @@ const BOOSTERS = {
     BURST_MEDIUM: 'burstMedium',
     BURST_LARGE: 'burstLarge'
 };
+const BLACK_BOMB_COLOR = '#0b0d11';
 function randomColor() {
     const index = Math.floor(Math.random() * COLORS.length);
     const color = COLORS[index];
@@ -15,4 +16,4 @@ function randomColor() {
     }
     return color;
 }
-export { GRID_SIZE, COLORS, BOOSTERS, randomColor };
+export { GRID_SIZE, COLORS, BOOSTERS, BLACK_BOMB_COLOR, randomColor };

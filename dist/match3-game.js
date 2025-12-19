@@ -1,4 +1,4 @@
-import { GRID_SIZE, BOOSTERS, randomColor } from './constants.js';
+import { GRID_SIZE, BOOSTERS, BLACK_BOMB_COLOR, randomColor } from './constants.js';
 import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
 import { Board } from './board.js';
@@ -66,11 +66,9 @@ class Match3Game {
     handleCellClick(cell) {
         if (this.state.movesLeft <= 0)
             return;
-        if (cell.dataset.booster !== BOOSTERS.NONE) {
-            this.activateBooster(cell);
-            this.state.movesLeft--;
-            this.updateHud();
-            this.defer(() => this.dropCells(), 300);
+        const booster = this.board.getCellBooster(cell);
+        if (booster === BOOSTERS.BURST_LARGE) {
+            this.activateBooster(cell, true);
             return;
         }
         if (!this.state.selected) {
@@ -115,7 +113,11 @@ class Match3Game {
         const colorAt = (row, col) => {
             if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE)
                 return '';
-            return this.board.getCellColor(this.board.getCell(indexAt(row, col)));
+            const cell = this.board.getCell(indexAt(row, col));
+            const booster = this.board.getCellBooster(cell);
+            if (booster === BOOSTERS.BURST_LARGE)
+                return '';
+            return this.board.getCellColor(cell);
         };
         const addBooster = (index, type) => {
             if (boosterSlots.has(index))
@@ -157,14 +159,21 @@ class Match3Game {
         };
         const checkLine = (indices) => {
             let streak = 1;
+            const getColorForIndex = (idx) => {
+                const cell = this.board.getCell(idx);
+                const booster = this.board.getCellBooster(cell);
+                if (booster === BOOSTERS.BURST_LARGE)
+                    return '';
+                return this.board.getCellColor(cell);
+            };
             for (let i = 1; i <= indices.length; i++) {
                 const prevIndex = indices[i - 1];
                 const currIndex = i < indices.length ? indices[i] : undefined;
                 if (prevIndex === undefined) {
                     throw new Error('Missing index at position: ' + (i - 1));
                 }
-                const prevColor = this.board.getCellColor(this.board.getCell(prevIndex));
-                const currColor = currIndex !== undefined ? this.board.getCellColor(this.board.getCell(currIndex)) : '';
+                const prevColor = getColorForIndex(prevIndex);
+                const currColor = currIndex !== undefined ? getColorForIndex(currIndex) : '';
                 if (currColor && currColor === prevColor) {
                     streak++;
                 }
@@ -266,7 +275,15 @@ class Match3Game {
                 this.sounds.play('match');
             }
             this.screenShake();
-            matched.forEach((idx) => this.destroyCell(idx));
+            matched.forEach((idx) => {
+                const cell = this.board.getCell(idx);
+                const booster = this.board.getCellBooster(cell);
+                if (booster !== BOOSTERS.NONE) {
+                    this.activateBooster(cell, false);
+                    return;
+                }
+                this.destroyCell(idx);
+            });
             this.defer(() => {
                 boostersToCreate.forEach((b) => this.createBooster(b.index, b.type));
                 this.dropCells();
@@ -278,6 +295,10 @@ class Match3Game {
     }
     destroyCell(index) {
         const cell = this.board.getCell(index);
+        const booster = this.board.getCellBooster(cell);
+        const color = this.board.getCellColor(cell);
+        if ((!color && booster === BOOSTERS.NONE) || cell.classList.contains('game__cell--explode'))
+            return;
         cell.classList.add('game__cell--explode');
         this.defer(() => {
             this.board.clearCell(cell);
@@ -289,10 +310,15 @@ class Match3Game {
     }
     createBooster(index, type) {
         const cell = this.board.getCell(index);
-        this.board.setCellColor(cell, randomColor());
+        if (type === BOOSTERS.BURST_LARGE) {
+            this.board.setCellColor(cell, BLACK_BOMB_COLOR);
+        }
+        else {
+            this.board.setCellColor(cell, randomColor());
+        }
         this.board.setBooster(cell, type);
     }
-    activateBooster(cell) {
+    activateBooster(cell, consumesMove) {
         const index = Number(cell.dataset.index);
         const row = Math.floor(index / GRID_SIZE);
         const col = index % GRID_SIZE;
@@ -317,6 +343,11 @@ class Match3Game {
         if (cell.dataset.booster === BOOSTERS.BURST_LARGE) {
             this.sounds.play('radiusBomb');
             this.destroyCircularArea(row, col, 2);
+        }
+        if (consumesMove) {
+            this.state.movesLeft--;
+            this.updateHud();
+            this.defer(() => this.dropCells(), 300);
         }
     }
     destroyCircularArea(row, col, radius) {

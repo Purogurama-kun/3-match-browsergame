@@ -158,6 +158,12 @@ body {
 .game__cell--bomb-large {
     box-shadow: 0 0 1.25rem 0.5rem rgba(103, 232, 249, 0.45), inset 0 0 0 1px rgba(103, 232, 249, 0.75);
 }
+.game__cell--bomb-ultimate {
+    background: linear-gradient(135deg, rgba(12, 12, 15, 0.9), rgba(0, 0, 0, 0.9));
+    box-shadow:
+        0 0 1.25rem 0.5rem rgba(103, 232, 249, 0.45),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
 .game__cell-icon {
     pointer-events: none;
 }
