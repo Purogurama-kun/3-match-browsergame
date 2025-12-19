@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "rootDir": "./src",
+        "outDir": "./dist",
+        "module": "ES2020",
+        "moduleResolution": "Bundler",
+        "target": "ES2019",
+        "lib": ["DOM", "ES2020"],
+        "types": [],
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+        "skipLibCheck": true,
+        "noEmitOnError": true
+    },
+    "include": ["src/**/*.ts"]
+}

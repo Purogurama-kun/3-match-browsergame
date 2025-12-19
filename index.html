@@ -4,16 +4,16 @@
     <meta charset="UTF-8" />
     <title>Match-3 Browsergame mit Sounds</title>
     <link rel="stylesheet" href="css/styles.css" />
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="dist/main.js"></script>
 </head>
-<body>
-    <h1>Match-3 Spiel</h1>
-    <div id="game"></div>
-    <div id="hud">
-        <span id="level">Level: 1</span> |
-        <span id="score">Punkte: 0</span> |
-        <span id="target">Ziel: 300</span> |
-        <span id="moves">Züge: 20</span>
+<body class="game">
+    <h1 class="game__title">Match-3 Spiel</h1>
+    <div id="game" class="game__board"></div>
+    <div id="hud" class="game__hud">
+        <span id="level" class="game__hud-item">Level: 1</span> |
+        <span id="score" class="game__hud-item">Punkte: 0</span> |
+        <span id="target" class="game__hud-item">Ziel: 300</span> |
+        <span id="moves" class="game__hud-item">Züge: 20</span>
     </div>
 
 </body>

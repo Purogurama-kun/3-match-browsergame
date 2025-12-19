@@ -1,4 +1,4 @@
-body {
+.game {
     font-family: Arial, sans-serif;
     background: #1e1e2f;
     color: #fff;
@@ -7,9 +7,11 @@ body {
     align-items: center;
     margin: 0;
     padding: 20px;
+    min-height: 100vh;
+    box-sizing: border-box;
 }
-h1 { margin-bottom: 10px; }
-#game {
+.game__title { margin-bottom: 10px; }
+.game__board {
     display: grid;
     grid-template-columns: repeat(8, 60px);
     grid-template-rows: repeat(8, 60px);
@@ -18,7 +20,7 @@ h1 { margin-bottom: 10px; }
     padding: 6px;
     border-radius: 12px;
 }
-.cell {
+.game__cell {
     position: relative;
     width: 60px;
     height: 60px;
@@ -30,21 +32,21 @@ h1 { margin-bottom: 10px; }
     justify-content: center;
     font-size: 28px;
 }
-.cell:hover { transform: scale(1.05); }
-.selected { outline: 3px solid #fff; }
+.game__cell:hover { transform: scale(1.05); }
+.game__cell--selected { outline: 3px solid #fff; }
 
 /* Bomben */
-.bomb-line {
+.game__cell--bomb-line {
     box-shadow: 0 0 15px 4px #ffeb3b;
 }
-.bomb-radius {
+.game__cell--bomb-radius {
     box-shadow: 0 0 18px 6px #ff5722;
 }
-.bomb-icon {
+.game__cell-icon {
     pointer-events: none;
 }
 
-.explode {
+.game__cell--explode {
     animation: explode 0.35s ease-out forwards;
 }
 @keyframes explode {
@@ -52,7 +54,7 @@ h1 { margin-bottom: 10px; }
     100% { transform: scale(1.8); opacity: 0; }
 }
 
-#hud { margin-top: 15px; font-size: 18px; }
+.game__hud { margin-top: 15px; font-size: 18px; }
 
 /* Screenshake */
 @keyframes shake {
@@ -69,6 +71,10 @@ h1 { margin-bottom: 10px; }
     100% { transform: translate(0, 0); }
 }
 
-.shake {
+.game__board--shake {
+    animation: shake 0.35s ease-in-out;
+}
+
+.game__cell--shake {
     animation: shake 0.35s ease-in-out;
 }
