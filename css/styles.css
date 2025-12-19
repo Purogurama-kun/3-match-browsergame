@@ -210,8 +210,9 @@ body {
 
 .game__hud-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+    grid-template-columns: minmax(6.5rem, 1fr) minmax(6.5rem, 1fr) minmax(12rem, 2fr);
     gap: 0.5rem;
+    align-items: stretch;
 }
 
 .game__hud-card {
@@ -231,6 +232,8 @@ body {
 
 .game__hud-card--progress {
     padding: 0.7rem 0.85rem 0.85rem;
+    display: grid;
+    gap: 0.35rem;
 }
 
 .game__hud-card--goals {
@@ -414,6 +417,20 @@ body {
 
 .game__hud-separator {
     opacity: 0.7;
+}
+
+.game__hud-row .game__hud-card--progress {
+    grid-column: 3 / 4;
+}
+
+@media (max-width: 720px) {
+    .game__hud-row {
+        grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    }
+
+    .game__hud-row .game__hud-card--progress {
+        grid-column: 1 / -1;
+    }
 }
 
 .game__hud-progress {

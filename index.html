@@ -26,24 +26,16 @@
                 <div class="game__hud-label">Züge</div>
                 <div id="moves" class="game__hud-value">20</div>
             </div>
-            <div class="game__hud-card game__hud-card--stat">
-                <div class="game__hud-label">Ziel</div>
-                <div id="target" class="game__hud-value">300</div>
-            </div>
-            <div class="game__hud-card game__hud-card--stat">
-                <div class="game__hud-label">Stufe</div>
-                <div id="difficulty" class="game__hud-value">1</div>
-            </div>
-        </div>
-        <div class="game__hud-card game__hud-card--progress">
-            <div class="game__hud-bar-header">
-                <span class="game__hud-label">Punktestand</span>
-                <span class="game__hud-text">
-                    <span id="score" class="game__hud-value-strong">0</span>
-                </span>
-            </div>
-            <div id="score-progress" class="game__hud-progress" role="progressbar" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0">
-                <div id="score-progress-fill" class="game__hud-progress-fill"></div>
+            <div class="game__hud-card game__hud-card--progress">
+                <div class="game__hud-bar-header">
+                    <span class="game__hud-label">Punktestand</span>
+                    <span class="game__hud-text">
+                        <span id="score" class="game__hud-value-strong">0/300</span>
+                    </span>
+                </div>
+                <div id="score-progress" class="game__hud-progress" role="progressbar" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0">
+                    <div id="score-progress-fill" class="game__hud-progress-fill"></div>
+                </div>
             </div>
         </div>
         <div class="game__hud-card game__hud-card--goals">

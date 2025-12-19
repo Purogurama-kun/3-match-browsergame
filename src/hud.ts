@@ -6,11 +6,9 @@ class Hud {
     constructor() {
         this.score = getRequiredElement('score');
         this.level = getRequiredElement('level');
-        this.target = getRequiredElement('target');
         this.moves = getRequiredElement('moves');
         this.scoreProgress = getRequiredElement('score-progress');
         this.scoreProgressFill = getRequiredElement('score-progress-fill');
-        this.difficulty = getRequiredElement('difficulty');
         this.goalsList = this.getGoalsListElement();
         this.swapModeSelect = this.getSwapModeElement();
         this.optionsToggle = this.getOptionsToggle();
@@ -23,11 +21,9 @@ class Hud {
 
     private score: HTMLElement;
     private level: HTMLElement;
-    private target: HTMLElement;
     private moves: HTMLElement;
     private scoreProgress: HTMLElement;
     private scoreProgressFill: HTMLElement;
-    private difficulty: HTMLElement;
     private goalsList: HTMLUListElement;
     private swapModeSelect: HTMLSelectElement;
     private optionsToggle: HTMLButtonElement;
@@ -36,11 +32,9 @@ class Hud {
     private audioToggle: HTMLButtonElement;
 
     render(state: GameState): void {
-        this.score.textContent = String(state.score);
+        this.score.textContent = state.score + '/' + state.targetScore;
         this.level.textContent = String(state.level);
-        this.target.textContent = String(state.targetScore);
         this.moves.textContent = String(state.movesLeft);
-        this.difficulty.textContent = String(state.difficulty);
 
         this.updateProgress(state.score, state.targetScore);
         this.renderGoals(state.goals);
@@ -142,6 +136,7 @@ class Hud {
         const ratio = Math.min(1, clampedScore / Math.max(1, target));
         this.scoreProgress.setAttribute('aria-valuenow', clampedScore.toString());
         this.scoreProgress.setAttribute('aria-valuemax', target.toString());
+        this.scoreProgress.setAttribute('aria-valuetext', 'Punktestand ' + clampedScore + ' von ' + target);
         this.scoreProgressFill.style.width = (ratio * 100).toFixed(1) + '%';
     }
 
