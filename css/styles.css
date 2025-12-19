@@ -13,6 +13,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 0.75rem;
     margin: 0;
     padding: 1.25rem;
     min-height: 100vh;
@@ -202,54 +203,55 @@ body {
 .game__hud {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    width: min(56rem, 100%);
-    margin-top: 0.9375rem;
-    font-size: 1.125rem;
+    gap: 0.5rem;
+    width: min(44rem, 100%);
+    font-size: 1.05rem;
 }
 
 .game__hud-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+    gap: 0.5rem;
 }
 
 .game__hud-card {
     background: #111624;
     border: 1px solid #2f3654;
     border-radius: 12px;
-    padding: 0.75rem 1rem;
+    padding: 0.65rem 0.75rem;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
 }
 
-.game__hud-card--options {
-    min-width: 14rem;
+.game__hud-card--stat {
+    text-align: center;
+    display: grid;
+    gap: 0.15rem;
+    min-width: 6rem;
 }
 
-.game__hud-card--wide {
-    width: 100%;
+.game__hud-card--progress {
+    padding: 0.7rem 0.85rem 0.85rem;
 }
 
-@media (max-width: 780px) {
-    .game__hud-card--wide {
-        width: initial;
-    }
+.game__hud-card--goals {
+    display: grid;
+    gap: 0.35rem;
+    padding: 0.6rem 0.75rem;
 }
 
 .game__hud-label {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
     color: #9da5c7;
-    letter-spacing: 0.02em;
-    margin-bottom: 0.25rem;
+    letter-spacing: 0.03em;
 }
 
 .game__hud-value {
-    font-size: 1.6rem;
-    font-weight: 700;
-    display: flex;
-    align-items: baseline;
-    gap: 0.4rem;
+    font-size: 1.4rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .game__hud-value-strong {
@@ -259,11 +261,6 @@ body {
 .game__hud-subtle {
     color: #cfd5ff;
     opacity: 0.8;
-}
-
-.game__hud-note {
-    font-size: 0.875rem;
-    color: #c4c8df;
 }
 
 .game__hud-control {
@@ -438,12 +435,7 @@ body {
 
 .game__hud-card--goals {
     display: grid;
-    gap: 0.5rem;
-}
-
-.game__goals {
-    display: grid;
-    gap: 0.35rem;
+    gap: 0.4rem;
 }
 
 .game__goals-list {
@@ -451,27 +443,64 @@ body {
     padding: 0;
     margin: 0;
     display: grid;
-    gap: 0.25rem;
+    gap: 0.35rem;
+    grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
 }
 
 .game__goal {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: auto auto;
     align-items: center;
+    gap: 0.4rem;
     background: #0c0f1b;
     border: 1px solid #2f3654;
     border-radius: 10px;
-    padding: 0.4rem 0.6rem;
-    font-size: 0.95rem;
+    padding: 0.4rem 0.55rem;
+    font-size: 1rem;
+    position: relative;
 }
 
-.game__goal-text {
+.game__goal-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+        inset 0 3px 0 rgba(255, 255, 255, 0.18),
+        inset 0 -3px 8px rgba(0, 0, 0, 0.35);
+    font-size: 1.35rem;
+    color: #0b0f1d;
+}
+
+.game__goal-chip--color {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.2)), var(--goal-color, #3b3f55);
+}
+
+.game__goal-chip--booster {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.18));
+    color: #f8fafc;
+}
+
+.game__goal-count {
+    font-weight: 800;
     color: #e5e7ff;
+    font-size: 1.15rem;
+    min-width: 2rem;
+    text-align: left;
 }
 
-.game__goal-progress {
-    color: #9da5c7;
-    font-weight: 700;
+.game__goal-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
 }
 
 .game__modal {
