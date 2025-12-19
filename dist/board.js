@@ -11,7 +11,7 @@ class Board {
         for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
             const cell = document.createElement('div');
             cell.className = 'game__cell';
-            cell.style.background = this.pickColorForIndex(i);
+            this.applyColor(cell, this.pickColorForIndex(i));
             cell.dataset.index = String(i);
             cell.dataset.booster = BOOSTERS.NONE;
             cell.addEventListener('click', () => this.onCellClick(cell));
@@ -27,10 +27,11 @@ class Board {
         return cell;
     }
     getCellColor(cell) {
-        return cell.style.background;
+        var _a;
+        return (_a = cell.dataset.color) !== null && _a !== void 0 ? _a : '';
     }
     setCellColor(cell, color) {
-        cell.style.background = color;
+        this.applyColor(cell, color);
     }
     setBooster(cell, type) {
         cell.dataset.booster = type;
@@ -55,7 +56,9 @@ class Board {
         }
     }
     swapCells(a, b) {
-        [a.style.background, b.style.background] = [b.style.background, a.style.background];
+        const colorA = this.getCellColor(a);
+        this.setCellColor(a, this.getCellColor(b));
+        this.setCellColor(b, colorA);
         [a.dataset.booster, b.dataset.booster] = [b.dataset.booster, a.dataset.booster];
         this.updateBoosterVisual(a);
         this.updateBoosterVisual(b);
@@ -86,6 +89,15 @@ class Board {
     getExistingColor(index) {
         const cell = this.cells[index];
         return cell ? this.getCellColor(cell) : null;
+    }
+    applyColor(cell, color) {
+        cell.dataset.color = color;
+        if (color) {
+            cell.style.setProperty('--cell-color', color);
+        }
+        else {
+            cell.style.removeProperty('--cell-color');
+        }
     }
 }
 export { Board };
