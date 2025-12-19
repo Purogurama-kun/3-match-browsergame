@@ -1,8 +1,9 @@
-import { GRID_SIZE, BOOSTERS, BLACK_BOMB_COLOR, randomColor } from './constants.js';
+import { GRID_SIZE, BOOSTERS, BLACK_BOMB_COLOR, randomColor, getColorKeyFromHex } from './constants.js';
 import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
 import { Board } from './board.js';
 import { getRequiredElement } from './dom.js';
+import { describeGoal, getLevelDefinition } from './levels.js';
 class Match3Game {
     constructor() {
         this.gameEl = getRequiredElement('game');
@@ -25,8 +26,10 @@ class Match3Game {
             selected: null,
             score: 0,
             level: 1,
-            targetScore: 300,
-            movesLeft: 20
+            targetScore: 0,
+            movesLeft: 0,
+            goals: [],
+            difficulty: 1
         };
         this.generation = 0;
         this.pendingTimers = [];
@@ -48,6 +51,7 @@ class Match3Game {
         });
     }
     start() {
+        this.initLevel(1);
         this.createBoard();
     }
     screenShake() {
@@ -56,6 +60,25 @@ class Match3Game {
     }
     updateHud() {
         this.hud.render(this.state);
+    }
+    initLevel(levelNumber) {
+        const definition = getLevelDefinition(levelNumber);
+        this.state = {
+            selected: null,
+            score: 0,
+            level: definition.id,
+            targetScore: definition.targetScore,
+            movesLeft: definition.moves,
+            goals: this.createGoals(definition.goals),
+            difficulty: definition.difficulty
+        };
+    }
+    createGoals(levelGoals) {
+        return levelGoals.map((goal) => ({
+            ...goal,
+            current: 0,
+            description: describeGoal(goal)
+        }));
     }
     createBoard() {
         this.generation++;
@@ -290,8 +313,12 @@ class Match3Game {
             }, 350);
             return;
         }
+        if (this.isLevelComplete()) {
+            this.endLevel(true);
+            return;
+        }
         if (this.state.movesLeft <= 0)
-            this.endLevel();
+            this.endLevel(false);
     }
     destroyCell(index) {
         const cell = this.board.getCell(index);
@@ -303,9 +330,9 @@ class Match3Game {
         this.defer(() => {
             this.board.clearCell(cell);
             this.state.score += 10;
+            this.updateGoalsForDestroyedCell(color);
             this.updateHud();
-            if (this.state.score >= this.state.targetScore)
-                this.endLevel();
+            this.checkWinCondition();
         }, 300);
     }
     createBooster(index, type) {
@@ -322,33 +349,33 @@ class Match3Game {
         const index = Number(cell.dataset.index);
         const row = Math.floor(index / GRID_SIZE);
         const col = index % GRID_SIZE;
-        if (cell.dataset.booster === BOOSTERS.LINE) {
+        const booster = this.board.getCellBooster(cell);
+        this.updateGoalsForBooster(booster);
+        if (booster === BOOSTERS.LINE) {
             this.sounds.play('lineBomb');
             const affected = new Set();
             for (let c = 0; c < GRID_SIZE; c++)
                 affected.add(row * GRID_SIZE + c);
             affected.forEach((idx) => this.destroyCell(idx));
-            return;
         }
-        if (cell.dataset.booster === BOOSTERS.BURST_SMALL) {
+        else if (booster === BOOSTERS.BURST_SMALL) {
             this.sounds.play('radiusBomb');
             this.destroyCircularArea(row, col, 1);
-            return;
         }
-        if (cell.dataset.booster === BOOSTERS.BURST_MEDIUM) {
+        else if (booster === BOOSTERS.BURST_MEDIUM) {
             this.sounds.play('radiusBomb');
             this.destroyCircularArea(row, col, 1.5);
-            return;
         }
-        if (cell.dataset.booster === BOOSTERS.BURST_LARGE) {
+        else if (booster === BOOSTERS.BURST_LARGE) {
             this.sounds.play('radiusBomb');
             this.destroyCircularArea(row, col, 2);
         }
         if (consumesMove) {
             this.state.movesLeft--;
-            this.updateHud();
             this.defer(() => this.dropCells(), 300);
         }
+        this.updateHud();
+        this.checkWinCondition();
     }
     destroyCircularArea(row, col, radius) {
         const affected = new Set();
@@ -391,21 +418,19 @@ class Match3Game {
         }
         this.defer(() => this.checkMatches(), 200);
     }
-    endLevel() {
+    endLevel(didWin) {
         const completedLevel = this.state.level;
-        const isWin = this.state.score >= this.state.targetScore;
-        if (isWin) {
+        const nextLevel = didWin ? completedLevel + 1 : completedLevel;
+        if (didWin) {
             this.sounds.play('levelUp');
-            this.state.level++;
-            this.state.targetScore += 200;
-            this.state.movesLeft += 5;
         }
         else {
             this.sounds.play('levelFail');
-            this.state.movesLeft = 20;
         }
-        this.state.score = 0;
-        this.showResultModal(isWin ? 'win' : 'lose', completedLevel, () => this.createBoard());
+        this.showResultModal(didWin ? 'win' : 'lose', completedLevel, nextLevel, () => {
+            this.initLevel(nextLevel);
+            this.createBoard();
+        });
     }
     areAdjacent(a, b) {
         const aIndex = Number(a.dataset.index);
@@ -472,11 +497,11 @@ class Match3Game {
         cell.classList.add('game__cell--shake');
         this.defer(() => cell.classList.remove('game__cell--shake'), 350);
     }
-    showResultModal(result, completedLevel, onClose) {
+    showResultModal(result, completedLevel, nextLevel, onClose) {
         this.modalCallback = onClose;
         if (result === 'win') {
             this.modalTitle.textContent = 'Level ' + completedLevel + ' geschafft!';
-            this.modalText.textContent = 'Weiter geht es mit Level ' + this.state.level + '.';
+            this.modalText.textContent = 'Weiter geht es mit Level ' + nextLevel + '.';
         }
         else {
             this.modalTitle.textContent = 'Level verloren!';
@@ -493,6 +518,38 @@ class Match3Game {
         this.modalCallback = null;
         if (callback)
             callback();
+    }
+    checkWinCondition() {
+        if (this.isLevelComplete()) {
+            this.endLevel(true);
+        }
+    }
+    isLevelComplete() {
+        return this.state.score >= this.state.targetScore && this.areGoalsComplete();
+    }
+    areGoalsComplete() {
+        return this.state.goals.every((goal) => goal.current >= goal.target);
+    }
+    updateGoalsForDestroyedCell(color) {
+        const colorKey = getColorKeyFromHex(color);
+        if (!colorKey)
+            return;
+        this.state.goals = this.state.goals.map((goal) => {
+            if (goal.type === 'destroy-color' && goal.color === colorKey) {
+                return { ...goal, current: Math.min(goal.target, goal.current + 1) };
+            }
+            return goal;
+        });
+    }
+    updateGoalsForBooster(booster) {
+        if (booster === BOOSTERS.NONE)
+            return;
+        this.state.goals = this.state.goals.map((goal) => {
+            if (goal.type === 'activate-booster' && goal.booster === booster) {
+                return { ...goal, current: Math.min(goal.target, goal.current + 1) };
+            }
+            return goal;
+        });
     }
 }
 export { Match3Game };

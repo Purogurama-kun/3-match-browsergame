@@ -7,7 +7,7 @@ Small Match-3 browser game with sounds and boosters, written in TypeScript.
 - Special matches spawn bombs: 4-line clears, square/T/L blasts, and mega 5-line bombs.
 - Cascading matches after drops, with automatic refills.
 - Swap modes: free swaps or require a valid match.
-- Score, moves, and level targets with level-up/level-fail flow.
+- Score, moves, and per-level goals with level-up/level-fail flow and rising difficulty.
 - Sound effects and screen shake feedback.
 
 ## Run locally
@@ -32,6 +32,7 @@ Then open `http://localhost:8000` in your browser.
 - `src/hud.ts` HUD updates
 - `src/sound-manager.ts` sound playback
 - `src/constants.ts` shared constants and helpers
+- `src/levels.ts` fixed level data with targets, goals, and difficulty
 - `src/types.ts` shared types
 - `dist/` compiled JavaScript output
 - `assets/sounds/` sound effects, including match and booster variants

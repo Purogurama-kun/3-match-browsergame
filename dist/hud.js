@@ -7,6 +7,8 @@ class Hud {
         this.moves = getRequiredElement('moves');
         this.scoreProgress = getRequiredElement('score-progress');
         this.scoreProgressFill = getRequiredElement('score-progress-fill');
+        this.difficulty = getRequiredElement('difficulty');
+        this.goalsList = this.getGoalsListElement();
         this.swapModeSelect = this.getSwapModeElement();
         this.optionsToggle = this.getOptionsToggle();
         this.optionsClose = this.getOptionsClose();
@@ -20,7 +22,9 @@ class Hud {
         this.level.textContent = String(state.level);
         this.target.textContent = String(state.targetScore);
         this.moves.textContent = String(state.movesLeft);
+        this.difficulty.textContent = String(state.difficulty);
         this.updateProgress(state.score, state.targetScore);
+        this.renderGoals(state.goals);
     }
     getSwapMode() {
         return this.swapModeSelect.value;
@@ -93,12 +97,35 @@ class Hud {
         }
         return element;
     }
+    getGoalsListElement() {
+        const element = getRequiredElement('goals-list');
+        if (!(element instanceof HTMLUListElement)) {
+            throw new Error('Goals list element is not a list');
+        }
+        return element;
+    }
     updateProgress(score, target) {
         const clampedScore = Math.max(0, score);
         const ratio = Math.min(1, clampedScore / Math.max(1, target));
         this.scoreProgress.setAttribute('aria-valuenow', clampedScore.toString());
         this.scoreProgress.setAttribute('aria-valuemax', target.toString());
         this.scoreProgressFill.style.width = (ratio * 100).toFixed(1) + '%';
+    }
+    renderGoals(goals) {
+        this.goalsList.innerHTML = '';
+        goals.forEach((goal) => {
+            const item = document.createElement('li');
+            item.className = 'game__goal';
+            const text = document.createElement('span');
+            text.className = 'game__goal-text';
+            text.textContent = goal.description;
+            const progress = document.createElement('span');
+            progress.className = 'game__goal-progress';
+            progress.textContent = goal.current + '/' + goal.target;
+            item.appendChild(text);
+            item.appendChild(progress);
+            this.goalsList.appendChild(item);
+        });
     }
     showOptionsModal() {
         this.optionsModal.removeAttribute('hidden');

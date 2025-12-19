@@ -1,9 +1,10 @@
-import { GRID_SIZE, BOOSTERS, BLACK_BOMB_COLOR, BoosterType, randomColor } from './constants.js';
+import { GRID_SIZE, BOOSTERS, BLACK_BOMB_COLOR, BoosterType, randomColor, getColorKeyFromHex } from './constants.js';
 import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
 import { Board } from './board.js';
-import { GameState, SwapMode, SwipeDirection } from './types.js';
+import { GameState, GoalProgress, LevelGoal, SwapMode, SwipeDirection } from './types.js';
 import { getRequiredElement } from './dom.js';
+import { describeGoal, getLevelDefinition } from './levels.js';
 
 class Match3Game {
     constructor() {
@@ -27,13 +28,14 @@ class Match3Game {
         });
         this.hud.initOptionsMenu();
         this.hud.setAudioEnabled(this.sounds.isEnabled());
-
         this.state = {
             selected: null,
             score: 0,
             level: 1,
-            targetScore: 300,
-            movesLeft: 20
+            targetScore: 0,
+            movesLeft: 0,
+            goals: [],
+            difficulty: 1
         };
 
         this.generation = 0;
@@ -73,6 +75,7 @@ class Match3Game {
     private modalCallback: (() => void) | null;
 
     start(): void {
+        this.initLevel(1);
         this.createBoard();
     }
 
@@ -83,6 +86,27 @@ class Match3Game {
 
     private updateHud(): void {
         this.hud.render(this.state);
+    }
+
+    private initLevel(levelNumber: number): void {
+        const definition = getLevelDefinition(levelNumber);
+        this.state = {
+            selected: null,
+            score: 0,
+            level: definition.id,
+            targetScore: definition.targetScore,
+            movesLeft: definition.moves,
+            goals: this.createGoals(definition.goals),
+            difficulty: definition.difficulty
+        };
+    }
+
+    private createGoals(levelGoals: LevelGoal[]): GoalProgress[] {
+        return levelGoals.map((goal) => ({
+            ...goal,
+            current: 0,
+            description: describeGoal(goal)
+        }));
     }
 
     private createBoard(): void {
@@ -339,7 +363,12 @@ class Match3Game {
             return;
         }
 
-        if (this.state.movesLeft <= 0) this.endLevel();
+        if (this.isLevelComplete()) {
+            this.endLevel(true);
+            return;
+        }
+
+        if (this.state.movesLeft <= 0) this.endLevel(false);
     }
 
     private destroyCell(index: number): void {
@@ -351,8 +380,9 @@ class Match3Game {
         this.defer(() => {
             this.board.clearCell(cell);
             this.state.score += 10;
+            this.updateGoalsForDestroyedCell(color);
             this.updateHud();
-            if (this.state.score >= this.state.targetScore) this.endLevel();
+            this.checkWinCondition();
         }, 300);
     }
 
@@ -370,34 +400,31 @@ class Match3Game {
         const index = Number(cell.dataset.index);
         const row = Math.floor(index / GRID_SIZE);
         const col = index % GRID_SIZE;
+        const booster = this.board.getCellBooster(cell);
+        this.updateGoalsForBooster(booster);
 
-        if (cell.dataset.booster === BOOSTERS.LINE) {
+        if (booster === BOOSTERS.LINE) {
             this.sounds.play('lineBomb');
             const affected = new Set<number>();
             for (let c = 0; c < GRID_SIZE; c++) affected.add(row * GRID_SIZE + c);
             affected.forEach((idx) => this.destroyCell(idx));
-            return;
-        }
-        if (cell.dataset.booster === BOOSTERS.BURST_SMALL) {
+        } else if (booster === BOOSTERS.BURST_SMALL) {
             this.sounds.play('radiusBomb');
             this.destroyCircularArea(row, col, 1);
-            return;
-        }
-        if (cell.dataset.booster === BOOSTERS.BURST_MEDIUM) {
+        } else if (booster === BOOSTERS.BURST_MEDIUM) {
             this.sounds.play('radiusBomb');
             this.destroyCircularArea(row, col, 1.5);
-            return;
-        }
-        if (cell.dataset.booster === BOOSTERS.BURST_LARGE) {
+        } else if (booster === BOOSTERS.BURST_LARGE) {
             this.sounds.play('radiusBomb');
             this.destroyCircularArea(row, col, 2);
         }
 
         if (consumesMove) {
             this.state.movesLeft--;
-            this.updateHud();
             this.defer(() => this.dropCells(), 300);
         }
+        this.updateHud();
+        this.checkWinCondition();
     }
 
     private destroyCircularArea(row: number, col: number, radius: number): void {
@@ -442,20 +469,18 @@ class Match3Game {
         this.defer(() => this.checkMatches(), 200);
     }
 
-    private endLevel(): void {
+    private endLevel(didWin: boolean): void {
         const completedLevel = this.state.level;
-        const isWin = this.state.score >= this.state.targetScore;
-        if (isWin) {
+        const nextLevel = didWin ? completedLevel + 1 : completedLevel;
+        if (didWin) {
             this.sounds.play('levelUp');
-            this.state.level++;
-            this.state.targetScore += 200;
-            this.state.movesLeft += 5;
         } else {
             this.sounds.play('levelFail');
-            this.state.movesLeft = 20;
         }
-        this.state.score = 0;
-        this.showResultModal(isWin ? 'win' : 'lose', completedLevel, () => this.createBoard());
+        this.showResultModal(didWin ? 'win' : 'lose', completedLevel, nextLevel, () => {
+            this.initLevel(nextLevel);
+            this.createBoard();
+        });
     }
 
     private areAdjacent(a: HTMLDivElement, b: HTMLDivElement): boolean {
@@ -523,11 +548,16 @@ class Match3Game {
         this.defer(() => cell.classList.remove('game__cell--shake'), 350);
     }
 
-    private showResultModal(result: 'win' | 'lose', completedLevel: number, onClose: () => void): void {
+    private showResultModal(
+        result: 'win' | 'lose',
+        completedLevel: number,
+        nextLevel: number,
+        onClose: () => void
+    ): void {
         this.modalCallback = onClose;
         if (result === 'win') {
             this.modalTitle.textContent = 'Level ' + completedLevel + ' geschafft!';
-            this.modalText.textContent = 'Weiter geht es mit Level ' + this.state.level + '.';
+            this.modalText.textContent = 'Weiter geht es mit Level ' + nextLevel + '.';
         } else {
             this.modalTitle.textContent = 'Level verloren!';
             this.modalText.textContent = 'Versuche es direkt noch einmal.';
@@ -542,6 +572,41 @@ class Match3Game {
         const callback = this.modalCallback;
         this.modalCallback = null;
         if (callback) callback();
+    }
+
+    private checkWinCondition(): void {
+        if (this.isLevelComplete()) {
+            this.endLevel(true);
+        }
+    }
+
+    private isLevelComplete(): boolean {
+        return this.state.score >= this.state.targetScore && this.areGoalsComplete();
+    }
+
+    private areGoalsComplete(): boolean {
+        return this.state.goals.every((goal) => goal.current >= goal.target);
+    }
+
+    private updateGoalsForDestroyedCell(color: string): void {
+        const colorKey = getColorKeyFromHex(color);
+        if (!colorKey) return;
+        this.state.goals = this.state.goals.map((goal) => {
+            if (goal.type === 'destroy-color' && goal.color === colorKey) {
+                return { ...goal, current: Math.min(goal.target, goal.current + 1) };
+            }
+            return goal;
+        });
+    }
+
+    private updateGoalsForBooster(booster: BoosterType): void {
+        if (booster === BOOSTERS.NONE) return;
+        this.state.goals = this.state.goals.map((goal) => {
+            if (goal.type === 'activate-booster' && goal.booster === booster) {
+                return { ...goal, current: Math.min(goal.target, goal.current + 1) };
+            }
+            return goal;
+        });
     }
 }
 
