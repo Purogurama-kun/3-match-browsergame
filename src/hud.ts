@@ -1,4 +1,5 @@
-import { GameState, GoalProgress, SwapMode } from './types.js';
+import { BOOSTERS, getColorHex } from './constants.js';
+import { ActivatableBoosterType, GameState, GoalProgress, SwapMode } from './types.js';
 import { getRequiredElement } from './dom.js';
 
 class Hud {
@@ -149,14 +150,21 @@ class Hud {
         goals.forEach((goal) => {
             const item = document.createElement('li');
             item.className = 'game__goal';
-            const text = document.createElement('span');
-            text.className = 'game__goal-text';
-            text.textContent = goal.description;
-            const progress = document.createElement('span');
-            progress.className = 'game__goal-progress';
-            progress.textContent = goal.current + '/' + goal.target;
-            item.appendChild(text);
-            item.appendChild(progress);
+            const remaining = Math.max(goal.target - goal.current, 0);
+
+            const visual = this.createGoalVisual(goal);
+            const counter = document.createElement('span');
+            counter.className = 'game__goal-count';
+            counter.textContent = String(remaining);
+
+            const label = document.createElement('span');
+            label.className = 'game__goal-label';
+            label.textContent = goal.description;
+
+            item.setAttribute('aria-label', goal.description + ' verbleibend: ' + remaining);
+            item.appendChild(visual);
+            item.appendChild(counter);
+            item.appendChild(label);
             this.goalsList.appendChild(item);
         });
     }
@@ -182,6 +190,29 @@ class Hud {
     private setAudioToggleState(enabled: boolean): void {
         this.audioToggle.setAttribute('aria-pressed', String(enabled));
         this.audioToggle.textContent = enabled ? 'Audio an' : 'Audio aus';
+    }
+
+    private createGoalVisual(goal: GoalProgress): HTMLElement {
+        if (goal.type === 'destroy-color') {
+            const chip = document.createElement('span');
+            chip.className = 'game__goal-chip game__goal-chip--color';
+            chip.style.setProperty('--goal-color', getColorHex(goal.color));
+            chip.setAttribute('aria-hidden', 'true');
+            return chip;
+        }
+        const chip = document.createElement('span');
+        chip.className = 'game__goal-chip game__goal-chip--booster';
+        chip.textContent = this.getBoosterIcon(goal.booster);
+        chip.setAttribute('aria-hidden', 'true');
+        return chip;
+    }
+
+    private getBoosterIcon(booster: ActivatableBoosterType): string {
+        if (booster === BOOSTERS.LINE) return '💣';
+        if (booster === BOOSTERS.BURST_SMALL) return '🧨';
+        if (booster === BOOSTERS.BURST_MEDIUM) return '💥';
+        if (booster === BOOSTERS.BURST_LARGE) return '☢️';
+        return '';
     }
 }
 
