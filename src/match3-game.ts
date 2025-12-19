@@ -31,7 +31,6 @@ class Match3Game {
         this.modalTitle = getRequiredElement('result-title');
         this.modalText = getRequiredElement('result-text');
         this.modalButton = getRequiredElement('result-button');
-        this.modalGif = getRequiredElement('result-gif');
         this.modalCallback = null;
 
         this.modalButton.addEventListener('click', () => this.hideResultModal());
@@ -59,7 +58,6 @@ class Match3Game {
     private modalTitle: HTMLElement;
     private modalText: HTMLElement;
     private modalButton: HTMLButtonElement;
-    private modalGif: HTMLImageElement;
     private modalCallback: (() => void) | null;
 
     start(): void {
@@ -336,13 +334,9 @@ class Match3Game {
         if (result === 'win') {
             this.modalTitle.textContent = 'Level ' + completedLevel + ' geschafft!';
             this.modalText.textContent = 'Weiter geht es mit Level ' + this.state.level + '.';
-            this.modalGif.src = 'https://media.giphy.com/media/111ebonMs90YLu/giphy.gif';
-            this.modalGif.alt = 'Feierndes animiertes GIF';
         } else {
             this.modalTitle.textContent = 'Level verloren!';
             this.modalText.textContent = 'Versuche es direkt noch einmal.';
-            this.modalGif.src = 'https://media.giphy.com/media/3og0IPGMtUHx3XyWXS/giphy.gif';
-            this.modalGif.alt = 'Aufmunterndes animiertes GIF';
         }
         this.modalEl.classList.add('game__modal--visible');
         this.modalButton.focus();
@@ -351,7 +345,6 @@ class Match3Game {
     private hideResultModal(): void {
         if (!this.modalEl.classList.contains('game__modal--visible')) return;
         this.modalEl.classList.remove('game__modal--visible');
-        this.modalGif.src = '';
         const callback = this.modalCallback;
         this.modalCallback = null;
         if (callback) callback();
