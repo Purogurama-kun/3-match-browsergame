@@ -8,6 +8,14 @@
     <script type="module" src="dist/main.js"></script>
 </head>
 <body class="game">
+    <button id="options-toggle" class="game__menu-button" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="options-modal">
+        <span class="game__menu-icon" aria-hidden="true">
+            <span class="game__menu-line"></span>
+            <span class="game__menu-line"></span>
+            <span class="game__menu-line"></span>
+        </span>
+        <span class="game__menu-label">Menü</span>
+    </button>
     <h1 class="game__title">Match-3 Spiel</h1>
     <div id="game" class="game__board"></div>
     <div id="hud" class="game__hud">
@@ -21,29 +29,6 @@
                 <div class="game__hud-value">
                     <span id="moves" class="game__hud-value-strong">20</span>
                     <span class="game__hud-note">verbleibend</span>
-                </div>
-            </div>
-            <div id="options" class="game__hud-card game__hud-card--options">
-                <div class="game__hud-label">Optionen</div>
-                <div class="game__options">
-                    <button id="options-toggle" class="game__options-button" type="button" aria-expanded="false" aria-controls="options-panel">
-                        Menü öffnen
-                    </button>
-                    <div id="options-panel" class="game__options-panel" hidden>
-                        <div class="game__options-group">
-                            <label class="game__options-label" for="swap-mode">Tausch-Regel</label>
-                            <select id="swap-mode" class="game__hud-select">
-                                <option value="require-match" selected>Nur mit Match</option>
-                                <option value="free-swap">Jeder Tausch</option>
-                            </select>
-                        </div>
-                        <div class="game__options-group">
-                            <span class="game__options-label">Audio</span>
-                            <button id="audio-toggle" class="game__options-action" type="button" aria-pressed="true">
-                                Audio an
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -68,6 +53,32 @@
                 <h2 id="result-title" class="game__modal-title"></h2>
                 <p id="result-text" class="game__modal-text"></p>
                 <button id="result-button" class="game__modal-button" type="button">Weiter</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="options-modal" class="game__options-modal" hidden>
+        <div class="game__options-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="options-modal-title">
+            <div class="game__options-modal-header">
+                <h2 id="options-modal-title" class="game__options-modal-title">Optionen</h2>
+                <button id="options-close" class="game__options-close" type="button" aria-label="Menü schließen">
+                    <span class="game__options-close-icon" aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="game__options-modal-body">
+                <div class="game__options-group">
+                    <label class="game__options-label" for="swap-mode">Tausch-Regel</label>
+                    <select id="swap-mode" class="game__hud-select">
+                        <option value="require-match" selected>Nur mit Match</option>
+                        <option value="free-swap">Jeder Tausch</option>
+                    </select>
+                </div>
+                <div class="game__options-group">
+                    <span class="game__options-label">Audio</span>
+                    <button id="audio-toggle" class="game__options-action" type="button" aria-pressed="true">
+                        Audio an
+                    </button>
+                </div>
             </div>
         </div>
     </div>

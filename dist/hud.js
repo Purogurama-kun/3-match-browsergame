@@ -9,10 +9,11 @@ class Hud {
         this.scoreProgressFill = getRequiredElement('score-progress-fill');
         this.swapModeSelect = this.getSwapModeElement();
         this.optionsToggle = this.getOptionsToggle();
-        this.optionsPanel = this.getOptionsPanel();
+        this.optionsClose = this.getOptionsClose();
+        this.optionsModal = this.getOptionsModal();
         this.audioToggle = this.getAudioToggle();
         this.setAudioToggleState(true);
-        this.setOptionsVisibility(false);
+        this.hideOptionsModal();
     }
     render(state) {
         this.score.textContent = String(state.score);
@@ -39,7 +40,23 @@ class Hud {
     initOptionsMenu() {
         this.optionsToggle.addEventListener('click', () => {
             const isExpanded = this.optionsToggle.getAttribute('aria-expanded') === 'true';
-            this.setOptionsVisibility(!isExpanded);
+            if (isExpanded) {
+                this.hideOptionsModal();
+            }
+            else {
+                this.showOptionsModal();
+            }
+        });
+        this.optionsClose.addEventListener('click', () => this.hideOptionsModal());
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                this.hideOptionsModal();
+            }
+        });
+        this.optionsModal.addEventListener('click', (event) => {
+            if (event.target === this.optionsModal) {
+                this.hideOptionsModal();
+            }
         });
     }
     setAudioEnabled(enabled) {
@@ -59,8 +76,15 @@ class Hud {
         }
         return element;
     }
-    getOptionsPanel() {
-        return getRequiredElement('options-panel');
+    getOptionsClose() {
+        const element = getRequiredElement('options-close');
+        if (!(element instanceof HTMLButtonElement)) {
+            throw new Error('Options close is not a button');
+        }
+        return element;
+    }
+    getOptionsModal() {
+        return getRequiredElement('options-modal');
     }
     getAudioToggle() {
         const element = getRequiredElement('audio-toggle');
@@ -76,16 +100,21 @@ class Hud {
         this.scoreProgress.setAttribute('aria-valuemax', target.toString());
         this.scoreProgressFill.style.width = (ratio * 100).toFixed(1) + '%';
     }
-    setOptionsVisibility(visible) {
-        this.optionsToggle.setAttribute('aria-expanded', String(visible));
-        if (visible) {
-            this.optionsPanel.removeAttribute('hidden');
-            this.optionsToggle.textContent = 'Menü schließen';
-        }
-        else {
-            this.optionsPanel.setAttribute('hidden', 'true');
-            this.optionsToggle.textContent = 'Menü öffnen';
-        }
+    showOptionsModal() {
+        this.optionsModal.removeAttribute('hidden');
+        this.optionsModal.setAttribute('aria-hidden', 'false');
+        this.optionsToggle.setAttribute('aria-expanded', 'true');
+        this.optionsToggle.setAttribute('aria-pressed', 'true');
+        this.optionsToggle.textContent = 'Menü schließen';
+        this.optionsClose.focus();
+    }
+    hideOptionsModal() {
+        this.optionsModal.setAttribute('hidden', 'true');
+        this.optionsModal.setAttribute('aria-hidden', 'true');
+        this.optionsToggle.setAttribute('aria-expanded', 'false');
+        this.optionsToggle.setAttribute('aria-pressed', 'false');
+        this.optionsToggle.textContent = 'Menü';
+        this.optionsToggle.focus();
     }
     setAudioToggleState(enabled) {
         this.audioToggle.setAttribute('aria-pressed', String(enabled));
