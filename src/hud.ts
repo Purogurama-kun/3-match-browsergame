@@ -11,10 +11,11 @@ class Hud {
         this.scoreProgressFill = getRequiredElement('score-progress-fill');
         this.swapModeSelect = this.getSwapModeElement();
         this.optionsToggle = this.getOptionsToggle();
-        this.optionsPanel = this.getOptionsPanel();
+        this.optionsClose = this.getOptionsClose();
+        this.optionsModal = this.getOptionsModal();
         this.audioToggle = this.getAudioToggle();
         this.setAudioToggleState(true);
-        this.setOptionsVisibility(false);
+        this.hideOptionsModal();
     }
 
     private score: HTMLElement;
@@ -25,7 +26,8 @@ class Hud {
     private scoreProgressFill: HTMLElement;
     private swapModeSelect: HTMLSelectElement;
     private optionsToggle: HTMLButtonElement;
-    private optionsPanel: HTMLElement;
+    private optionsClose: HTMLButtonElement;
+    private optionsModal: HTMLElement;
     private audioToggle: HTMLButtonElement;
 
     render(state: GameState): void {
@@ -58,7 +60,25 @@ class Hud {
     initOptionsMenu(): void {
         this.optionsToggle.addEventListener('click', () => {
             const isExpanded = this.optionsToggle.getAttribute('aria-expanded') === 'true';
-            this.setOptionsVisibility(!isExpanded);
+            if (isExpanded) {
+                this.hideOptionsModal();
+            } else {
+                this.showOptionsModal();
+            }
+        });
+
+        this.optionsClose.addEventListener('click', () => this.hideOptionsModal());
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                this.hideOptionsModal();
+            }
+        });
+
+        this.optionsModal.addEventListener('click', (event) => {
+            if (event.target === this.optionsModal) {
+                this.hideOptionsModal();
+            }
         });
     }
 
@@ -82,8 +102,16 @@ class Hud {
         return element;
     }
 
-    private getOptionsPanel(): HTMLElement {
-        return getRequiredElement('options-panel');
+    private getOptionsClose(): HTMLButtonElement {
+        const element = getRequiredElement('options-close');
+        if (!(element instanceof HTMLButtonElement)) {
+            throw new Error('Options close is not a button');
+        }
+        return element;
+    }
+
+    private getOptionsModal(): HTMLElement {
+        return getRequiredElement('options-modal');
     }
 
     private getAudioToggle(): HTMLButtonElement {
@@ -102,15 +130,22 @@ class Hud {
         this.scoreProgressFill.style.width = (ratio * 100).toFixed(1) + '%';
     }
 
-    private setOptionsVisibility(visible: boolean): void {
-        this.optionsToggle.setAttribute('aria-expanded', String(visible));
-        if (visible) {
-            this.optionsPanel.removeAttribute('hidden');
-            this.optionsToggle.textContent = 'Menü schließen';
-        } else {
-            this.optionsPanel.setAttribute('hidden', 'true');
-            this.optionsToggle.textContent = 'Menü öffnen';
-        }
+    private showOptionsModal(): void {
+        this.optionsModal.removeAttribute('hidden');
+        this.optionsModal.setAttribute('aria-hidden', 'false');
+        this.optionsToggle.setAttribute('aria-expanded', 'true');
+        this.optionsToggle.setAttribute('aria-pressed', 'true');
+        this.optionsToggle.textContent = 'Menü schließen';
+        this.optionsClose.focus();
+    }
+
+    private hideOptionsModal(): void {
+        this.optionsModal.setAttribute('hidden', 'true');
+        this.optionsModal.setAttribute('aria-hidden', 'true');
+        this.optionsToggle.setAttribute('aria-expanded', 'false');
+        this.optionsToggle.setAttribute('aria-pressed', 'false');
+        this.optionsToggle.textContent = 'Menü';
+        this.optionsToggle.focus();
     }
 
     private setAudioToggleState(enabled: boolean): void {

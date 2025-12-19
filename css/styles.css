@@ -26,6 +26,40 @@ body {
     --cell-size: 3.75rem;
 }
 
+.game__menu-button {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 12px;
+    border: 1px solid #2f3654;
+    background: #0c0f1b;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.game__menu-button:hover {
+    background: #13182b;
+}
+
+.game__menu-icon {
+    display: grid;
+    gap: 0.22rem;
+}
+
+.game__menu-line {
+    display: block;
+    width: 1.6rem;
+    height: 0.16rem;
+    background: #fff;
+    border-radius: 999px;
+}
+
 @media (max-width: 780px) {
     .game {
         --cell-size: 2.7rem;
@@ -282,6 +316,67 @@ body {
 .game__options-action[aria-pressed="false"] {
     background: #0d1022;
     color: #cfd5ff;
+}
+
+.game__options-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 12, 24, 0.78);
+    padding: 1rem;
+    z-index: 15;
+}
+
+.game__options-modal[hidden] {
+    display: none;
+}
+
+.game__options-modal-dialog {
+    width: min(26rem, 100%);
+    background: #0f1327;
+    border: 1px solid #2f3654;
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    display: grid;
+    gap: 0.75rem;
+}
+
+.game__options-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem 0 1rem;
+    gap: 1rem;
+}
+
+.game__options-modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.game__options-close {
+    border: none;
+    background: transparent;
+    color: #fff;
+    font-size: 1.4rem;
+    cursor: pointer;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+}
+
+.game__options-close:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.game__options-modal-body {
+    padding: 0 1rem 1rem 1rem;
+    display: grid;
+    gap: 0.75rem;
 }
 
 .game__hud-select {
