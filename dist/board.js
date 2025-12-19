@@ -21,6 +21,7 @@ class Board {
             cell.dataset.booster = BOOSTERS.NONE;
             cell.addEventListener('click', () => this.onCellClick(cell));
             cell.addEventListener('touchstart', (event) => this.handleTouchStart(event, cell), { passive: false });
+            cell.addEventListener('touchmove', (event) => this.handleTouchMove(event), { passive: false });
             cell.addEventListener('touchend', (event) => this.handleTouchEnd(event), { passive: false });
             cell.addEventListener('touchcancel', () => this.resetTouchState());
             this.gameEl.appendChild(cell);
@@ -80,6 +81,20 @@ class Board {
         this.touchStartX = touch.clientX;
         this.touchStartY = touch.clientY;
         this.touchStartCell = cell;
+    }
+    handleTouchMove(event) {
+        if (this.touchStartX === null || this.touchStartY === null)
+            return;
+        if (event.touches.length !== 1)
+            return;
+        const touch = event.touches[0];
+        if (!touch)
+            return;
+        const deltaX = Math.abs(touch.clientX - this.touchStartX);
+        const deltaY = Math.abs(touch.clientY - this.touchStartY);
+        if (Math.max(deltaX, deltaY) > 4) {
+            event.preventDefault();
+        }
     }
     handleTouchEnd(event) {
         if (!this.touchStartCell || this.touchStartX === null || this.touchStartY === null) {
