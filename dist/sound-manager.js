@@ -16,6 +16,13 @@ class SoundManager {
             levelFail: this.createAudio('levelFail')
         };
     }
+    setEnabled(enabled) {
+        this.enabled = enabled && this.supportsOgg();
+        return this.enabled;
+    }
+    isEnabled() {
+        return this.enabled;
+    }
     play(key) {
         if (!this.enabled)
             return;
