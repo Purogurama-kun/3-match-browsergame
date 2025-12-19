@@ -6,41 +6,63 @@
     flex-direction: column;
     align-items: center;
     margin: 0;
-    padding: 20px;
+    padding: 1.25rem;
     min-height: 100vh;
     box-sizing: border-box;
+
+    --cell-size: 3.75rem;
 }
-.game__title { margin-bottom: 10px; }
+
+@media (max-width: 780px) {
+    .game {
+        --cell-size: 2.7rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .game {
+        --cell-size: 2.5rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .game {
+        --cell-size: 2.3rem;
+    }
+}
+
+.game__title { margin-bottom: 0.625rem; }
+
 .game__board {
     display: grid;
-    grid-template-columns: repeat(8, 60px);
-    grid-template-rows: repeat(8, 60px);
-    gap: 4px;
+    grid-template-columns: repeat(8, var(--cell-size));
+    grid-template-rows: repeat(8, var(--cell-size));
+    gap: 0.25rem;
     background: #111;
-    padding: 6px;
+    padding: 0.375rem;
     border-radius: 12px;
+    /*--board-size: calc((var(--cell-size) * 8) + (0.25rem * 7) + (0.375rem * 2));*/
 }
+
 .game__cell {
     position: relative;
-    width: 60px;
-    height: 60px;
     border-radius: 10px;
     cursor: pointer;
     transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
+    font-size: 1.75rem;
 }
 .game__cell:hover { transform: scale(1.05); }
 .game__cell--selected { outline: 3px solid #fff; }
 
 /* Bomben */
 .game__cell--bomb-line {
-    box-shadow: 0 0 15px 4px #ffeb3b;
+    box-shadow: 0 0 0.9375rem 0.25rem #ffeb3b;
 }
 .game__cell--bomb-radius {
-    box-shadow: 0 0 18px 6px #ff5722;
+    box-shadow: 0 0 1.125rem 0.375rem #ff5722;
 }
 .game__cell-icon {
     pointer-events: none;
@@ -54,10 +76,10 @@
     100% { transform: scale(1.8); opacity: 0; }
 }
 
-.game__hud { margin-top: 15px; font-size: 18px; }
+.game__hud { margin-top: 0.9375rem; font-size: 1.125rem; }
 .game__hud-select {
-    margin-left: 6px;
-    padding: 4px 6px;
+    margin-left: 0.375rem;
+    padding: 0.25rem 0.375rem;
     border-radius: 6px;
     border: 1px solid #444;
     background: #111;
@@ -67,15 +89,15 @@
 /* Screenshake */
 @keyframes shake {
     0% { transform: translate(0, 0); }
-    10% { transform: translate(-5px, 5px); }
-    20% { transform: translate(5px, -5px); }
-    30% { transform: translate(-5px, 5px); }
-    40% { transform: translate(5px, -5px); }
-    50% { transform: translate(-5px, 5px); }
-    60% { transform: translate(5px, -5px); }
-    70% { transform: translate(-5px, 5px); }
-    80% { transform: translate(5px, -5px); }
-    90% { transform: translate(-5px, 5px); }
+    10% { transform: translate(-0.3125rem, 0.3125rem); }
+    20% { transform: translate(0.3125rem, -0.3125rem); }
+    30% { transform: translate(-0.3125rem, 0.3125rem); }
+    40% { transform: translate(0.3125rem, -0.3125rem); }
+    50% { transform: translate(-0.3125rem, 0.3125rem); }
+    60% { transform: translate(0.3125rem, -0.3125rem); }
+    70% { transform: translate(-0.3125rem, 0.3125rem); }
+    80% { transform: translate(0.3125rem, -0.3125rem); }
+    90% { transform: translate(-0.3125rem, 0.3125rem); }
     100% { transform: translate(0, 0); }
 }
 
