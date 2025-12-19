@@ -8,7 +8,7 @@ const SOUND_FILES: Record<SoundKey, string> = {
 };
 
 class SoundManager {
-    private sounds: Record<SoundKey, HTMLAudioElement>;
+    private sounds: Record<SoundKey, [HTMLAudioElement, ...HTMLAudioElement[]]>;
     private enabled: boolean;
     private primed: boolean;
 
@@ -39,8 +39,9 @@ class SoundManager {
     play(key: SoundKey): void {
         if (!this.enabled) return;
         this.ensurePrimed();
-        const sound = this.sounds[key];
-        if (!sound) return;
+        const pool = this.sounds[key];
+        if (!pool || pool.length === 0) return;
+        const sound = this.getAvailableAudio(pool);
         sound.currentTime = 0;
         const playPromise = sound.play();
         if (playPromise && typeof playPromise.catch === 'function') {
@@ -48,20 +49,37 @@ class SoundManager {
         }
     }
 
-    private createSounds(): Record<SoundKey, HTMLAudioElement> {
+    private createSounds(): Record<SoundKey, [HTMLAudioElement, ...HTMLAudioElement[]]> {
         return {
-            match: this.createAudio('match'),
-            lineBomb: this.createAudio('lineBomb'),
-            radiusBomb: this.createAudio('radiusBomb'),
-            levelUp: this.createAudio('levelUp'),
-            levelFail: this.createAudio('levelFail')
+            match: this.createAudioPool('match'),
+            lineBomb: this.createAudioPool('lineBomb'),
+            radiusBomb: this.createAudioPool('radiusBomb'),
+            levelUp: this.createAudioPool('levelUp'),
+            levelFail: this.createAudioPool('levelFail')
         };
     }
 
-    private createAudio(key: SoundKey): HTMLAudioElement {
+    private createAudioPool(key: SoundKey): [HTMLAudioElement, ...HTMLAudioElement[]] {
+        const pool: [HTMLAudioElement, ...HTMLAudioElement[]] = [this.createAudioInstance(key)];
+        for (let i = 0; i < 3; i++) {
+            pool.push(this.createAudioInstance(key));
+        }
+        return pool;
+    }
+
+    private createAudioInstance(key: SoundKey): HTMLAudioElement {
         const audio = new Audio(SOUND_FILES[key]);
         audio.preload = 'auto';
         return audio;
+    }
+
+    private getAvailableAudio(pool: [HTMLAudioElement, ...HTMLAudioElement[]]): HTMLAudioElement {
+        const available = pool.find((audio) => audio.paused || audio.ended);
+        if (available) {
+            this.resetAudio(available);
+            return available;
+        }
+        return pool[0];
     }
 
     private canPlayOgg(): boolean {
@@ -84,14 +102,16 @@ class SoundManager {
     private prime(): void {
         if (this.primed || !this.enabled) return;
         this.primed = true;
-        Object.values(this.sounds).forEach((audio) => {
-            audio.muted = true;
-            const playPromise = audio.play();
-            if (playPromise && typeof playPromise.finally === 'function') {
-                playPromise.finally(() => this.resetAudio(audio));
-            } else {
-                this.resetAudio(audio);
-            }
+        Object.values(this.sounds).forEach((pool) => {
+            pool.forEach((audio) => {
+                audio.muted = true;
+                const playPromise = audio.play();
+                if (playPromise && typeof playPromise.finally === 'function') {
+                    playPromise.finally(() => this.resetAudio(audio));
+                } else {
+                    this.resetAudio(audio);
+                }
+            });
         });
     }
 
@@ -102,9 +122,11 @@ class SoundManager {
     }
 
     private stopAll(): void {
-        Object.values(this.sounds).forEach((audio) => {
-            audio.pause();
-            audio.currentTime = 0;
+        Object.values(this.sounds).forEach((pool) => {
+            pool.forEach((audio) => {
+                audio.pause();
+                audio.currentTime = 0;
+            });
         });
     }
 }
