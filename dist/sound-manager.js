@@ -22,8 +22,9 @@ class SoundManager {
         const sound = this.sounds[key];
         if (!sound)
             return;
-        sound.currentTime = 0;
-        const playPromise = sound.play();
+        const instance = sound.cloneNode(true);
+        instance.currentTime = 0;
+        const playPromise = instance.play();
         if (playPromise && typeof playPromise.catch === 'function') {
             playPromise.catch((error) => {
                 console.error('Failed to play sound:', key, error);
