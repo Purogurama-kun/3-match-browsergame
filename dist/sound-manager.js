@@ -8,6 +8,7 @@ const SOUND_FILES = {
 class SoundManager {
     constructor() {
         this.enabled = this.supportsOgg();
+        this.unlocked = false;
         this.sounds = {
             match: this.createAudio('match'),
             lineBomb: this.createAudio('lineBomb'),
@@ -15,9 +16,15 @@ class SoundManager {
             levelUp: this.createAudio('levelUp'),
             levelFail: this.createAudio('levelFail')
         };
+        if (this.enabled) {
+            this.addUnlockListeners();
+        }
     }
     setEnabled(enabled) {
         this.enabled = enabled && this.supportsOgg();
+        if (this.enabled && !this.unlocked) {
+            this.addUnlockListeners();
+        }
         return this.enabled;
     }
     isEnabled() {
@@ -26,6 +33,7 @@ class SoundManager {
     play(key) {
         if (!this.enabled)
             return;
+        this.unlockIfNeeded();
         const sound = this.sounds[key];
         if (!sound)
             return;
@@ -42,11 +50,54 @@ class SoundManager {
         const audio = new Audio(SOUND_FILES[key]);
         audio.preload = 'auto';
         audio.crossOrigin = 'anonymous';
+        audio.load();
         return audio;
     }
     supportsOgg() {
         const probe = document.createElement('audio');
         return probe.canPlayType('audio/ogg; codecs=\"vorbis\"') !== '';
+    }
+    addUnlockListeners() {
+        const unlock = () => {
+            this.unlockSounds();
+        };
+        document.addEventListener('pointerdown', unlock, { once: true });
+        document.addEventListener('keydown', unlock, { once: true });
+    }
+    unlockIfNeeded() {
+        if (!this.unlocked) {
+            this.unlockSounds();
+        }
+    }
+    unlockSounds() {
+        if (this.unlocked || !this.enabled)
+            return;
+        this.unlocked = true;
+        Object.values(this.sounds).forEach((audio) => {
+            try {
+                audio.muted = true;
+                const playPromise = audio.play();
+                if (playPromise && typeof playPromise.then === 'function') {
+                    playPromise
+                        .then(() => {
+                        audio.pause();
+                        audio.currentTime = 0;
+                        audio.muted = false;
+                    })
+                        .catch(() => {
+                        audio.muted = false;
+                    });
+                }
+                else {
+                    audio.pause();
+                    audio.currentTime = 0;
+                    audio.muted = false;
+                }
+            }
+            catch {
+                audio.muted = false;
+            }
+        });
     }
 }
 export { SoundManager };
