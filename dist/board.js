@@ -39,6 +39,10 @@ class Board {
         var _a;
         return (_a = cell.dataset.color) !== null && _a !== void 0 ? _a : '';
     }
+    getCellBooster(cell) {
+        var _a;
+        return (_a = cell.dataset.booster) !== null && _a !== void 0 ? _a : BOOSTERS.NONE;
+    }
     setCellColor(cell, color) {
         this.applyColor(cell, color);
     }
@@ -51,9 +55,11 @@ class Board {
         this.setCellColor(cell, '');
         this.setBooster(cell, BOOSTERS.NONE);
         cell.textContent = '';
+        cell.style.removeProperty('color');
     }
     updateBoosterVisual(cell) {
-        cell.classList.remove('game__cell--bomb-line', 'game__cell--bomb-radius', 'game__cell--bomb-small', 'game__cell--bomb-medium', 'game__cell--bomb-large');
+        cell.classList.remove('game__cell--bomb-line', 'game__cell--bomb-radius', 'game__cell--bomb-small', 'game__cell--bomb-medium', 'game__cell--bomb-large', 'game__cell--bomb-ultimate');
+        cell.style.color = '#0b0f1d';
         cell.textContent = '';
         if (cell.dataset.booster === BOOSTERS.LINE) {
             cell.classList.add('game__cell--bomb-line');
@@ -68,7 +74,8 @@ class Board {
             cell.textContent = '💥';
         }
         if (cell.dataset.booster === BOOSTERS.BURST_LARGE) {
-            cell.classList.add('game__cell--bomb-large');
+            cell.classList.add('game__cell--bomb-large', 'game__cell--bomb-ultimate');
+            cell.style.color = '#f8fafc';
             cell.textContent = '☢️';
         }
     }

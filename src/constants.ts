@@ -7,6 +7,7 @@ const BOOSTERS = {
     BURST_MEDIUM: 'burstMedium',
     BURST_LARGE: 'burstLarge'
 } as const;
+const BLACK_BOMB_COLOR = '#0b0d11';
 
 type BoosterType = typeof BOOSTERS[keyof typeof BOOSTERS];
 
@@ -19,4 +20,4 @@ function randomColor(): string {
     return color;
 }
 
-export { GRID_SIZE, COLORS, BOOSTERS, randomColor, BoosterType };
+export { GRID_SIZE, COLORS, BOOSTERS, BLACK_BOMB_COLOR, randomColor, BoosterType };

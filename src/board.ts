@@ -57,6 +57,10 @@ class Board {
         return cell.dataset.color ?? '';
     }
 
+    getCellBooster(cell: HTMLDivElement): BoosterType {
+        return (cell.dataset.booster as BoosterType) ?? BOOSTERS.NONE;
+    }
+
     setCellColor(cell: HTMLDivElement, color: string): void {
         this.applyColor(cell, color);
     }
@@ -71,6 +75,7 @@ class Board {
         this.setCellColor(cell, '');
         this.setBooster(cell, BOOSTERS.NONE);
         cell.textContent = '';
+        cell.style.removeProperty('color');
     }
 
     updateBoosterVisual(cell: HTMLDivElement): void {
@@ -79,8 +84,10 @@ class Board {
             'game__cell--bomb-radius',
             'game__cell--bomb-small',
             'game__cell--bomb-medium',
-            'game__cell--bomb-large'
+            'game__cell--bomb-large',
+            'game__cell--bomb-ultimate'
         );
+        cell.style.color = '#0b0f1d';
         cell.textContent = '';
         if (cell.dataset.booster === BOOSTERS.LINE) {
             cell.classList.add('game__cell--bomb-line');
@@ -95,7 +102,8 @@ class Board {
             cell.textContent = '💥';
         }
         if (cell.dataset.booster === BOOSTERS.BURST_LARGE) {
-            cell.classList.add('game__cell--bomb-large');
+            cell.classList.add('game__cell--bomb-large', 'game__cell--bomb-ultimate');
+            cell.style.color = '#f8fafc';
             cell.textContent = '☢️';
         }
     }
