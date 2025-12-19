@@ -1,5 +1,5 @@
 const GRID_SIZE = 8;
-const COLORS = ['red', 'yellow', 'green', 'blue', 'purple'];
+const COLORS = ['#ff7b7b', '#ffd166', '#7dd3fc', '#a78bfa', '#6ee7b7'];
 const BOOSTERS = {
     NONE: 'none',
     LINE: 'line',

@@ -17,7 +17,7 @@ class Board {
         for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
             const cell = document.createElement('div');
             cell.className = 'game__cell';
-            cell.style.background = this.pickColorForIndex(i);
+            this.applyColor(cell, this.pickColorForIndex(i));
             cell.dataset.index = String(i);
             cell.dataset.booster = BOOSTERS.NONE;
             cell.addEventListener('click', () => this.onCellClick(cell));
@@ -35,11 +35,11 @@ class Board {
     }
 
     getCellColor(cell: HTMLDivElement): string {
-        return cell.style.background;
+        return cell.dataset.color ?? '';
     }
 
     setCellColor(cell: HTMLDivElement, color: string): void {
-        cell.style.background = color;
+        this.applyColor(cell, color);
     }
 
     setBooster(cell: HTMLDivElement, type: BoosterType): void {
@@ -68,7 +68,9 @@ class Board {
     }
 
     swapCells(a: HTMLDivElement, b: HTMLDivElement): void {
-        [a.style.background, b.style.background] = [b.style.background, a.style.background];
+        const colorA = this.getCellColor(a);
+        this.setCellColor(a, this.getCellColor(b));
+        this.setCellColor(b, colorA);
         [a.dataset.booster, b.dataset.booster] = [b.dataset.booster, a.dataset.booster];
         this.updateBoosterVisual(a);
         this.updateBoosterVisual(b);
@@ -102,6 +104,15 @@ class Board {
     private getExistingColor(index: number): string | null {
         const cell = this.cells[index];
         return cell ? this.getCellColor(cell) : null;
+    }
+
+    private applyColor(cell: HTMLDivElement, color: string): void {
+        cell.dataset.color = color;
+        if (color) {
+            cell.style.setProperty('--cell-color', color);
+        } else {
+            cell.style.removeProperty('--cell-color');
+        }
     }
 }
 
