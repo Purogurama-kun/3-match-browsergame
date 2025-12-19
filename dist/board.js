@@ -90,7 +90,6 @@ class Board {
     handleTouchStart(event, cell) {
         if (event.touches.length !== 1)
             return;
-        event.preventDefault();
         const touch = event.touches[0];
         if (!touch)
             return;
@@ -106,11 +105,12 @@ class Board {
         const touch = event.touches[0];
         if (!touch)
             return;
-        const deltaX = Math.abs(touch.clientX - this.touchStartX);
+        /*const deltaX = Math.abs(touch.clientX - this.touchStartX);
         const deltaY = Math.abs(touch.clientY - this.touchStartY);
         if (Math.max(deltaX, deltaY) > 4) {
             event.preventDefault();
-        }
+        }*/
+        event.preventDefault();
     }
     handleTouchEnd(event) {
         if (!this.touchStartCell || this.touchStartX === null || this.touchStartY === null) {
