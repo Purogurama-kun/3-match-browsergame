@@ -130,6 +130,12 @@
     width: 100%;
 }
 
+@media (max-width: 780px) {
+    .game__hud-card--wide {
+        width: initial;
+    }
+}
+
 .game__hud-label {
     font-size: 0.875rem;
     text-transform: uppercase;
