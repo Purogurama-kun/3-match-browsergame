@@ -11,17 +11,41 @@
     <h1 class="game__title">Match-3 Spiel</h1>
     <div id="game" class="game__board"></div>
     <div id="hud" class="game__hud">
-        <span id="level" class="game__hud-item">Level: 1</span> |
-        <span id="score" class="game__hud-item">Punkte: 0</span> |
-        <span id="target" class="game__hud-item">Ziel: 300</span> |
-        <span id="moves" class="game__hud-item">Züge: 20</span> |
-        <span class="game__hud-item">
-            Tausch-Regel:
-            <select id="swap-mode" class="game__hud-select">
-                <option value="require-match" selected>Nur mit Match</option>
-                <option value="free-swap">Jeder Tausch</option>
-            </select>
-        </span>
+        <div class="game__hud-row">
+            <div class="game__hud-card">
+                <div class="game__hud-label">Level</div>
+                <div id="level" class="game__hud-value">1</div>
+            </div>
+            <div class="game__hud-card">
+                <div class="game__hud-label">Züge</div>
+                <div class="game__hud-value">
+                    <span id="moves" class="game__hud-value-strong">20</span>
+                    <span class="game__hud-note">verbleibend</span>
+                </div>
+            </div>
+            <div class="game__hud-card game__hud-card--mode">
+                <div class="game__hud-label">Tausch-Regel</div>
+                <div class="game__hud-control">
+                    <select id="swap-mode" class="game__hud-select">
+                        <option value="require-match" selected>Nur mit Match</option>
+                        <option value="free-swap">Jeder Tausch</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="game__hud-card game__hud-card--wide">
+            <div class="game__hud-bar-header">
+                <span class="game__hud-label">Punktestand</span>
+                <span class="game__hud-text">
+                    <span id="score" class="game__hud-value-strong">0</span>
+                    <span class="game__hud-separator">/</span>
+                    <span id="target" class="game__hud-subtle">300</span>
+                </span>
+            </div>
+            <div id="score-progress" class="game__hud-progress" role="progressbar" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0">
+                <div id="score-progress-fill" class="game__hud-progress-fill"></div>
+            </div>
+        </div>
     </div>
 
 </body>
