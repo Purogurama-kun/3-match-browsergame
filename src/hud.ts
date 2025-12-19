@@ -1,4 +1,4 @@
-import { GameState, SwapMode } from './types.js';
+import { GameState, GoalProgress, SwapMode } from './types.js';
 import { getRequiredElement } from './dom.js';
 
 class Hud {
@@ -9,6 +9,8 @@ class Hud {
         this.moves = getRequiredElement('moves');
         this.scoreProgress = getRequiredElement('score-progress');
         this.scoreProgressFill = getRequiredElement('score-progress-fill');
+        this.difficulty = getRequiredElement('difficulty');
+        this.goalsList = this.getGoalsListElement();
         this.swapModeSelect = this.getSwapModeElement();
         this.optionsToggle = this.getOptionsToggle();
         this.optionsClose = this.getOptionsClose();
@@ -24,6 +26,8 @@ class Hud {
     private moves: HTMLElement;
     private scoreProgress: HTMLElement;
     private scoreProgressFill: HTMLElement;
+    private difficulty: HTMLElement;
+    private goalsList: HTMLUListElement;
     private swapModeSelect: HTMLSelectElement;
     private optionsToggle: HTMLButtonElement;
     private optionsClose: HTMLButtonElement;
@@ -35,8 +39,10 @@ class Hud {
         this.level.textContent = String(state.level);
         this.target.textContent = String(state.targetScore);
         this.moves.textContent = String(state.movesLeft);
+        this.difficulty.textContent = String(state.difficulty);
 
         this.updateProgress(state.score, state.targetScore);
+        this.renderGoals(state.goals);
     }
 
     getSwapMode(): SwapMode {
@@ -122,12 +128,37 @@ class Hud {
         return element;
     }
 
+    private getGoalsListElement(): HTMLUListElement {
+        const element = getRequiredElement('goals-list');
+        if (!(element instanceof HTMLUListElement)) {
+            throw new Error('Goals list element is not a list');
+        }
+        return element;
+    }
+
     private updateProgress(score: number, target: number): void {
         const clampedScore = Math.max(0, score);
         const ratio = Math.min(1, clampedScore / Math.max(1, target));
         this.scoreProgress.setAttribute('aria-valuenow', clampedScore.toString());
         this.scoreProgress.setAttribute('aria-valuemax', target.toString());
         this.scoreProgressFill.style.width = (ratio * 100).toFixed(1) + '%';
+    }
+
+    private renderGoals(goals: GoalProgress[]): void {
+        this.goalsList.innerHTML = '';
+        goals.forEach((goal) => {
+            const item = document.createElement('li');
+            item.className = 'game__goal';
+            const text = document.createElement('span');
+            text.className = 'game__goal-text';
+            text.textContent = goal.description;
+            const progress = document.createElement('span');
+            progress.className = 'game__goal-progress';
+            progress.textContent = goal.current + '/' + goal.target;
+            item.appendChild(text);
+            item.appendChild(progress);
+            this.goalsList.appendChild(item);
+        });
     }
 
     private showOptionsModal(): void {

@@ -1,5 +1,12 @@
 const GRID_SIZE = 8;
-const COLORS = ['#ff7b7b', '#ffd166', '#7dd3fc', '#a78bfa', '#6ee7b7'];
+const COLOR_DEFINITIONS = {
+    red: '#ff7b7b',
+    amber: '#ffd166',
+    blue: '#7dd3fc',
+    purple: '#a78bfa',
+    green: '#6ee7b7'
+};
+const COLORS = Object.values(COLOR_DEFINITIONS);
 const BOOSTERS = {
     NONE: 'none',
     LINE: 'line',
@@ -16,4 +23,19 @@ function randomColor() {
     }
     return color;
 }
-export { GRID_SIZE, COLORS, BOOSTERS, BLACK_BOMB_COLOR, randomColor };
+function getColorHex(color) {
+    const value = COLOR_DEFINITIONS[color];
+    if (!value) {
+        throw new Error('Unknown color key: ' + color);
+    }
+    return value;
+}
+function getColorKeyFromHex(hex) {
+    const entries = Object.entries(COLOR_DEFINITIONS);
+    for (const [key, value] of entries) {
+        if (value === hex)
+            return key;
+    }
+    return null;
+}
+export { GRID_SIZE, COLORS, BOOSTERS, BLACK_BOMB_COLOR, randomColor, getColorHex, getColorKeyFromHex };

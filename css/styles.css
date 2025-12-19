@@ -436,6 +436,44 @@ body {
     box-shadow: 0 0 10px rgba(83, 198, 255, 0.6);
 }
 
+.game__hud-card--goals {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.game__goals {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.game__goals-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.25rem;
+}
+
+.game__goal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0c0f1b;
+    border: 1px solid #2f3654;
+    border-radius: 10px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.95rem;
+}
+
+.game__goal-text {
+    color: #e5e7ff;
+}
+
+.game__goal-progress {
+    color: #9da5c7;
+    font-weight: 700;
+}
+
 .game__modal {
     position: fixed;
     inset: 0;
