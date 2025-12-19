@@ -55,6 +55,14 @@
 }
 
 .game__hud { margin-top: 15px; font-size: 18px; }
+.game__hud-select {
+    margin-left: 6px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background: #111;
+    color: #fff;
+}
 
 /* Screenshake */
 @keyframes shake {

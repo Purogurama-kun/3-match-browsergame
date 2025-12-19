@@ -2,12 +2,17 @@ import { GRID_SIZE, BOOSTERS, randomColor } from './constants.js';
 import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
 import { Board } from './board.js';
+import { getRequiredElement } from './dom.js';
 class Match3Game {
     constructor() {
-        this.gameEl = this.getRequiredElement('game');
+        this.gameEl = getRequiredElement('game');
         this.sounds = new SoundManager();
         this.hud = new Hud();
         this.board = new Board(this.gameEl, (cell) => this.handleCellClick(cell));
+        this.swapMode = this.hud.getSwapMode();
+        this.hud.onSwapModeChange((mode) => {
+            this.swapMode = mode;
+        });
         this.state = {
             selected: null,
             score: 0,
@@ -56,16 +61,30 @@ class Match3Game {
         }
         if (!this.areAdjacent(this.state.selected, cell)) {
             this.showInvalidMove(this.state.selected);
+            this.state.selected.classList.remove('game__cell--selected');
+            this.state.selected = cell;
+            cell.classList.add('game__cell--selected');
             return;
         }
         this.board.swapCells(this.state.selected, cell);
+        const firstSelected = this.state.selected;
         this.state.selected.classList.remove('game__cell--selected');
         this.state.selected = null;
         this.state.movesLeft--;
         this.updateHud();
+        if (this.swapMode === 'require-match') {
+            const { matched } = this.findMatches();
+            if (matched.size === 0) {
+                this.board.swapCells(firstSelected, cell);
+                this.state.movesLeft++;
+                this.updateHud();
+                this.showInvalidMove(cell);
+                return;
+            }
+        }
         this.defer(() => this.checkMatches(), 120);
     }
-    checkMatches() {
+    findMatches() {
         const matched = new Set();
         const boostersToCreate = [];
         const checkLine = (indices) => {
@@ -123,6 +142,10 @@ class Match3Game {
                 indices.push(r * GRID_SIZE + c);
             checkLine(indices);
         }
+        return { matched, boostersToCreate };
+    }
+    checkMatches() {
+        const { matched, boostersToCreate } = this.findMatches();
         if (matched.size > 0) {
             this.sounds.play('match');
             this.screenShake();
@@ -239,13 +262,6 @@ class Match3Game {
     showInvalidMove(cell) {
         cell.classList.add('game__cell--shake');
         this.defer(() => cell.classList.remove('game__cell--shake'), 350);
-    }
-    getRequiredElement(id) {
-        const element = document.getElementById(id);
-        if (!element) {
-            throw new Error('Missing element: ' + id);
-        }
-        return element;
     }
 }
 export { Match3Game };

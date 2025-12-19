@@ -6,4 +6,6 @@ type GameState = {
     movesLeft: number;
 };
 
-export { GameState };
+type SwapMode = 'free-swap' | 'require-match';
+
+export { GameState, SwapMode };

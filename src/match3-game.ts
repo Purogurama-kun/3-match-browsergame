@@ -2,14 +2,19 @@ import { GRID_SIZE, BOOSTERS, BoosterType, randomColor } from './constants.js';
 import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
 import { Board } from './board.js';
-import { GameState } from './types.js';
+import { GameState, SwapMode } from './types.js';
+import { getRequiredElement } from './dom.js';
 
 class Match3Game {
     constructor() {
-        this.gameEl = this.getRequiredElement('game');
+        this.gameEl = getRequiredElement('game');
         this.sounds = new SoundManager();
         this.hud = new Hud();
         this.board = new Board(this.gameEl, (cell) => this.handleCellClick(cell));
+        this.swapMode = this.hud.getSwapMode();
+        this.hud.onSwapModeChange((mode) => {
+            this.swapMode = mode;
+        });
 
         this.state = {
             selected: null,
@@ -28,6 +33,7 @@ class Match3Game {
     private hud: Hud;
     private board: Board;
     private state: GameState;
+    private swapMode: SwapMode;
     private generation: number;
     private pendingTimers: number[];
 
@@ -76,18 +82,35 @@ class Match3Game {
 
         if (!this.areAdjacent(this.state.selected, cell)) {
             this.showInvalidMove(this.state.selected);
+            this.state.selected.classList.remove('game__cell--selected');
+            this.state.selected = cell;
+            cell.classList.add('game__cell--selected');
             return;
         }
 
         this.board.swapCells(this.state.selected, cell);
+        const firstSelected = this.state.selected;
         this.state.selected.classList.remove('game__cell--selected');
         this.state.selected = null;
         this.state.movesLeft--;
         this.updateHud();
+        if (this.swapMode === 'require-match') {
+            const { matched } = this.findMatches();
+            if (matched.size === 0) {
+                this.board.swapCells(firstSelected, cell);
+                this.state.movesLeft++;
+                this.updateHud();
+                this.showInvalidMove(cell);
+                return;
+            }
+        }
         this.defer(() => this.checkMatches(), 120);
     }
 
-    private checkMatches(): void {
+    private findMatches(): {
+        matched: Set<number>;
+        boostersToCreate: { index: number; type: BoosterType }[];
+    } {
         const matched = new Set<number>();
         const boostersToCreate: { index: number; type: BoosterType }[] = [];
 
@@ -145,10 +168,16 @@ class Match3Game {
             checkLine(indices);
         }
 
+        return { matched, boostersToCreate };
+    }
+
+    private checkMatches(): void {
+        const { matched, boostersToCreate } = this.findMatches();
+
         if (matched.size > 0) {
             this.sounds.play('match');
             this.screenShake();
-                    matched.forEach((idx) => this.destroyCell(idx));
+            matched.forEach((idx) => this.destroyCell(idx));
             this.defer(() => {
                 boostersToCreate.forEach((b) => this.createBooster(b.index, b.type));
                 this.dropCells();
@@ -267,14 +296,6 @@ class Match3Game {
     private showInvalidMove(cell: HTMLDivElement): void {
         cell.classList.add('game__cell--shake');
         this.defer(() => cell.classList.remove('game__cell--shake'), 350);
-    }
-
-    private getRequiredElement(id: string): HTMLElement {
-        const element = document.getElementById(id);
-        if (!element) {
-            throw new Error('Missing element: ' + id);
-        }
-        return element;
     }
 }
 
