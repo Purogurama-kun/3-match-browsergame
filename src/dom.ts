@@ -1,9 +1,9 @@
-function getRequiredElement(id: string): HTMLElement {
+function getRequiredElement<T extends HTMLElement>(id: string): T {
     const element = document.getElementById(id);
     if (!element) {
         throw new Error('Missing element: ' + id);
     }
-    return element;
+    return element as T;
 }
 
 export { getRequiredElement };
