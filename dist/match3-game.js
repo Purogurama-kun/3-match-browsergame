@@ -22,6 +22,23 @@ class Match3Game {
         };
         this.generation = 0;
         this.pendingTimers = [];
+        this.modalEl = getRequiredElement('result-modal');
+        this.modalTitle = getRequiredElement('result-title');
+        this.modalText = getRequiredElement('result-text');
+        this.modalButton = getRequiredElement('result-button');
+        this.modalGif = getRequiredElement('result-gif');
+        this.modalCallback = null;
+        this.modalButton.addEventListener('click', () => this.hideResultModal());
+        this.modalEl.addEventListener('click', (event) => {
+            if (event.target === this.modalEl) {
+                this.hideResultModal();
+            }
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && this.modalEl.classList.contains('game__modal--visible')) {
+                this.hideResultModal();
+            }
+        });
     }
     start() {
         this.createBoard();
@@ -232,20 +249,20 @@ class Match3Game {
         this.defer(() => this.checkMatches(), 200);
     }
     endLevel() {
-        if (this.state.score >= this.state.targetScore) {
+        const completedLevel = this.state.level;
+        const isWin = this.state.score >= this.state.targetScore;
+        if (isWin) {
             this.sounds.play('levelUp');
-            alert('Level ' + this.state.level + ' geschafft!');
             this.state.level++;
             this.state.targetScore += 200;
             this.state.movesLeft += 5;
         }
         else {
             this.sounds.play('levelFail');
-            alert('Level verloren!');
             this.state.movesLeft = 20;
         }
         this.state.score = 0;
-        this.createBoard();
+        this.showResultModal(isWin ? 'win' : 'lose', completedLevel, () => this.createBoard());
     }
     areAdjacent(a, b) {
         const aIndex = Number(a.dataset.index);
@@ -272,6 +289,33 @@ class Match3Game {
     showInvalidMove(cell) {
         cell.classList.add('game__cell--shake');
         this.defer(() => cell.classList.remove('game__cell--shake'), 350);
+    }
+    showResultModal(result, completedLevel, onClose) {
+        this.modalCallback = onClose;
+        if (result === 'win') {
+            this.modalTitle.textContent = 'Level ' + completedLevel + ' geschafft!';
+            this.modalText.textContent = 'Weiter geht es mit Level ' + this.state.level + '.';
+            this.modalGif.src = 'https://media.giphy.com/media/111ebonMs90YLu/giphy.gif';
+            this.modalGif.alt = 'Feierndes animiertes GIF';
+        }
+        else {
+            this.modalTitle.textContent = 'Level verloren!';
+            this.modalText.textContent = 'Versuche es direkt noch einmal.';
+            this.modalGif.src = 'https://media.giphy.com/media/3og0IPGMtUHx3XyWXS/giphy.gif';
+            this.modalGif.alt = 'Aufmunterndes animiertes GIF';
+        }
+        this.modalEl.classList.add('game__modal--visible');
+        this.modalButton.focus();
+    }
+    hideResultModal() {
+        if (!this.modalEl.classList.contains('game__modal--visible'))
+            return;
+        this.modalEl.classList.remove('game__modal--visible');
+        this.modalGif.src = '';
+        const callback = this.modalCallback;
+        this.modalCallback = null;
+        if (callback)
+            callback();
     }
 }
 export { Match3Game };
