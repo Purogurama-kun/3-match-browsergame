@@ -8,4 +8,6 @@ type GameState = {
 
 type SwapMode = 'free-swap' | 'require-match';
 
-export { GameState, SwapMode };
+type SwipeDirection = 'up' | 'down' | 'left' | 'right';
+
+export { GameState, SwapMode, SwipeDirection };

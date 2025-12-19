@@ -1,9 +1,14 @@
 import { GRID_SIZE, BOOSTERS, COLORS, randomColor } from './constants.js';
 class Board {
-    constructor(gameEl, onCellClick) {
+    constructor(gameEl, onCellClick, onCellSwipe) {
         this.gameEl = gameEl;
         this.onCellClick = onCellClick;
+        this.onCellSwipe = onCellSwipe;
         this.cells = [];
+        this.touchStartX = null;
+        this.touchStartY = null;
+        this.touchStartCell = null;
+        this.swipeThreshold = 18;
     }
     create() {
         this.cells = [];
@@ -15,6 +20,9 @@ class Board {
             cell.dataset.index = String(i);
             cell.dataset.booster = BOOSTERS.NONE;
             cell.addEventListener('click', () => this.onCellClick(cell));
+            cell.addEventListener('touchstart', (event) => this.handleTouchStart(event, cell), { passive: false });
+            cell.addEventListener('touchend', (event) => this.handleTouchEnd(event), { passive: false });
+            cell.addEventListener('touchcancel', () => this.resetTouchState());
             this.gameEl.appendChild(cell);
             this.cells.push(cell);
         }
@@ -62,6 +70,49 @@ class Board {
         [a.dataset.booster, b.dataset.booster] = [b.dataset.booster, a.dataset.booster];
         this.updateBoosterVisual(a);
         this.updateBoosterVisual(b);
+    }
+    handleTouchStart(event, cell) {
+        if (event.touches.length !== 1)
+            return;
+        const touch = event.touches[0];
+        if (!touch)
+            return;
+        this.touchStartX = touch.clientX;
+        this.touchStartY = touch.clientY;
+        this.touchStartCell = cell;
+    }
+    handleTouchEnd(event) {
+        if (!this.touchStartCell || this.touchStartX === null || this.touchStartY === null) {
+            this.resetTouchState();
+            return;
+        }
+        if (event.changedTouches.length === 0) {
+            this.resetTouchState();
+            return;
+        }
+        const touch = event.changedTouches[0];
+        if (!touch) {
+            this.resetTouchState();
+            return;
+        }
+        const deltaX = touch.clientX - this.touchStartX;
+        const deltaY = touch.clientY - this.touchStartY;
+        const absX = Math.abs(deltaX);
+        const absY = Math.abs(deltaY);
+        const maxDelta = Math.max(absX, absY);
+        if (maxDelta < this.swipeThreshold) {
+            this.resetTouchState();
+            return;
+        }
+        event.preventDefault();
+        const direction = absX > absY ? (deltaX > 0 ? 'right' : 'left') : deltaY > 0 ? 'down' : 'up';
+        this.onCellSwipe(this.touchStartCell, direction);
+        this.resetTouchState();
+    }
+    resetTouchState() {
+        this.touchStartCell = null;
+        this.touchStartX = null;
+        this.touchStartY = null;
     }
     pickColorForIndex(index) {
         const row = Math.floor(index / GRID_SIZE);
