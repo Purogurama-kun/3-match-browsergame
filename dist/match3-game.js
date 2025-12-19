@@ -110,49 +110,131 @@ class Match3Game {
     findMatches() {
         const matched = new Set();
         const boostersToCreate = [];
+        const boosterSlots = new Set();
+        const indexAt = (row, col) => row * GRID_SIZE + col;
+        const colorAt = (row, col) => {
+            if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE)
+                return '';
+            return this.board.getCellColor(this.board.getCell(indexAt(row, col)));
+        };
+        const addBooster = (index, type) => {
+            if (boosterSlots.has(index))
+                return;
+            boosterSlots.add(index);
+            boostersToCreate.push({ index, type });
+        };
+        const rotateOffset = (offset, times) => {
+            let row = offset.row;
+            let col = offset.col;
+            for (let i = 0; i < times; i++) {
+                const newRow = col;
+                const newCol = 2 - row;
+                row = newRow;
+                col = newCol;
+            }
+            return { row, col };
+        };
+        const checkPatternAt = (originRow, originCol, offsets, boosterOffset, boosterType) => {
+            let color = '';
+            const indices = [];
+            for (const offset of offsets) {
+                const row = originRow + offset.row;
+                const col = originCol + offset.col;
+                const cellColor = colorAt(row, col);
+                if (!cellColor)
+                    return;
+                if (!color)
+                    color = cellColor;
+                if (cellColor !== color)
+                    return;
+                indices.push(indexAt(row, col));
+            }
+            indices.forEach((idx) => matched.add(idx));
+            if (boosterOffset && boosterType) {
+                const boosterIndex = indexAt(originRow + boosterOffset.row, originCol + boosterOffset.col);
+                addBooster(boosterIndex, boosterType);
+            }
+        };
         const checkLine = (indices) => {
             let streak = 1;
             for (let i = 1; i <= indices.length; i++) {
-                const currIndex = i < indices.length ? indices[i] : undefined;
                 const prevIndex = indices[i - 1];
+                const currIndex = i < indices.length ? indices[i] : undefined;
                 if (prevIndex === undefined) {
                     throw new Error('Missing index at position: ' + (i - 1));
                 }
-                const curr = currIndex !== undefined
-                    ? this.board.getCellColor(this.board.getCell(currIndex))
-                    : null;
-                const prev = this.board.getCellColor(this.board.getCell(prevIndex));
-                if (curr === prev && curr) {
+                const prevColor = this.board.getCellColor(this.board.getCell(prevIndex));
+                const currColor = currIndex !== undefined ? this.board.getCellColor(this.board.getCell(currIndex)) : '';
+                if (currColor && currColor === prevColor) {
                     streak++;
                 }
                 else {
-                    if (streak >= 3 && prev) {
-                        const streakCells = [];
-                        for (let k = 0; k < streak; k++) {
-                            const streakIndex = indices[i - 1 - k];
-                            if (streakIndex !== undefined)
-                                streakCells.push(streakIndex);
-                        }
+                    if (streak >= 3 && prevColor) {
+                        const streakCells = indices.slice(i - streak, i);
                         streakCells.forEach((idx) => matched.add(idx));
-                        const lineIndex = streakCells[1];
-                        const radiusIndex = streakCells[2];
                         if (streak === 4) {
+                            const lineIndex = streakCells[1];
                             if (lineIndex === undefined) {
                                 throw new Error('Missing line booster index');
                             }
-                            boostersToCreate.push({ index: lineIndex, type: BOOSTERS.LINE });
+                            addBooster(lineIndex, BOOSTERS.LINE);
                         }
                         if (streak >= 5) {
-                            if (radiusIndex === undefined) {
-                                throw new Error('Missing radius booster index');
+                            const centerIndex = streakCells[Math.floor(streakCells.length / 2)];
+                            if (centerIndex === undefined) {
+                                throw new Error('Missing large blast index');
                             }
-                            boostersToCreate.push({ index: radiusIndex, type: BOOSTERS.RADIUS });
+                            addBooster(centerIndex, BOOSTERS.BURST_LARGE);
                         }
                     }
                     streak = 1;
                 }
             }
         };
+        for (let r = 0; r < GRID_SIZE - 1; r++) {
+            for (let c = 0; c < GRID_SIZE - 1; c++) {
+                checkPatternAt(r, c, [
+                    { row: 0, col: 0 },
+                    { row: 0, col: 1 },
+                    { row: 1, col: 0 },
+                    { row: 1, col: 1 }
+                ], { row: 0, col: 0 }, BOOSTERS.BURST_SMALL);
+            }
+        }
+        const tBaseOffsets = [
+            { row: 0, col: 0 },
+            { row: 0, col: 1 },
+            { row: 0, col: 2 },
+            { row: 1, col: 1 },
+            { row: 2, col: 1 }
+        ];
+        const tBoosterOffset = { row: 1, col: 1 };
+        for (let rotation = 0; rotation < 4; rotation++) {
+            const offsets = tBaseOffsets.map((offset) => rotateOffset(offset, rotation));
+            const boosterOffset = rotateOffset(tBoosterOffset, rotation);
+            for (let r = 0; r < GRID_SIZE - 2; r++) {
+                for (let c = 0; c < GRID_SIZE - 2; c++) {
+                    checkPatternAt(r, c, offsets, boosterOffset, BOOSTERS.BURST_MEDIUM);
+                }
+            }
+        }
+        const lBaseOffsets = [
+            { row: 0, col: 0 },
+            { row: 1, col: 0 },
+            { row: 2, col: 0 },
+            { row: 2, col: 1 },
+            { row: 2, col: 2 }
+        ];
+        const lBoosterOffset = { row: 2, col: 0 };
+        for (let rotation = 0; rotation < 4; rotation++) {
+            const offsets = lBaseOffsets.map((offset) => rotateOffset(offset, rotation));
+            const boosterOffset = rotateOffset(lBoosterOffset, rotation);
+            for (let r = 0; r < GRID_SIZE - 2; r++) {
+                for (let c = 0; c < GRID_SIZE - 2; c++) {
+                    checkPatternAt(r, c, offsets, boosterOffset, BOOSTERS.BURST_MEDIUM);
+                }
+            }
+        }
         for (let r = 0; r < GRID_SIZE; r++) {
             const indices = [];
             for (let c = 0; c < GRID_SIZE; c++)
@@ -170,9 +252,11 @@ class Match3Game {
     checkMatches() {
         const { matched, boostersToCreate } = this.findMatches();
         if (matched.size > 0) {
-            const hasRadiusMatch = boostersToCreate.some((boost) => boost.type === BOOSTERS.RADIUS);
+            const hasBlastBooster = boostersToCreate.some((boost) => boost.type === BOOSTERS.BURST_SMALL ||
+                boost.type === BOOSTERS.BURST_MEDIUM ||
+                boost.type === BOOSTERS.BURST_LARGE);
             const hasLineMatch = boostersToCreate.some((boost) => boost.type === BOOSTERS.LINE);
-            if (hasRadiusMatch) {
+            if (hasBlastBooster) {
                 this.sounds.play('radiusBomb');
             }
             else if (hasLineMatch) {
@@ -214,21 +298,43 @@ class Match3Game {
         const col = index % GRID_SIZE;
         if (cell.dataset.booster === BOOSTERS.LINE) {
             this.sounds.play('lineBomb');
+            const affected = new Set();
             for (let c = 0; c < GRID_SIZE; c++)
-                this.destroyCell(row * GRID_SIZE + c);
+                affected.add(row * GRID_SIZE + c);
+            affected.forEach((idx) => this.destroyCell(idx));
+            return;
         }
-        if (cell.dataset.booster === BOOSTERS.RADIUS) {
+        if (cell.dataset.booster === BOOSTERS.BURST_SMALL) {
             this.sounds.play('radiusBomb');
-            for (let dx = -1; dx <= 1; dx++) {
-                for (let dy = -1; dy <= 1; dy++) {
-                    const r = row + dx;
-                    const c = col + dy;
-                    if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE) {
-                        this.destroyCell(r * GRID_SIZE + c);
-                    }
+            this.destroyCircularArea(row, col, 1);
+            return;
+        }
+        if (cell.dataset.booster === BOOSTERS.BURST_MEDIUM) {
+            this.sounds.play('radiusBomb');
+            this.destroyCircularArea(row, col, 1.5);
+            return;
+        }
+        if (cell.dataset.booster === BOOSTERS.BURST_LARGE) {
+            this.sounds.play('radiusBomb');
+            this.destroyCircularArea(row, col, 2);
+        }
+    }
+    destroyCircularArea(row, col, radius) {
+        const affected = new Set();
+        const range = Math.ceil(radius);
+        for (let dx = -range; dx <= range; dx++) {
+            for (let dy = -range; dy <= range; dy++) {
+                const targetRow = row + dx;
+                const targetCol = col + dy;
+                if (targetRow < 0 || targetRow >= GRID_SIZE || targetCol < 0 || targetCol >= GRID_SIZE)
+                    continue;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance <= radius + 0.001) {
+                    affected.add(targetRow * GRID_SIZE + targetCol);
                 }
             }
         }
+        affected.forEach((idx) => this.destroyCell(idx));
     }
     dropCells() {
         for (let c = 0; c < GRID_SIZE; c++) {

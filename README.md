@@ -4,7 +4,7 @@ Small Match-3 browser game with sounds and boosters, written in TypeScript.
 
 ## Features
 
-- 4- and 5-tile matches spawn line and radius bombs.
+- Special matches spawn bombs: 4-line clears, square/T/L blasts, and mega 5-line bombs.
 - Cascading matches after drops, with automatic refills.
 - Swap modes: free swaps or require a valid match.
 - Score, moves, and level targets with level-up/level-fail flow.
