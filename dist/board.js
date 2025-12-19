@@ -90,6 +90,7 @@ class Board {
     handleTouchStart(event, cell) {
         if (event.touches.length !== 1)
             return;
+        event.preventDefault();
         const touch = event.touches[0];
         if (!touch)
             return;

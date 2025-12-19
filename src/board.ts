@@ -119,6 +119,7 @@ class Board {
 
     private handleTouchStart(event: TouchEvent, cell: HTMLDivElement): void {
         if (event.touches.length !== 1) return;
+        event.preventDefault();
         const touch = event.touches[0];
         if (!touch) return;
         this.touchStartX = touch.clientX;
