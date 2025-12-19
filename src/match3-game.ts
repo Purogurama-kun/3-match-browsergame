@@ -2,7 +2,7 @@ import { GRID_SIZE, BOOSTERS, BoosterType, randomColor } from './constants.js';
 import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
 import { Board } from './board.js';
-import { GameState, SwapMode } from './types.js';
+import { GameState, SwapMode, SwipeDirection } from './types.js';
 import { getRequiredElement } from './dom.js';
 
 class Match3Game {
@@ -10,7 +10,11 @@ class Match3Game {
         this.gameEl = getRequiredElement('game');
         this.sounds = new SoundManager();
         this.hud = new Hud();
-        this.board = new Board(this.gameEl, (cell) => this.handleCellClick(cell));
+        this.board = new Board(
+            this.gameEl,
+            (cell) => this.handleCellClick(cell),
+            (cell, direction) => this.handleCellSwipe(cell, direction)
+        );
         this.swapMode = this.hud.getSwapMode();
         this.hud.onSwapModeChange((mode) => {
             this.swapMode = mode;
@@ -111,23 +115,21 @@ class Match3Game {
             return;
         }
 
-        this.board.swapCells(this.state.selected, cell);
         const firstSelected = this.state.selected;
         this.state.selected.classList.remove('game__cell--selected');
         this.state.selected = null;
-        this.state.movesLeft--;
-        this.updateHud();
-        if (this.swapMode === 'require-match') {
-            const { matched } = this.findMatches();
-            if (matched.size === 0) {
-                this.board.swapCells(firstSelected, cell);
-                this.state.movesLeft++;
-                this.updateHud();
-                this.showInvalidMove(cell);
-                return;
-            }
+        this.trySwap(firstSelected, cell);
+    }
+
+    private handleCellSwipe(cell: HTMLDivElement, direction: SwipeDirection): void {
+        if (this.state.movesLeft <= 0) return;
+        const neighbor = this.getNeighbor(cell, direction);
+        if (!neighbor) return;
+        if (this.state.selected) {
+            this.state.selected.classList.remove('game__cell--selected');
+            this.state.selected = null;
         }
-        this.defer(() => this.checkMatches(), 120);
+        this.trySwap(cell, neighbor);
     }
 
     private findMatches(): {
@@ -308,6 +310,42 @@ class Match3Game {
         const bRow = Math.floor(bIndex / GRID_SIZE);
         const bCol = bIndex % GRID_SIZE;
         return Math.abs(aRow - bRow) + Math.abs(aCol - bCol) === 1;
+    }
+
+    private getNeighbor(cell: HTMLDivElement, direction: SwipeDirection): HTMLDivElement | null {
+        const index = Number(cell.dataset.index);
+        const row = Math.floor(index / GRID_SIZE);
+        const col = index % GRID_SIZE;
+        let targetRow = row;
+        let targetCol = col;
+        if (direction === 'up') targetRow--;
+        if (direction === 'down') targetRow++;
+        if (direction === 'left') targetCol--;
+        if (direction === 'right') targetCol++;
+        if (targetRow < 0 || targetRow >= GRID_SIZE || targetCol < 0 || targetCol >= GRID_SIZE) return null;
+        const targetIndex = targetRow * GRID_SIZE + targetCol;
+        return this.board.getCell(targetIndex);
+    }
+
+    private trySwap(first: HTMLDivElement, second: HTMLDivElement): void {
+        if (!this.areAdjacent(first, second)) {
+            this.showInvalidMove(second);
+            return;
+        }
+        this.board.swapCells(first, second);
+        this.state.movesLeft--;
+        this.updateHud();
+        if (this.swapMode === 'require-match') {
+            const { matched } = this.findMatches();
+            if (matched.size === 0) {
+                this.board.swapCells(first, second);
+                this.state.movesLeft++;
+                this.updateHud();
+                this.showInvalidMove(second);
+                return;
+            }
+        }
+        this.defer(() => this.checkMatches(), 120);
     }
 
     private defer(callback: () => void, delay: number): void {
