@@ -7,23 +7,20 @@ const SOUND_FILES = {
 };
 class SoundManager {
     constructor() {
-        this.enabled = this.supportsOgg();
-        this.unlocked = false;
-        this.sounds = {
-            match: this.createAudio('match'),
-            lineBomb: this.createAudio('lineBomb'),
-            radiusBomb: this.createAudio('radiusBomb'),
-            levelUp: this.createAudio('levelUp'),
-            levelFail: this.createAudio('levelFail')
-        };
+        this.enabled = this.canPlayOgg();
+        this.primed = false;
+        this.sounds = this.createSounds();
         if (this.enabled) {
-            this.addUnlockListeners();
+            this.bindUnlock();
         }
     }
     setEnabled(enabled) {
-        this.enabled = enabled && this.supportsOgg();
-        if (this.enabled && !this.unlocked) {
-            this.addUnlockListeners();
+        this.enabled = enabled && this.canPlayOgg();
+        if (this.enabled && !this.primed) {
+            this.bindUnlock();
+        }
+        if (!this.enabled) {
+            this.stopAll();
         }
         return this.enabled;
     }
@@ -33,70 +30,68 @@ class SoundManager {
     play(key) {
         if (!this.enabled)
             return;
-        this.unlockIfNeeded();
+        this.ensurePrimed();
         const sound = this.sounds[key];
         if (!sound)
             return;
-        const instance = sound.cloneNode(true);
-        instance.currentTime = 0;
-        const playPromise = instance.play();
+        sound.currentTime = 0;
+        const playPromise = sound.play();
         if (playPromise && typeof playPromise.catch === 'function') {
-            playPromise.catch((error) => {
-                console.error('Failed to play sound:', key, error);
-            });
+            playPromise.catch(() => { });
         }
+    }
+    createSounds() {
+        return {
+            match: this.createAudio('match'),
+            lineBomb: this.createAudio('lineBomb'),
+            radiusBomb: this.createAudio('radiusBomb'),
+            levelUp: this.createAudio('levelUp'),
+            levelFail: this.createAudio('levelFail')
+        };
     }
     createAudio(key) {
         const audio = new Audio(SOUND_FILES[key]);
         audio.preload = 'auto';
-        audio.crossOrigin = 'anonymous';
-        audio.load();
         return audio;
     }
-    supportsOgg() {
+    canPlayOgg() {
         const probe = document.createElement('audio');
         return probe.canPlayType('audio/ogg; codecs=\"vorbis\"') !== '';
     }
-    addUnlockListeners() {
-        const unlock = () => {
-            this.unlockSounds();
-        };
+    bindUnlock() {
+        const unlock = () => this.prime();
         document.addEventListener('pointerdown', unlock, { once: true });
         document.addEventListener('keydown', unlock, { once: true });
     }
-    unlockIfNeeded() {
-        if (!this.unlocked) {
-            this.unlockSounds();
+    ensurePrimed() {
+        if (!this.primed) {
+            this.prime();
         }
     }
-    unlockSounds() {
-        if (this.unlocked || !this.enabled)
+    prime() {
+        if (this.primed || !this.enabled)
             return;
-        this.unlocked = true;
+        this.primed = true;
         Object.values(this.sounds).forEach((audio) => {
-            try {
-                audio.muted = true;
-                const playPromise = audio.play();
-                if (playPromise && typeof playPromise.then === 'function') {
-                    playPromise
-                        .then(() => {
-                        audio.pause();
-                        audio.currentTime = 0;
-                        audio.muted = false;
-                    })
-                        .catch(() => {
-                        audio.muted = false;
-                    });
-                }
-                else {
-                    audio.pause();
-                    audio.currentTime = 0;
-                    audio.muted = false;
-                }
+            audio.muted = true;
+            const playPromise = audio.play();
+            if (playPromise && typeof playPromise.finally === 'function') {
+                playPromise.finally(() => this.resetAudio(audio));
             }
-            catch {
-                audio.muted = false;
+            else {
+                this.resetAudio(audio);
             }
+        });
+    }
+    resetAudio(audio) {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.muted = false;
+    }
+    stopAll() {
+        Object.values(this.sounds).forEach((audio) => {
+            audio.pause();
+            audio.currentTime = 0;
         });
     }
 }

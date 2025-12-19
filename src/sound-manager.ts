@@ -10,27 +10,24 @@ const SOUND_FILES: Record<SoundKey, string> = {
 class SoundManager {
     private sounds: Record<SoundKey, HTMLAudioElement>;
     private enabled: boolean;
-    private unlocked: boolean;
+    private primed: boolean;
 
     constructor() {
-        this.enabled = this.supportsOgg();
-        this.unlocked = false;
-        this.sounds = {
-            match: this.createAudio('match'),
-            lineBomb: this.createAudio('lineBomb'),
-            radiusBomb: this.createAudio('radiusBomb'),
-            levelUp: this.createAudio('levelUp'),
-            levelFail: this.createAudio('levelFail')
-        };
+        this.enabled = this.canPlayOgg();
+        this.primed = false;
+        this.sounds = this.createSounds();
         if (this.enabled) {
-            this.addUnlockListeners();
+            this.bindUnlock();
         }
     }
 
     setEnabled(enabled: boolean): boolean {
-        this.enabled = enabled && this.supportsOgg();
-        if (this.enabled && !this.unlocked) {
-            this.addUnlockListeners();
+        this.enabled = enabled && this.canPlayOgg();
+        if (this.enabled && !this.primed) {
+            this.bindUnlock();
+        }
+        if (!this.enabled) {
+            this.stopAll();
         }
         return this.enabled;
     }
@@ -41,71 +38,73 @@ class SoundManager {
 
     play(key: SoundKey): void {
         if (!this.enabled) return;
-        this.unlockIfNeeded();
+        this.ensurePrimed();
         const sound = this.sounds[key];
         if (!sound) return;
-        const instance = sound.cloneNode(true) as HTMLAudioElement;
-        instance.currentTime = 0;
-        const playPromise = instance.play();
+        sound.currentTime = 0;
+        const playPromise = sound.play();
         if (playPromise && typeof playPromise.catch === 'function') {
-            playPromise.catch((error: Error) => {
-                console.error('Failed to play sound:', key, error);
-            });
+            playPromise.catch(() => {});
         }
+    }
+
+    private createSounds(): Record<SoundKey, HTMLAudioElement> {
+        return {
+            match: this.createAudio('match'),
+            lineBomb: this.createAudio('lineBomb'),
+            radiusBomb: this.createAudio('radiusBomb'),
+            levelUp: this.createAudio('levelUp'),
+            levelFail: this.createAudio('levelFail')
+        };
     }
 
     private createAudio(key: SoundKey): HTMLAudioElement {
         const audio = new Audio(SOUND_FILES[key]);
         audio.preload = 'auto';
-        audio.crossOrigin = 'anonymous';
-        audio.load();
         return audio;
     }
 
-    private supportsOgg(): boolean {
+    private canPlayOgg(): boolean {
         const probe = document.createElement('audio');
         return probe.canPlayType('audio/ogg; codecs=\"vorbis\"') !== '';
     }
 
-    private addUnlockListeners(): void {
-        const unlock = (): void => {
-            this.unlockSounds();
-        };
+    private bindUnlock(): void {
+        const unlock = (): void => this.prime();
         document.addEventListener('pointerdown', unlock, { once: true });
         document.addEventListener('keydown', unlock, { once: true });
     }
 
-    private unlockIfNeeded(): void {
-        if (!this.unlocked) {
-            this.unlockSounds();
+    private ensurePrimed(): void {
+        if (!this.primed) {
+            this.prime();
         }
     }
 
-    private unlockSounds(): void {
-        if (this.unlocked || !this.enabled) return;
-        this.unlocked = true;
+    private prime(): void {
+        if (this.primed || !this.enabled) return;
+        this.primed = true;
         Object.values(this.sounds).forEach((audio) => {
-            try {
-                audio.muted = true;
-                const playPromise = audio.play();
-                if (playPromise && typeof playPromise.then === 'function') {
-                    playPromise
-                        .then(() => {
-                            audio.pause();
-                            audio.currentTime = 0;
-                            audio.muted = false;
-                        })
-                        .catch(() => {
-                            audio.muted = false;
-                        });
-                } else {
-                    audio.pause();
-                    audio.currentTime = 0;
-                    audio.muted = false;
-                }
-            } catch {
-                audio.muted = false;
+            audio.muted = true;
+            const playPromise = audio.play();
+            if (playPromise && typeof playPromise.finally === 'function') {
+                playPromise.finally(() => this.resetAudio(audio));
+            } else {
+                this.resetAudio(audio);
             }
+        });
+    }
+
+    private resetAudio(audio: HTMLAudioElement): void {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.muted = false;
+    }
+
+    private stopAll(): void {
+        Object.values(this.sounds).forEach((audio) => {
+            audio.pause();
+            audio.currentTime = 0;
         });
     }
 }
