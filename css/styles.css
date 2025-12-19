@@ -176,7 +176,7 @@ body {
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
 }
 
-.game__hud-card--mode {
+.game__hud-card--options {
     min-width: 14rem;
 }
 
@@ -224,6 +224,64 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+.game__options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.game__options-button {
+    padding: 0.4rem 0.6rem;
+    border-radius: 10px;
+    border: 1px solid #2f3654;
+    background: #0c0f1b;
+    color: #fff;
+    cursor: pointer;
+    text-align: left;
+}
+
+.game__options-button:hover {
+    background: #12182a;
+}
+
+.game__options-panel {
+    display: grid;
+    gap: 0.65rem;
+    padding: 0.5rem;
+    background: #0c0f1b;
+    border: 1px solid #2f3654;
+    border-radius: 10px;
+}
+
+.game__options-group {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.game__options-label {
+    font-size: 0.95rem;
+    color: #cfd5ff;
+}
+
+.game__options-action {
+    padding: 0.35rem 0.5rem;
+    border-radius: 10px;
+    border: 1px solid #2f3654;
+    background: #171c2f;
+    color: #fff;
+    cursor: pointer;
+    text-align: left;
+}
+
+.game__options-action:hover {
+    background: #1c2238;
+}
+
+.game__options-action[aria-pressed="false"] {
+    background: #0d1022;
+    color: #cfd5ff;
 }
 
 .game__hud-select {

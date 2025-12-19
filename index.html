@@ -23,13 +23,27 @@
                     <span class="game__hud-note">verbleibend</span>
                 </div>
             </div>
-            <div class="game__hud-card game__hud-card--mode">
-                <div class="game__hud-label">Tausch-Regel</div>
-                <div class="game__hud-control">
-                    <select id="swap-mode" class="game__hud-select">
-                        <option value="require-match" selected>Nur mit Match</option>
-                        <option value="free-swap">Jeder Tausch</option>
-                    </select>
+            <div id="options" class="game__hud-card game__hud-card--options">
+                <div class="game__hud-label">Optionen</div>
+                <div class="game__options">
+                    <button id="options-toggle" class="game__options-button" type="button" aria-expanded="false" aria-controls="options-panel">
+                        Menü öffnen
+                    </button>
+                    <div id="options-panel" class="game__options-panel" hidden>
+                        <div class="game__options-group">
+                            <label class="game__options-label" for="swap-mode">Tausch-Regel</label>
+                            <select id="swap-mode" class="game__hud-select">
+                                <option value="require-match" selected>Nur mit Match</option>
+                                <option value="free-swap">Jeder Tausch</option>
+                            </select>
+                        </div>
+                        <div class="game__options-group">
+                            <span class="game__options-label">Audio</span>
+                            <button id="audio-toggle" class="game__options-action" type="button" aria-pressed="true">
+                                Audio an
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

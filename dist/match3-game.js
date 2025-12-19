@@ -13,6 +13,14 @@ class Match3Game {
         this.hud.onSwapModeChange((mode) => {
             this.swapMode = mode;
         });
+        this.hud.onAudioToggle((enabled) => {
+            const active = this.sounds.setEnabled(enabled);
+            if (active !== enabled) {
+                this.hud.setAudioEnabled(active);
+            }
+        });
+        this.hud.initOptionsMenu();
+        this.hud.setAudioEnabled(this.sounds.isEnabled());
         this.state = {
             selected: null,
             score: 0,

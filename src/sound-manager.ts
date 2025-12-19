@@ -22,6 +22,15 @@ class SoundManager {
         };
     }
 
+    setEnabled(enabled: boolean): boolean {
+        this.enabled = enabled && this.supportsOgg();
+        return this.enabled;
+    }
+
+    isEnabled(): boolean {
+        return this.enabled;
+    }
+
     play(key: SoundKey): void {
         if (!this.enabled) return;
         const sound = this.sounds[key];
