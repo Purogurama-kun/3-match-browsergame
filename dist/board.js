@@ -53,15 +53,23 @@ class Board {
         cell.textContent = '';
     }
     updateBoosterVisual(cell) {
-        cell.classList.remove('game__cell--bomb-line', 'game__cell--bomb-radius');
+        cell.classList.remove('game__cell--bomb-line', 'game__cell--bomb-radius', 'game__cell--bomb-small', 'game__cell--bomb-medium', 'game__cell--bomb-large');
         cell.textContent = '';
         if (cell.dataset.booster === BOOSTERS.LINE) {
             cell.classList.add('game__cell--bomb-line');
             cell.textContent = '💣';
         }
-        if (cell.dataset.booster === BOOSTERS.RADIUS) {
-            cell.classList.add('game__cell--bomb-radius');
+        if (cell.dataset.booster === BOOSTERS.BURST_SMALL) {
+            cell.classList.add('game__cell--bomb-small');
+            cell.textContent = '🧨';
+        }
+        if (cell.dataset.booster === BOOSTERS.BURST_MEDIUM) {
+            cell.classList.add('game__cell--bomb-medium');
             cell.textContent = '💥';
+        }
+        if (cell.dataset.booster === BOOSTERS.BURST_LARGE) {
+            cell.classList.add('game__cell--bomb-large');
+            cell.textContent = '☢️';
         }
     }
     swapCells(a, b) {

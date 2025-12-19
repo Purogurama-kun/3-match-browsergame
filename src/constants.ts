@@ -3,7 +3,9 @@ const COLORS = ['#ff7b7b', '#ffd166', '#7dd3fc', '#a78bfa', '#6ee7b7'];
 const BOOSTERS = {
     NONE: 'none',
     LINE: 'line',
-    RADIUS: 'radius'
+    BURST_SMALL: 'burstSmall',
+    BURST_MEDIUM: 'burstMedium',
+    BURST_LARGE: 'burstLarge'
 } as const;
 
 type BoosterType = typeof BOOSTERS[keyof typeof BOOSTERS];
