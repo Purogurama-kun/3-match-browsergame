@@ -17,11 +17,11 @@ body {
     padding: 1.25rem;
     min-height: 100vh;
     min-height: 100dvh;
-    height: 100dvh;
     box-sizing: border-box;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     width: 100%;
-    overscroll-behavior-y: contain;
+    overscroll-behavior-y: auto;
 
     --cell-size: 3.75rem;
 }
