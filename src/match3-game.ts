@@ -175,7 +175,15 @@ class Match3Game {
         const { matched, boostersToCreate } = this.findMatches();
 
         if (matched.size > 0) {
-            this.sounds.play('match');
+            const hasRadiusMatch = boostersToCreate.some((boost) => boost.type === BOOSTERS.RADIUS);
+            const hasLineMatch = boostersToCreate.some((boost) => boost.type === BOOSTERS.LINE);
+            if (hasRadiusMatch) {
+                this.sounds.play('radiusBomb');
+            } else if (hasLineMatch) {
+                this.sounds.play('lineBomb');
+            } else {
+                this.sounds.play('match');
+            }
             this.screenShake();
             matched.forEach((idx) => this.destroyCell(idx));
             this.defer(() => {
