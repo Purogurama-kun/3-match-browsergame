@@ -134,7 +134,6 @@ class Hud {
         this.optionsModal.setAttribute('aria-hidden', 'false');
         this.optionsToggle.setAttribute('aria-expanded', 'true');
         this.optionsToggle.setAttribute('aria-pressed', 'true');
-        this.optionsToggle.textContent = 'Menü schließen';
         this.optionsClose.focus();
     }
     hideOptionsModal() {
@@ -142,7 +141,6 @@ class Hud {
         this.optionsModal.setAttribute('aria-hidden', 'true');
         this.optionsToggle.setAttribute('aria-expanded', 'false');
         this.optionsToggle.setAttribute('aria-pressed', 'false');
-        this.optionsToggle.textContent = 'Menü';
         this.optionsToggle.focus();
     }
     setAudioToggleState(enabled) {

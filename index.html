@@ -14,7 +14,6 @@
             <span class="game__menu-line"></span>
             <span class="game__menu-line"></span>
         </span>
-        <span class="game__menu-label">Menü</span>
     </button>
     <div id="hud" class="game__hud">
         <div class="game__hud-row">
@@ -26,20 +25,19 @@
                 <div class="game__hud-label">Züge</div>
                 <div id="moves" class="game__hud-value">20</div>
             </div>
-            <div class="game__hud-card game__hud-card--progress">
-                <div class="game__hud-bar-header">
-                    <span class="game__hud-label">Punktestand</span>
-                    <span class="game__hud-text">
-                        <span id="score" class="game__hud-value-strong">0/300</span>
-                    </span>
-                </div>
-                <div id="score-progress" class="game__hud-progress" role="progressbar" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0">
-                    <div id="score-progress-fill" class="game__hud-progress-fill"></div>
-                </div>
-            </div>
         </div>
         <div class="game__hud-card game__hud-card--goals">
             <div class="game__hud-label">Ziele</div>
+
+            <div class="game__hud-progress">
+                <div id="score-progress" class="game__hud-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0">
+                    <div id="score-progress-fill" class="game__hud-progress-fill"></div>
+                </div>
+                <span class="game__hud-text">
+                    <span id="score" class="game__hud-value-strong">0/300</span>
+                </span>
+            </div>
+
             <ul id="goals-list" class="game__goals-list"></ul>
         </div>
     </div>
