@@ -33,17 +33,22 @@ type GoogleId = {
                 ux_mode?: 'popup' | 'redirect';
                 auto_select?: boolean;
                 cancel_on_tap_outside?: boolean;
+                use_fedcm_for_prompt?: boolean;
             }): void;
-            prompt(
-                callback?: (notification: {
-                    isNotDisplayed(): boolean;
-                    getNotDisplayedReason(): string;
-                    isSkippedMoment(): boolean;
-                    getSkippedReason(): string;
-                }) => void
-            ): void;
+            renderButton(element: HTMLElement, options: GoogleButtonOptions): void;
         };
     };
+};
+
+type GoogleButtonOptions = {
+    type?: 'standard' | 'icon';
+    theme?: 'outline' | 'filled_blue' | 'filled_black';
+    size?: 'large' | 'medium' | 'small';
+    text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
+    shape?: 'rectangular' | 'pill' | 'circle' | 'square';
+    logo_alignment?: 'left' | 'center';
+    width?: number;
+    locale?: string;
 };
 
 declare global {
@@ -54,24 +59,22 @@ declare global {
 
 class GoogleAuth {
     constructor(config: GoogleAuthConfig) {
-        this.loginButton = this.getLoginButton(config.loginButtonId);
+        this.loginContainer = this.getLoginContainer(config.loginButtonId);
         this.statusLabel = getRequiredElement(config.statusId);
         this.progressLabel = getRequiredElement(config.progressId);
         this.errorLabel = getRequiredElement(config.errorId);
         this.onLogin = config.onLogin;
         this.disableLogin();
-        this.attachButtonHandler();
         this.initializeGoogle();
     }
 
     private readonly clientId =
         '276995857018-9foeghnr835nqq9kc2dpbl5j9ibljodg.apps.googleusercontent.com';
-    private loginButton: HTMLButtonElement;
+    private loginContainer: HTMLElement;
     private statusLabel: HTMLElement;
     private progressLabel: HTMLElement;
     private errorLabel: HTMLElement;
     private onLogin: (user: GoogleUser) => void;
-    private googleReady = false;
 
     setProgressLevel(level: number): void {
         const normalized = Math.max(1, Math.min(Number.isFinite(level) ? level : 1, 50));
@@ -84,30 +87,6 @@ class GoogleAuth {
         this.enableLogin();
     }
 
-    private attachButtonHandler(): void {
-        this.loginButton.addEventListener('click', () => {
-            this.clearError();
-            if (!this.googleReady) {
-                this.showError('Google Login lädt noch. Bitte kurz warten.');
-                return;
-            }
-            if (!window.google || !window.google.accounts || !window.google.accounts.id) {
-                this.showError('Google Login konnte nicht initialisiert werden.');
-                return;
-            }
-            window.google.accounts.id.prompt((notification) => {
-                if (notification.isNotDisplayed()) {
-                    this.showError(
-                        'Google Login kann nicht angezeigt werden: ' + notification.getNotDisplayedReason()
-                    );
-                }
-                if (notification.isSkippedMoment()) {
-                    this.showError('Login wurde übersprungen: ' + notification.getSkippedReason());
-                }
-            });
-        });
-    }
-
     private initializeGoogle(): void {
         if (!window.google || !window.google.accounts || !window.google.accounts.id) {
             window.setTimeout(() => this.initializeGoogle(), 200);
@@ -117,9 +96,19 @@ class GoogleAuth {
             client_id: this.clientId,
             ux_mode: 'popup',
             cancel_on_tap_outside: true,
+            use_fedcm_for_prompt: true,
             callback: (response) => this.handleCredential(response)
         });
-        this.googleReady = true;
+        this.loginContainer.textContent = '';
+        window.google.accounts.id.renderButton(this.loginContainer, {
+            theme: 'outline',
+            size: 'large',
+            shape: 'pill',
+            text: 'continue_with',
+            locale: 'de',
+            logo_alignment: 'left',
+            width: 320
+        });
         this.enableLogin();
     }
 
@@ -169,17 +158,19 @@ class GoogleAuth {
     }
 
     private disableLogin(): void {
-        this.loginButton.disabled = true;
+        this.loginContainer.classList.add('game__auth-button--disabled');
+        this.loginContainer.setAttribute('aria-disabled', 'true');
     }
 
     private enableLogin(): void {
-        this.loginButton.disabled = false;
+        this.loginContainer.classList.remove('game__auth-button--disabled');
+        this.loginContainer.removeAttribute('aria-disabled');
     }
 
-    private getLoginButton(id: string): HTMLButtonElement {
+    private getLoginContainer(id: string): HTMLElement {
         const element = getRequiredElement(id);
-        if (!(element instanceof HTMLButtonElement)) {
-            throw new Error('Google login trigger is not a button');
+        if (!(element instanceof HTMLElement)) {
+            throw new Error('Google login container is not an element');
         }
         return element;
     }
