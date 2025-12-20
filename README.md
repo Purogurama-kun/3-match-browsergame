@@ -13,6 +13,10 @@ Small Match-3 browser game with boosters, goals, and sound feedback, written in 
 - Combo multiplier scoring with HUD feedback.
 - Sound effects, optional audio toggle, and screen shake on impactful actions.
 
+## Known errors
+
+- Speech synthesis is not working on chrome browsers, so firefox is recommended.
+
 ## Run locally
 
 This project uses ES modules and TypeScript, so you need to build it and run a local web server.

@@ -5,7 +5,6 @@ import { Board } from './board.js';
 import { GameState, GoalProgress, LevelGoal, SwapMode, SwipeDirection } from './types.js';
 import { getRequiredElement } from './dom.js';
 import { describeGoal, getLevelDefinition } from './levels.js';
-import { SpeechSynthesis } from './SpeechSynthesis.js';
 
 type MatchResult = {
     matched: Set<number>;
@@ -582,12 +581,25 @@ class Match3Game {
         this.moveEvaluationEl.textContent = message;
         this.moveEvaluationEl.classList.add('game__move-evaluation--visible');
         if (this.sounds.isEnabled()) {
-            SpeechSynthesis.speakShortText(message);
+            this.speech(message);
         }
         this.moveEvaluationTimer = window.setTimeout(() => {
             this.moveEvaluationEl.classList.remove('game__move-evaluation--visible');
             this.moveEvaluationTimer = null;
         }, 2000);
+    }
+
+    private speech(message: string)
+    {
+        const utterance = new SpeechSynthesisUtterance(message); // message.replace(' ', '… ')
+        utterance.onerror = (e) => { console.error("speech error", e); };
+        utterance.lang = 'en-US';
+        utterance.rate = 1.08;
+        utterance.pitch = 1.05;
+        utterance.volume = 1.0;
+        window.speechSynthesis.cancel(); // stop previous speech otherwise they can queue.
+        //console.log(speechSynthesis.getVoices()); // for `utterance.voice = ...`
+        speechSynthesis.speak(utterance);
     }
 
     private getMoveEvaluationMessage(baseMoveScore: number): string {
