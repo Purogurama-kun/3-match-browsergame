@@ -279,8 +279,7 @@ class Match3Game {
 
     private activateBooster(cell: HTMLDivElement, consumesMove: boolean): void {
         const index = Number(cell.dataset.index);
-        const row = Math.floor(index / GRID_SIZE);
-        const col = index % GRID_SIZE;
+        const { row, col } = this.getRowCol(index);
         const booster = this.board.getCellBooster(cell);
         this.updateGoalsForBooster(booster);
 
@@ -289,27 +288,54 @@ class Match3Game {
             this.beginMove();
         }
 
-        if (booster === BOOSTERS.LINE) {
-            this.sounds.play('lineBomb');
-            const affected = new Set<number>();
-            for (let c = 0; c < GRID_SIZE; c++) affected.add(row * GRID_SIZE + c);
-            affected.forEach((idx) => this.destroyCell(idx));
-        } else if (booster === BOOSTERS.BURST_SMALL) {
-            this.sounds.play('radiusBomb');
-            this.destroyCircularArea(row, col, 1);
-        } else if (booster === BOOSTERS.BURST_MEDIUM) {
-            this.sounds.play('radiusBomb');
-            this.destroyCircularArea(row, col, 1.5);
-        } else if (booster === BOOSTERS.BURST_LARGE) {
-            this.sounds.play('radiusBomb');
-            this.destroyCircularArea(row, col, 2);
-        }
+        this.executeBoosterEffect(booster, row, col);
 
         if (consumesMove) {
             this.defer(() => this.dropCells(), 300);
         }
         this.updateHud();
         this.checkWinCondition();
+    }
+
+    private executeBoosterEffect(booster: BoosterType, row: number, col: number): void {
+        if (booster === BOOSTERS.LINE) {
+            this.sounds.play('lineBomb');
+            this.destroyCells(this.getRowIndices(row));
+            return;
+        }
+
+        const radius = this.getBoosterRadius(booster);
+        if (radius === null) return;
+        this.sounds.play('radiusBomb');
+        this.destroyCircularArea(row, col, radius);
+    }
+
+    private getBoosterRadius(booster: BoosterType): number | null {
+        if (booster === BOOSTERS.BURST_SMALL) return 1;
+        if (booster === BOOSTERS.BURST_MEDIUM) return 1.5;
+        if (booster === BOOSTERS.BURST_LARGE) return 2;
+        return null;
+    }
+
+    private getRowIndices(row: number): number[] {
+        const indices: number[] = [];
+        for (let c = 0; c < GRID_SIZE; c++) {
+            indices.push(row * GRID_SIZE + c);
+        }
+        return indices;
+    }
+
+    private getColumnIndices(col: number): number[] {
+        const indices: number[] = [];
+        for (let r = 0; r < GRID_SIZE; r++) {
+            indices.push(r * GRID_SIZE + col);
+        }
+        return indices;
+    }
+
+    private destroyCells(indices: Iterable<number>): void {
+        const unique = new Set(indices);
+        unique.forEach((idx) => this.destroyCell(idx));
     }
 
     private destroyCircularArea(row: number, col: number, radius: number): void {
@@ -369,19 +395,13 @@ class Match3Game {
     }
 
     private areAdjacent(a: HTMLDivElement, b: HTMLDivElement): boolean {
-        const aIndex = Number(a.dataset.index);
-        const bIndex = Number(b.dataset.index);
-        const aRow = Math.floor(aIndex / GRID_SIZE);
-        const aCol = aIndex % GRID_SIZE;
-        const bRow = Math.floor(bIndex / GRID_SIZE);
-        const bCol = bIndex % GRID_SIZE;
+        const { row: aRow, col: aCol } = this.getRowCol(Number(a.dataset.index));
+        const { row: bRow, col: bCol } = this.getRowCol(Number(b.dataset.index));
         return Math.abs(aRow - bRow) + Math.abs(aCol - bCol) === 1;
     }
 
     private getNeighbor(cell: HTMLDivElement, direction: SwipeDirection): HTMLDivElement | null {
-        const index = Number(cell.dataset.index);
-        const row = Math.floor(index / GRID_SIZE);
-        const col = index % GRID_SIZE;
+        const { row, col } = this.getRowCol(Number(cell.dataset.index));
         let targetRow = row;
         let targetCol = col;
         if (direction === 'up') targetRow--;
@@ -585,19 +605,11 @@ class Match3Game {
 
     private scanLineMatches(accumulator: MatchAccumulator): void {
         for (let r = 0; r < GRID_SIZE; r++) {
-            const indices: number[] = [];
-            for (let c = 0; c < GRID_SIZE; c++) {
-                indices.push(r * GRID_SIZE + c);
-            }
-            this.checkLine(indices, accumulator);
+            this.checkLine(this.getRowIndices(r), accumulator);
         }
 
         for (let c = 0; c < GRID_SIZE; c++) {
-            const indices: number[] = [];
-            for (let r = 0; r < GRID_SIZE; r++) {
-                indices.push(r * GRID_SIZE + c);
-            }
-            this.checkLine(indices, accumulator);
+            this.checkLine(this.getColumnIndices(c), accumulator);
         }
     }
 
@@ -729,6 +741,13 @@ class Match3Game {
 
     private indexAt(row: number, col: number): number {
         return row * GRID_SIZE + col;
+    }
+
+    private getRowCol(index: number): { row: number; col: number } {
+        return {
+            row: Math.floor(index / GRID_SIZE),
+            col: index % GRID_SIZE
+        };
     }
 }
 
