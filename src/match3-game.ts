@@ -102,6 +102,7 @@ class Match3Game {
     private readonly baseCellPoints = 10;
     private readonly minMultiplier = 0.5;
     private readonly maxMultiplier = 5;
+    private readonly maxBombDropChance = 0.1;
     private levelDefinition!: LevelDefinition;
 
     start(): void {
@@ -388,6 +389,17 @@ class Match3Game {
         affected.forEach((idx) => this.destroyCell(idx));
     }
 
+    private shouldSpawnBombFromDrop(): boolean {
+        const normalizedMultiplier = Math.min(Math.max(this.state.comboMultiplier, 0), this.maxMultiplier);
+        const chance = (normalizedMultiplier / this.maxMultiplier) * this.maxBombDropChance;
+        return Math.random() < chance;
+    }
+
+    private createFallingBomb(cell: HTMLDivElement): void {
+        this.board.setCellColor(cell, randomColor());
+        this.board.setBooster(cell, BOOSTERS.BURST_SMALL);
+    }
+
     private dropCells(): void {
         for (let c = 0; c < GRID_SIZE; c++) {
             for (let r = GRID_SIZE - 1; r >= 0; r--) {
@@ -408,8 +420,12 @@ class Match3Game {
                         break;
                     }
                     if (!this.board.getCellColor(cell)) {
-                        this.board.setCellColor(cell, randomColor());
-                        this.board.setBooster(cell, BOOSTERS.NONE);
+                        if (this.shouldSpawnBombFromDrop()) {
+                            this.createFallingBomb(cell);
+                        } else {
+                            this.board.setCellColor(cell, randomColor());
+                            this.board.setBooster(cell, BOOSTERS.NONE);
+                        }
                         this.board.setHardCandy(cell, false);
                     }
                 }
