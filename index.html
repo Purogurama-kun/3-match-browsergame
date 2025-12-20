@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="css/styles.css" />
     <script type="module" src="dist/main.js"></script>
 </head>
-<body class="game">
+<body class="game game--menu">
     <button id="options-toggle" class="game__menu-button" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="options-modal">
         <span class="game__menu-icon" aria-hidden="true">
             <span class="game__menu-line"></span>
@@ -15,6 +15,21 @@
             <span class="game__menu-line"></span>
         </span>
     </button>
+
+    <div id="main-menu" class="game__main-menu" role="dialog" aria-labelledby="main-menu-title">
+        <div class="game__main-menu-card">
+            <div class="game__main-menu-lead">Willkommen zu</div>
+            <h1 id="main-menu-title" class="game__main-menu-title">Explosive Candy</h1>
+            <p class="game__main-menu-text">
+                Kombiniere farbige Süßigkeiten, löse Explosionen aus und knacke die Levelziele. Starte direkt in
+                den Level Modus oder passe dein Erlebnis über das Optionsmenü an.
+            </p>
+            <div class="game__main-menu-actions">
+                <button id="start-level" class="game__main-menu-button" type="button">Level Modus</button>
+                <p class="game__main-menu-note">Optionen über das Menü oben rechts öffnen</p>
+            </div>
+        </div>
+    </div>
     <div id="hud" class="game__hud">
         <div class="game__hud-row">
             <div id="level-card" class="game__hud-card game__hud-card--stat game__hud-card--level">
@@ -83,6 +98,11 @@
                     <span class="game__options-label">Audio</span>
                     <button id="audio-toggle" class="game__options-action" type="button" aria-pressed="true">
                         Audio an
+                    </button>
+                </div>
+                <div class="game__options-group">
+                    <button id="exit-game" class="game__options-action game__options-action--danger" type="button">
+                        Spiel beenden
                     </button>
                 </div>
             </div>
