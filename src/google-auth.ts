@@ -37,6 +37,14 @@ type GoogleId = {
             }): void;
             renderButton(element: HTMLElement, options: GoogleButtonOptions): void;
         };
+        oauth2: {
+            initTokenClient(config: {
+                client_id: string;
+                scope: string;
+                prompt?: string;
+                callback: (response: GoogleTokenResponse) => void;
+            }): GoogleTokenClient;
+        };
     };
 };
 
@@ -49,6 +57,17 @@ type GoogleButtonOptions = {
     logo_alignment?: 'left' | 'center';
     width?: number;
     locale?: string;
+};
+
+type GoogleTokenClient = {
+    callback: (response: GoogleTokenResponse) => void;
+    requestAccessToken(options?: { prompt?: string }): void;
+};
+
+type GoogleTokenResponse = {
+    access_token: string;
+    expires_in?: number;
+    error?: string;
 };
 
 declare global {
@@ -70,28 +89,50 @@ class GoogleAuth {
 
     private readonly clientId =
         '276995857018-9foeghnr835nqq9kc2dpbl5j9ibljodg.apps.googleusercontent.com';
+    private readonly driveScope = 'https://www.googleapis.com/auth/drive.appdata';
     private loginContainer: HTMLElement;
     private statusLabel: HTMLElement;
     private progressLabel: HTMLElement;
     private errorLabel: HTMLElement;
     private onLogin: (user: GoogleUser) => void;
+    private tokenClient: GoogleTokenClient | null = null;
+    private accessToken: string | null = null;
+    private accessTokenExpiresAt: number | null = null;
+    private pendingTokenRequest: Promise<string> | null = null;
 
     setProgressLevel(level: number): void {
         const normalized = Math.max(1, Math.min(Number.isFinite(level) ? level : 1, 50));
         this.progressLabel.textContent = 'Fortschritt: Level ' + normalized;
     }
 
+    setProgressMessage(message: string): void {
+        this.progressLabel.textContent = message;
+    }
+
     setLoggedOut(): void {
         this.statusLabel.textContent = 'Nicht angemeldet';
         this.setProgressLevel(1);
         this.enableLogin();
+        this.accessToken = null;
+        this.accessTokenExpiresAt = null;
+        this.pendingTokenRequest = null;
     }
 
     private initializeGoogle(): void {
-        if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+        if (
+            !window.google ||
+            !window.google.accounts ||
+            !window.google.accounts.id ||
+            !window.google.accounts.oauth2
+        ) {
             window.setTimeout(() => this.initializeGoogle(), 200);
             return;
         }
+        this.tokenClient = window.google.accounts.oauth2.initTokenClient({
+            client_id: this.clientId,
+            scope: this.driveScope,
+            callback: () => {}
+        });
         window.google.accounts.id.initialize({
             client_id: this.clientId,
             ux_mode: 'popup',
@@ -112,7 +153,7 @@ class GoogleAuth {
         this.enableLogin();
     }
 
-    private handleCredential(response: GoogleCredentialResponse): void {
+    private async handleCredential(response: GoogleCredentialResponse): Promise<void> {
         const payload = this.decodeCredential(response.credential);
         if (!payload) {
             this.showError('Anmeldung fehlgeschlagen. Bitte erneut versuchen.');
@@ -124,9 +165,16 @@ class GoogleAuth {
             name: payload.name || payload.email || 'Spieler',
             ...(payload.email ? { email: payload.email } : {})
         };
-        this.statusLabel.textContent = 'Angemeldet als ' + user.name;
-        this.onLogin(user);
-        this.disableLogin();
+        try {
+            await this.requestAccessToken(true);
+            this.statusLabel.textContent = 'Angemeldet als ' + user.name;
+            this.onLogin(user);
+            this.disableLogin();
+        } catch (error) {
+            console.error('Failed to obtain Google Drive access token', error);
+            this.showError('Google Drive Zugriff fehlgeschlagen. Bitte erlaube den Zugriff und versuche es erneut.');
+            this.enableLogin();
+        }
     }
 
     private decodeCredential(credential: string): GoogleJwtPayload | null {
@@ -165,6 +213,61 @@ class GoogleAuth {
     private enableLogin(): void {
         this.loginContainer.classList.remove('game__auth-button--disabled');
         this.loginContainer.removeAttribute('aria-disabled');
+    }
+
+    async getAccessToken(forcePrompt = false): Promise<string | null> {
+        if (this.hasValidAccessToken()) {
+            return this.accessToken;
+        }
+        try {
+            return await this.requestAccessToken(forcePrompt);
+        } catch (error) {
+            console.warn('Token request failed', error);
+            return null;
+        }
+    }
+
+    private async requestAccessToken(forcePrompt: boolean): Promise<string> {
+        if (!this.tokenClient) {
+            throw new Error('Google OAuth client not initialized');
+        }
+        if (this.pendingTokenRequest) {
+            return this.pendingTokenRequest;
+        }
+        this.pendingTokenRequest = new Promise<string>((resolve, reject) => {
+            this.tokenClient!.callback = (tokenResponse) => {
+                this.pendingTokenRequest = null;
+                if (tokenResponse.error || !tokenResponse.access_token) {
+                    reject(tokenResponse.error || 'Token response missing access token');
+                    return;
+                }
+                this.accessToken = tokenResponse.access_token;
+                this.accessTokenExpiresAt = this.computeExpiry(tokenResponse.expires_in);
+                resolve(tokenResponse.access_token);
+            };
+            try {
+                this.tokenClient!.requestAccessToken({ prompt: forcePrompt ? 'consent' : '' });
+            } catch (error) {
+                this.pendingTokenRequest = null;
+                reject(error);
+            }
+        });
+        return this.pendingTokenRequest;
+    }
+
+    private computeExpiry(expiresIn?: number): number {
+        const defaultLifetimeMs = 50 * 60 * 1000;
+        if (!expiresIn || expiresIn <= 0) {
+            return Date.now() + defaultLifetimeMs;
+        }
+        return Date.now() + expiresIn * 1000;
+    }
+
+    private hasValidAccessToken(): boolean {
+        if (!this.accessToken || !this.accessTokenExpiresAt) {
+            return false;
+        }
+        return Date.now() < this.accessTokenExpiresAt - 5000;
     }
 
     private getLoginContainer(id: string): HTMLElement {

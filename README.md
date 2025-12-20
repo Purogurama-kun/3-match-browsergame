@@ -34,7 +34,9 @@ Then open `http://localhost:5500` in your browser.
 
 - Im Hauptmenü kannst du dich per Google Login anmelden (Client-ID ist bereits hinterlegt).
 - Nach erfolgreicher Anmeldung wird dein Name im Menü angezeigt.
-- Der höchste freigeschaltete Level wird lokal gespeichert und über dein Google-Konto zugeordnet, sodass dein Fortschritt nur für dich geladen wird.
+- Der höchste freigeschaltete Level wird in deinem Google Drive App-Datenordner gespeichert (Scope `drive.appdata`), sodass deine Fortschritte nach dem Login auf jedem Gerät bereitstehen.
+- Wird der Drive-Zugriff abgelehnt oder ist offline nicht möglich, wird der Fortschritt nur lokal gespeichert.
+- Stelle sicher, dass die Google Drive API im zugehörigen Cloud-Projekt aktiviert ist, damit der Zugriff auf den App-Datenordner funktioniert.
 
 ## Project structure
 
