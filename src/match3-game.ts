@@ -2,9 +2,9 @@ import { GRID_SIZE, BOOSTERS, BLACK_BOMB_COLOR, BoosterType, randomColor, getCol
 import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
 import { Board } from './board.js';
-import { GameState, GoalProgress, LevelGoal, SwapMode, SwipeDirection } from './types.js';
+import { GameState, GoalProgress, LevelDefinition, LevelGoal, SwapMode, SwipeDirection } from './types.js';
 import { getRequiredElement } from './dom.js';
-import { describeGoal, getLevelDefinition } from './levels.js';
+import { LEVELS, describeGoal, getLevelDefinition } from './levels.js';
 
 type MatchResult = {
     matched: Set<number>;
@@ -102,6 +102,7 @@ class Match3Game {
     private readonly baseCellPoints = 10;
     private readonly minMultiplier = 0.5;
     private readonly maxMultiplier = 5;
+    private levelDefinition!: LevelDefinition;
 
     start(): void {
         this.initLevel(1);
@@ -119,6 +120,7 @@ class Match3Game {
 
     private initLevel(levelNumber: number): void {
         const definition = getLevelDefinition(levelNumber);
+        this.levelDefinition = definition;
         this.state = {
             selected: null,
             score: 0,
@@ -142,7 +144,10 @@ class Match3Game {
     private createBoard(): void {
         this.generation++;
         this.clearPendingTimers();
-        this.board.create();
+        const boardConfig: { blockedCells?: number[]; hardCandies?: number[] } = {};
+        if (this.levelDefinition.missingCells) boardConfig.blockedCells = this.levelDefinition.missingCells;
+        if (this.levelDefinition.hardCandies) boardConfig.hardCandies = this.levelDefinition.hardCandies;
+        this.board.create(boardConfig);
         this.resetMoveTracking();
         this.renderMultiplierStatus(0, 0);
         this.updateHud();
@@ -215,6 +220,7 @@ class Match3Game {
     private checkMatches(): void {
         const matchResult = this.findMatches();
         const { matched, boostersToCreate } = matchResult;
+        this.softenAdjacentHardCandies(matched);
 
         if (matched.size > 0) {
             const hasBlastBooster = boostersToCreate.some(
@@ -258,8 +264,29 @@ class Match3Game {
         if (this.state.movesLeft <= 0) this.endLevel(false);
     }
 
+    private softenAdjacentHardCandies(matched: Set<number>): void {
+        if (matched.size === 0) return;
+        const softened = new Set<number>();
+        matched.forEach((idx) => {
+            const { row, col } = this.getRowCol(idx);
+            this.getAdjacentIndices(row, col).forEach((neighbor) => {
+                if (softened.has(neighbor)) return;
+                if (this.board.isBlockedIndex(neighbor)) return;
+                const cell = this.board.getCell(neighbor);
+                if (!this.board.isHardCandy(cell)) return;
+                this.board.softenCandy(cell);
+                softened.add(neighbor);
+            });
+        });
+    }
+
     private destroyCell(index: number): void {
         const cell = this.board.getCell(index);
+        if (this.board.isBlockedIndex(index)) return;
+        if (this.board.isHardCandy(cell)) {
+            this.board.softenCandy(cell);
+            return;
+        }
         const booster = this.board.getCellBooster(cell);
         const color = this.board.getCellColor(cell);
         if ((!color && booster === BOOSTERS.NONE) || cell.classList.contains('game__cell--explode')) return;
@@ -365,20 +392,25 @@ class Match3Game {
         for (let c = 0; c < GRID_SIZE; c++) {
             for (let r = GRID_SIZE - 1; r >= 0; r--) {
                 const i = r * GRID_SIZE + c;
+                if (this.board.isBlockedIndex(i)) continue;
                 const cell = this.board.getCell(i);
                 if (!this.board.getCellColor(cell)) {
                     for (let k = r - 1; k >= 0; k--) {
-                        const above = this.board.getCell(k * GRID_SIZE + c);
-                        if (this.board.getCellColor(above)) {
-                            this.board.setCellColor(cell, this.board.getCellColor(above));
-                            cell.dataset.booster = above.dataset.booster;
-                            this.board.updateBoosterVisual(cell);
-                            this.board.clearCell(above);
-                            break;
-                        }
+                        const sourceIndex = k * GRID_SIZE + c;
+                        if (this.board.isBlockedIndex(sourceIndex)) continue;
+                        const above = this.board.getCell(sourceIndex);
+                        const sourceColor = this.board.getCellColor(above);
+                        if (!sourceColor) continue;
+                        this.board.setCellColor(cell, sourceColor);
+                        this.board.setBooster(cell, this.board.getCellBooster(above));
+                        this.board.setHardCandy(cell, this.board.isHardCandy(above));
+                        this.board.clearCell(above);
+                        break;
                     }
                     if (!this.board.getCellColor(cell)) {
                         this.board.setCellColor(cell, randomColor());
+                        this.board.setBooster(cell, BOOSTERS.NONE);
+                        this.board.setHardCandy(cell, false);
                     }
                 }
             }
@@ -388,7 +420,8 @@ class Match3Game {
 
     private endLevel(didWin: boolean): void {
         const completedLevel = this.state.level;
-        const nextLevel = didWin ? completedLevel + 1 : completedLevel;
+        const rawNextLevel = didWin ? completedLevel + 1 : completedLevel;
+        const nextLevel = Math.min(rawNextLevel, LEVELS.length);
         if (didWin) {
             this.sounds.play('levelUp');
         } else {
@@ -416,10 +449,15 @@ class Match3Game {
         if (direction === 'right') targetCol++;
         if (targetRow < 0 || targetRow >= GRID_SIZE || targetCol < 0 || targetCol >= GRID_SIZE) return null;
         const targetIndex = targetRow * GRID_SIZE + targetCol;
+        if (this.board.isBlockedIndex(targetIndex)) return null;
         return this.board.getCell(targetIndex);
     }
 
     private trySwap(first: HTMLDivElement, second: HTMLDivElement): void {
+        if (this.board.isBlockedCell(first) || this.board.isBlockedCell(second)) {
+            this.showInvalidMove(second);
+            return;
+        }
         if (!this.areAdjacent(first, second)) {
             this.showInvalidMove(second);
             return;
@@ -468,7 +506,10 @@ class Match3Game {
         this.modalCallback = onClose;
         if (result === 'win') {
             this.modalTitle.textContent = 'Level ' + completedLevel + ' geschafft!';
-            this.modalText.textContent = 'Weiter geht es mit Level ' + nextLevel + '.';
+            const hasMoreLevels = nextLevel > completedLevel;
+            this.modalText.textContent = hasMoreLevels
+                ? 'Weiter geht es mit Level ' + nextLevel + '.'
+                : 'Du hast alle ' + LEVELS.length + ' Level gemeistert. Spiele das Finale weiter für Highscores.';
         } else {
             this.modalTitle.textContent = 'Level verloren!';
             this.modalText.textContent = 'Versuche es direkt noch einmal.';
@@ -665,20 +706,14 @@ class Match3Game {
 
     private checkLine(indices: number[], accumulator: MatchAccumulator): void {
         let streak = 1;
-        const getColorForIndex = (idx: number): string => {
-            const cell = this.board.getCell(idx);
-            const booster = this.board.getCellBooster(cell);
-            if (booster === BOOSTERS.BURST_LARGE) return '';
-            return this.board.getCellColor(cell);
-        };
         for (let i = 1; i <= indices.length; i++) {
             const prevIndex = indices[i - 1];
             const currIndex = i < indices.length ? indices[i] : undefined;
             if (prevIndex === undefined) {
                 throw new Error('Missing index at position: ' + (i - 1));
             }
-            const prevColor = getColorForIndex(prevIndex);
-            const currColor = currIndex !== undefined ? getColorForIndex(currIndex) : '';
+            const prevColor = this.getMatchableColor(prevIndex);
+            const currColor = currIndex !== undefined ? this.getMatchableColor(currIndex) : '';
             if (currColor && currColor === prevColor) {
                 streak++;
             } else {
@@ -769,12 +804,18 @@ class Match3Game {
         accumulator.createdBoosterTypes.add(type);
     }
 
-    private getColorAt(row: number, col: number): string {
-        if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) return '';
-        const cell = this.board.getCell(this.indexAt(row, col));
+    private getMatchableColor(index: number): string {
+        if (this.board.isBlockedIndex(index)) return '';
+        const cell = this.board.getCell(index);
+        if (this.board.isHardCandy(cell)) return '';
         const booster = this.board.getCellBooster(cell);
         if (booster === BOOSTERS.BURST_LARGE) return '';
         return this.board.getCellColor(cell);
+    }
+
+    private getColorAt(row: number, col: number): string {
+        if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) return '';
+        return this.getMatchableColor(this.indexAt(row, col));
     }
 
     private rotateOffset(offset: { row: number; col: number }, times: number): { row: number; col: number } {
@@ -791,6 +832,17 @@ class Match3Game {
 
     private indexAt(row: number, col: number): number {
         return row * GRID_SIZE + col;
+    }
+
+    private getAdjacentIndices(row: number, col: number): number[] {
+        return [
+            { row: row - 1, col },
+            { row: row + 1, col },
+            { row, col: col - 1 },
+            { row, col: col + 1 }
+        ]
+            .filter((pos) => pos.row >= 0 && pos.row < GRID_SIZE && pos.col >= 0 && pos.col < GRID_SIZE)
+            .map((pos) => this.indexAt(pos.row, pos.col));
     }
 
     private getRowCol(index: number): { row: number; col: number } {

@@ -7,8 +7,9 @@ Small Match-3 browser game with boosters, goals, and sound feedback, written in 
 - Match detection for lines, squares, and T/L shapes with chain reactions and refills.
 - Boosters: line bombs and small/medium/large burst bombs from special matches.
 - Large burst bombs can be triggered directly on click.
-- Levels with moves, target scores, and per-level goals (destroy colors or activate boosters).
-- Progressive difficulty that extends beyond the authored level list.
+- 50 kuratierte Levels mit steigenden Zielen, Boss-ähnlichen Herausforderungen alle zehn Stufen und Layouts mit fehlenden Zellen.
+- Levels mit begrenzten Zügen, Zielpunkten und pro-Level-Zielen (Farben zerstören oder Booster aktivieren).
+- Harte Bonbons, die erst durch angrenzende Matches oder Bombenexplosionen weich werden und danach matchbar sind.
 - Free-swap or require-match swap modes, plus swipe and click controls.
 - Combo multiplier scoring with HUD feedback.
 - Sound effects, optional audio toggle, and screen shake on impactful actions.

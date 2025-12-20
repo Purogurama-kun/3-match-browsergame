@@ -33,6 +33,8 @@ type LevelDefinition = {
     targetScore: number;
     goals: LevelGoal[];
     difficulty: number;
+    missingCells?: number[];
+    hardCandies?: number[];
 };
 
 type GameState = {
