@@ -42,7 +42,8 @@ class Match3Game {
             targetScore: 0,
             movesLeft: 0,
             goals: [],
-            difficulty: 1
+            difficulty: 1,
+            comboMultiplier: 1
         };
 
         this.generation = 0;
@@ -53,6 +54,8 @@ class Match3Game {
         this.modalText = getRequiredElement('result-text');
         this.modalButton = getRequiredElement('result-button');
         this.modalCallback = null;
+        this.moveActive = false;
+        this.currentMoveScore = 0;
 
         this.modalButton.addEventListener('click', () => this.hideResultModal());
         this.modalEl.addEventListener('click', (event) => {
@@ -80,7 +83,11 @@ class Match3Game {
     private modalText: HTMLElement;
     private modalButton: HTMLButtonElement;
     private modalCallback: (() => void) | null;
-    private readonly defaultStatus = { text: 'Bereit für Kombos!', icon: '✨' };
+    private moveActive: boolean;
+    private currentMoveScore: number;
+    private readonly baseCellPoints = 10;
+    private readonly minMultiplier = 0.5;
+    private readonly maxMultiplier = 5;
 
     start(): void {
         this.initLevel(1);
@@ -105,7 +112,8 @@ class Match3Game {
             targetScore: definition.targetScore,
             movesLeft: definition.moves,
             goals: this.createGoals(definition.goals),
-            difficulty: definition.difficulty
+            difficulty: definition.difficulty,
+            comboMultiplier: 1
         };
     }
 
@@ -121,7 +129,8 @@ class Match3Game {
         this.generation++;
         this.clearPendingTimers();
         this.board.create();
-        this.hud.setStatus(this.defaultStatus.text, this.defaultStatus.icon);
+        this.resetMoveTracking();
+        this.renderMultiplierStatus(0, 0);
         this.updateHud();
     }
 
@@ -358,7 +367,6 @@ class Match3Game {
             } else {
                 this.sounds.play('match');
             }
-            this.updateComboStatus(matchResult);
             this.screenShake();
             matched.forEach((idx) => {
                 const cell = this.board.getCell(idx);
@@ -376,6 +384,8 @@ class Match3Game {
             return;
         }
 
+        this.finalizeMoveScore();
+
         if (this.isLevelComplete()) {
             this.endLevel(true);
             return;
@@ -392,7 +402,7 @@ class Match3Game {
         cell.classList.add('game__cell--explode');
         this.defer(() => {
             this.board.clearCell(cell);
-            this.state.score += 10;
+            this.awardScore(this.baseCellPoints);
             this.updateGoalsForDestroyedCell(color);
             this.updateHud();
             this.checkWinCondition();
@@ -416,6 +426,11 @@ class Match3Game {
         const booster = this.board.getCellBooster(cell);
         this.updateGoalsForBooster(booster);
 
+        if (consumesMove) {
+            this.state.movesLeft--;
+            this.beginMove();
+        }
+
         if (booster === BOOSTERS.LINE) {
             this.sounds.play('lineBomb');
             const affected = new Set<number>();
@@ -433,7 +448,6 @@ class Match3Game {
         }
 
         if (consumesMove) {
-            this.state.movesLeft--;
             this.defer(() => this.dropCells(), 300);
         }
         this.updateHud();
@@ -527,18 +541,18 @@ class Match3Game {
             return;
         }
         this.board.swapCells(first, second);
-        this.state.movesLeft--;
-        this.updateHud();
         if (this.swapMode === 'require-match') {
             const { matched } = this.findMatches();
             if (matched.size === 0) {
                 this.board.swapCells(first, second);
-                this.state.movesLeft++;
-                this.updateHud();
+                this.resetMoveTracking();
                 this.showInvalidMove(second);
                 return;
             }
         }
+        this.state.movesLeft--;
+        this.beginMove();
+        this.updateHud();
         this.defer(() => this.checkMatches(), 120);
     }
 
@@ -622,36 +636,51 @@ class Match3Game {
         });
     }
 
-    private updateComboStatus(matchResult: MatchResult): void {
-        if (matchResult.matched.size === 0) return;
-        const boosterPriority = [
-            BOOSTERS.BURST_LARGE,
-            BOOSTERS.BURST_MEDIUM,
-            BOOSTERS.BURST_SMALL,
-            BOOSTERS.LINE
-        ] as const;
-        const boosterMessages: Record<BoosterType, { text: string; icon: string }> = {
-            [BOOSTERS.NONE]: { text: '', icon: '' },
-            [BOOSTERS.LINE]: { text: 'Linienbombe geladen!', icon: '💣' },
-            [BOOSTERS.BURST_SMALL]: { text: 'Kreuz-Explosion!', icon: '🧨' },
-            [BOOSTERS.BURST_MEDIUM]: { text: 'Flächenblast bereit!', icon: '💥' },
-            [BOOSTERS.BURST_LARGE]: { text: 'Mega-Bombe entstanden!', icon: '☢️' }
-        };
-        const createdBooster = boosterPriority.find((type) => matchResult.createdBoosterTypes.includes(type));
-        if (createdBooster) {
-            const message = boosterMessages[createdBooster];
-            this.hud.setStatus(message.text, message.icon);
-            return;
-        }
-        if (matchResult.largestMatch >= 5) {
-            this.hud.setStatus('Mega-Kombo! 5er Match!', '⚡');
-            return;
-        }
-        if (matchResult.largestMatch === 4) {
-            this.hud.setStatus('Starke Vierer-Kette!', '🔥');
-            return;
-        }
-        this.hud.setStatus('Match gefunden!', '✨');
+    private awardScore(basePoints: number): void {
+        const effective = Math.round(basePoints * this.state.comboMultiplier);
+        this.state.score += effective;
+        this.currentMoveScore += effective;
+    }
+
+    private beginMove(): void {
+        this.moveActive = true;
+        this.currentMoveScore = 0;
+    }
+
+    private resetMoveTracking(): void {
+        this.moveActive = false;
+        this.currentMoveScore = 0;
+    }
+
+    private finalizeMoveScore(): void {
+        if (!this.moveActive) return;
+        const delta = this.calculateMultiplierDelta(this.currentMoveScore);
+        this.state.comboMultiplier = this.clampMultiplier(this.state.comboMultiplier + delta);
+        this.renderMultiplierStatus(delta, this.currentMoveScore);
+        this.resetMoveTracking();
+        this.updateHud();
+    }
+
+    private calculateMultiplierDelta(moveScore: number): number {
+        if (moveScore >= 150) return 0.5;
+        if (moveScore >= 90) return 0.35;
+        if (moveScore >= 60) return 0.2;
+        if (moveScore === 0) return -0.3;
+        if (moveScore < 30) return -0.15;
+        return 0;
+    }
+
+    private clampMultiplier(multiplier: number): number {
+        const rounded = Math.round(multiplier * 100) / 100;
+        return Math.min(this.maxMultiplier, Math.max(this.minMultiplier, rounded));
+    }
+
+    private renderMultiplierStatus(delta: number, moveScore: number): void {
+        const icon = delta > 0 ? '⬆️' : delta < 0 ? '⬇️' : '✨';
+        const formattedMultiplier = 'x' + this.state.comboMultiplier.toFixed(2);
+        const scorePart = moveScore > 0 ? ' · +' + moveScore + ' Punkte' : '';
+        const prefix = delta > 0 ? 'Starker Zug!' : delta < 0 ? 'Tempo verloren!' : 'Multiplikator';
+        this.hud.setStatus(prefix + ' ' + formattedMultiplier + scorePart, icon);
     }
 }
 
