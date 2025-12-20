@@ -170,6 +170,16 @@ body {
         inset 0 -3px 8px rgba(0, 0, 0, 0.35);
     transform: translateY(-2px);
 }
+.game__cell--spawn {
+    opacity: 0;
+    transform: translateY(-140%) scale(0.95);
+    animation: cell-drop 0.55s ease-out forwards;
+}
+@keyframes cell-drop {
+    0% { opacity: 0; transform: translateY(-140%) scale(0.95); }
+    70% { opacity: 1; transform: translateY(10%) scale(1.02); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
 
 .game__cell--void {
     background: repeating-linear-gradient(45deg, #0f172a, #0f172a 6px, #0b1221 6px, #0b1221 12px);

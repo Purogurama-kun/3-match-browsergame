@@ -79,6 +79,7 @@ class Match3Game {
                 this.hideResultModal();
             }
         });
+        this.boardAnimating = false;
     }
 
     private gameEl: HTMLElement;
@@ -104,6 +105,7 @@ class Match3Game {
     private readonly maxMultiplier = 5;
     private readonly maxBombDropChance = 0.05; // 5%
     private levelDefinition!: LevelDefinition;
+    private boardAnimating: boolean;
 
     start(): void {
         this.initLevel(1);
@@ -145,6 +147,7 @@ class Match3Game {
     private createBoard(): void {
         this.generation++;
         this.clearPendingTimers();
+        this.boardAnimating = true;
         const boardConfig: { blockedCells?: number[]; hardCandies?: number[] } = {};
         if (this.levelDefinition.missingCells) boardConfig.blockedCells = this.levelDefinition.missingCells;
         if (this.levelDefinition.hardCandies) boardConfig.hardCandies = this.levelDefinition.hardCandies;
@@ -152,9 +155,11 @@ class Match3Game {
         this.resetMoveTracking();
         this.renderMultiplierStatus(0, 0);
         this.updateHud();
+        this.animateBoardEntry();
     }
 
     private handleCellClick(cell: HTMLDivElement): void {
+        if (this.boardAnimating) return;
         if (this.moveActive) return;
         if (this.state.movesLeft <= 0) return;
 
@@ -191,6 +196,7 @@ class Match3Game {
     }
 
     private handleCellSwipe(cell: HTMLDivElement, direction: SwipeDirection): void {
+        if (this.boardAnimating) return;
         if (this.moveActive) return;
         if (this.state.movesLeft <= 0) return;
         const neighbor = this.getNeighbor(cell, direction);
@@ -859,6 +865,13 @@ class Match3Game {
         ]
             .filter((pos) => pos.row >= 0 && pos.row < GRID_SIZE && pos.col >= 0 && pos.col < GRID_SIZE)
             .map((pos) => this.indexAt(pos.row, pos.col));
+    }
+
+    private animateBoardEntry(): void {
+        const duration = this.board.playSpawnAnimation();
+        this.defer(() => {
+            this.boardAnimating = false;
+        }, duration);
     }
 
     private getRowCol(index: number): { row: number; col: number } {
