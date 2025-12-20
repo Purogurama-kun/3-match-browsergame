@@ -10,9 +10,14 @@ class ProgressStore {
     private readonly endpoint = '/backend/progress.php';
     private readonly maxLevel = 50;
 
-    async load(userId: string): Promise<StoredProgress> {
+    async load(userId: string, localHighestLevel?: number): Promise<StoredProgress> {
         const normalizedUserId = this.requireUserId(userId);
-        const url = this.endpoint + '?userId=' + encodeURIComponent(normalizedUserId);
+        const normalizedLocalLevel = this.normalizeLevel(localHighestLevel);
+        const query = new URLSearchParams({
+            userId: normalizedUserId,
+            localLevel: String(normalizedLocalLevel)
+        });
+        const url = this.endpoint + '?' + query.toString();
 
         const response = await fetch(url, {
             headers: {
