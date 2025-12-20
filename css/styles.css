@@ -211,13 +211,13 @@ body {
 }
 
 .game__hud-row {
-    display: grid;
-    grid-template-columns: minmax(6.5rem, 1fr) minmax(6.5rem, 1fr) minmax(12rem, 2fr);
+    display: flex;
     gap: 0.5rem;
     align-items: stretch;
 }
 
 .game__hud-card {
+    min-width: 2rem;
     background: #111624;
     border: 1px solid #2f3654;
     border-radius: 12px;
@@ -229,10 +229,11 @@ body {
     text-align: center;
     display: grid;
     gap: 0.15rem;
-    min-width: 6rem;
+    /*min-width: 6rem;*/
 }
 
 .game__hud-card--progress {
+    flex: 1;
     padding: 0.7rem 0.85rem 0.85rem;
     display: grid;
     gap: 0.35rem;
