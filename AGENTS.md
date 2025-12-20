@@ -4,26 +4,45 @@ Guidelines for AI agents working in this repository.
 
 ## Scope
 
-- Match-3 browser game with TypeScript and ES modules.
-- Keep code simple and readable; prefer small, focused helpers.
+- Match-3 browser game using TypeScript and ES modules.
+- Prefer clarity and simplicity over cleverness or abstraction.
 
-## Project structure
+## Structure
 
-- `index.html` for markup and asset links.
-- `css/` for styles.
-- `src/` for TypeScript modules.
-- `dist/` for compiled JavaScript output.
+- `index.html` — markup and asset links
+- `css/` — styles
+- `src/` — TypeScript modules
+- `dist/` — compiled output
 
-## Conventions
+## Code style
 
-- Use 4-space indentation in all files.
-- Keep comments minimal and only where logic is non-obvious.
-- Avoid introducing new dependencies unless requested.
+- 4-space indentation.
+- BEM naming for CSS; keep names consistent across HTML/TS/CSS.
+- No new dependencies unless explicitly requested.
+- Code should be self-explanatory; avoid decorative patterns.
 
-## Development
+## Workflow
 
-- Use strict TypeScript settings; keep `tsconfig.json` strict and avoid loosening types.
-- Use BEM naming for CSS classes; keep class names consistent across HTML/TS/CSS.
-- Run `npm run build` to compile TypeScript before serving.
-- Use a local web server (ES modules require it), e.g. `python3 -m http.server`.
-- Update `README.md` if you change structure or run instructions.
+- Keep `tsconfig.json` strict; do not loosen types.
+- Run `tsc` before serving.
+- Use a local web server (ES modules required).
+- Update `README.md` when structure or run instructions change.
+
+## Design rules
+
+- Apply SOLID pragmatically.
+- Prefer class-based design for core game concepts.
+- One significant class per file.
+- Favor loose coupling; depend on abstractions.
+- Use messages/events only when they clearly improve decoupling.
+- Avoid architectural patterns without clear benefit.
+- Keep cyclomatic complexity low (≤10 paths per function).
+- Reduce deep nesting via early returns or helpers.
+- Prefer behavior-preserving refactors unless told otherwise.
+
+## Comments
+
+- Comment *why*, not *what*.
+- Document non-obvious rules, constraints, and edge cases.
+- Do not restate code.
+- Remove stale comments during refactors.
