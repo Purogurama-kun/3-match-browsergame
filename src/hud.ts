@@ -1,10 +1,11 @@
 import { BOOSTERS, getColorHex } from './constants.js';
-import { ActivatableBoosterType, GameState, GoalProgress, SwapMode } from './types.js';
+import { ActivatableBoosterType, Difficulty, GameState, GoalProgress, SwapMode } from './types.js';
 import { getRequiredElement } from './dom.js';
 
 class Hud {
     constructor() {
         this.score = getRequiredElement('score');
+        this.levelCard = this.getLevelCard();
         this.level = getRequiredElement('level');
         this.moves = getRequiredElement('moves');
         this.scoreProgress = getRequiredElement('score-progress');
@@ -17,11 +18,13 @@ class Hud {
         this.optionsClose = this.getOptionsClose();
         this.optionsModal = this.getOptionsModal();
         this.audioToggle = this.getAudioToggle();
+        this.difficultyLabel = this.getDifficultyLabel();
         this.setAudioToggleState(true);
         this.hideOptionsModal();
     }
 
     private score: HTMLElement;
+    private levelCard: HTMLElement;
     private level: HTMLElement;
     private moves: HTMLElement;
     private scoreProgress: HTMLElement;
@@ -34,11 +37,13 @@ class Hud {
     private optionsClose: HTMLButtonElement;
     private optionsModal: HTMLElement;
     private audioToggle: HTMLButtonElement;
+    private difficultyLabel: HTMLElement;
 
     render(state: GameState): void {
         this.score.textContent = state.score + '/' + state.targetScore;
         this.level.textContent = String(state.level);
         this.moves.textContent = String(state.movesLeft);
+        this.applyDifficultyStyle(state.difficulty);
 
         this.updateProgress(state.score, state.targetScore);
         this.renderGoals(state.goals);
@@ -140,6 +145,14 @@ class Hud {
         return element;
     }
 
+    private getLevelCard(): HTMLElement {
+        return getRequiredElement('level-card');
+    }
+
+    private getDifficultyLabel(): HTMLElement {
+        return getRequiredElement('difficulty');
+    }
+
     private updateProgress(score: number, target: number): void {
         const clampedScore = Math.max(0, score);
         const ratio = Math.min(1, clampedScore / Math.max(1, target));
@@ -207,6 +220,27 @@ class Hud {
         chip.textContent = this.getBoosterIcon(goal.booster);
         chip.setAttribute('aria-hidden', 'true');
         return chip;
+    }
+
+    private applyDifficultyStyle(difficulty: Difficulty): void {
+        const levels: Difficulty[] = ['easy', 'normal', 'hard', 'expert', 'nightmare'];
+        levels.forEach((levelName) => {
+            this.levelCard.classList.toggle('game__hud-card--difficulty-' + levelName, levelName === difficulty);
+        });
+        const label = this.formatDifficultyLabel(difficulty);
+        this.difficultyLabel.textContent = label;
+        this.levelCard.setAttribute('aria-label', 'Level ' + this.level.textContent + ' – ' + label);
+    }
+
+    private formatDifficultyLabel(difficulty: Difficulty): string {
+        const labelMap: Record<Difficulty, string> = {
+            easy: 'Easy',
+            normal: 'Normal',
+            hard: 'Hard',
+            expert: 'Expert',
+            nightmare: 'Nightmare'
+        };
+        return labelMap[difficulty];
     }
 
     private getBoosterIcon(booster: ActivatableBoosterType): string {

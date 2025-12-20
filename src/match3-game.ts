@@ -50,7 +50,7 @@ class Match3Game {
             targetScore: 0,
             movesLeft: 0,
             goals: [],
-            difficulty: 1,
+            difficulty: 'easy',
             comboMultiplier: 1
         };
 
