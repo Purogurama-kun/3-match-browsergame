@@ -2,38 +2,72 @@ type StoredProgress = {
     highestLevel: number;
 };
 
+type ProgressResponse = {
+    highestLevel?: number;
+};
+
 class ProgressStore {
-    private readonly storageKey = 'explosive-candy-progress';
+    private readonly endpoint = '/backend/progress.php';
+    private readonly maxLevel = 50;
 
-    load(userId: string): StoredProgress {
-        const store = this.readStore();
-        const entry = store[userId];
-        if (!entry) {
-            return { highestLevel: 1 };
+    async load(userId: string): Promise<StoredProgress> {
+        const normalizedUserId = this.requireUserId(userId);
+        const url = this.endpoint + '?userId=' + encodeURIComponent(normalizedUserId);
+
+        const response = await fetch(url, {
+            headers: {
+                Accept: 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to load progress: ' + response.status);
         }
-        return {
-            highestLevel: Math.max(1, Math.min(entry.highestLevel || 1, 50))
-        };
+
+        const payload = (await response.json()) as ProgressResponse;
+        return { highestLevel: this.normalizeLevel(payload.highestLevel) };
     }
 
-    save(userId: string, highestLevel: number): void {
-        const normalized = Math.max(1, Math.min(Math.floor(highestLevel), 50));
-        const store = this.readStore();
-        const previous = store[userId]?.highestLevel ?? 1;
-        store[userId] = { highestLevel: Math.max(previous, normalized) };
-        localStorage.setItem(this.storageKey, JSON.stringify(store));
+    async save(userId: string, highestLevel: number): Promise<StoredProgress> {
+        const normalizedUserId = this.requireUserId(userId);
+        const normalizedLevel = this.normalizeLevel(highestLevel);
+
+        const response = await fetch(this.endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: normalizedUserId,
+                highestLevel: normalizedLevel
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to save progress: ' + response.status);
+        }
+
+        const payload = (await response.json()) as ProgressResponse;
+        return { highestLevel: this.normalizeLevel(payload.highestLevel) };
     }
 
-    private readStore(): Record<string, StoredProgress> {
-        try {
-            const raw = localStorage.getItem(this.storageKey);
-            if (!raw) return {};
-            const parsed = JSON.parse(raw) as Record<string, StoredProgress>;
-            return parsed || {};
-        } catch (error) {
-            console.warn('Failed to read progress store', error);
-            return {};
+    private requireUserId(userId: string): string {
+        const trimmed = userId.trim();
+        if (!trimmed) {
+            throw new Error('User ID is required for progress operations.');
         }
+        if (trimmed.length > 128) {
+            throw new Error('User ID is too long.');
+        }
+        return trimmed;
+    }
+
+    private normalizeLevel(level: unknown): number {
+        if (typeof level !== 'number' || !Number.isFinite(level)) {
+            return 1;
+        }
+        const normalized = Math.floor(level);
+        return Math.max(1, Math.min(normalized, this.maxLevel));
     }
 }
 

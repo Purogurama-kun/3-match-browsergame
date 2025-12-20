@@ -25,16 +25,18 @@ This project uses ES modules and TypeScript, so you need to build it and run a l
 
 ```bash
 tsc -w
-python3 -m http.server
+php -S 0.0.0.0:5500 -t .
 ```
 
 Then open `http://localhost:5500` in your browser.
+
+The PHP server exposes `backend/progress.php`, which persists user progress to `backend/progress.sqlite`. The database file is created automatically on first write.
 
 ## Login & Fortschritt
 
 - Im Hauptmenü kannst du dich per Google Login anmelden (Client-ID ist bereits hinterlegt).
 - Nach erfolgreicher Anmeldung wird dein Name im Menü angezeigt.
-- Der höchste freigeschaltete Level wird lokal gespeichert und über dein Google-Konto zugeordnet, sodass dein Fortschritt nur für dich geladen wird.
+- Der höchste freigeschaltete Level wird serverseitig in einer SQLite-Datenbank gespeichert. Beim Login wird der Fortschritt anhand deiner Google-User-ID geladen, sodass er geräteunabhängig verfügbar ist.
 
 ## Project structure
 
