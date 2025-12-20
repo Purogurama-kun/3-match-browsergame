@@ -1,26 +1,28 @@
 # 3-Match Browsergame
 
-Small Match-3 browser game with sounds and boosters, written in TypeScript.
+Small Match-3 browser game with boosters, goals, and sound feedback, written in TypeScript.
 
 ## Features
 
-- Special matches spawn bombs: 4-line clears, square/T/L blasts, and mega 5-line bombs.
-- Cascading matches after drops, with automatic refills.
-- Swap modes: free swaps or require a valid match.
-- Score, moves, and per-level goals with level-up/level-fail flow and rising difficulty.
-- Sound effects and screen shake feedback.
+- Match detection for lines, squares, and T/L shapes with chain reactions and refills.
+- Boosters: line bombs and small/medium/large burst bombs from special matches.
+- Large burst bombs can be triggered directly on click.
+- Levels with moves, target scores, and per-level goals (destroy colors or activate boosters).
+- Progressive difficulty that extends beyond the authored level list.
+- Free-swap or require-match swap modes, plus swipe and click controls.
+- Combo multiplier scoring with HUD feedback.
+- Sound effects, optional audio toggle, and screen shake on impactful actions.
 
 ## Run locally
 
 This project uses ES modules and TypeScript, so you need to build it and run a local web server.
 
 ```bash
-npm install
-npm run build
+tsc -w
 python3 -m http.server
 ```
 
-Then open `http://localhost:8000` in your browser.
+Then open `http://localhost:5500` in your browser.
 
 ## Project structure
 
@@ -36,3 +38,13 @@ Then open `http://localhost:8000` in your browser.
 - `src/types.ts` shared types
 - `dist/` compiled JavaScript output
 - `assets/sounds/` sound effects, including match and booster variants
+
+## Google OAuth setup steps
+
+1. https://console.cloud.google.com/auth/overview?project=explosivecandy
+2. create project
+3. Go to: "Menu > APIs and services > OAuth consent screen"
+4. Add a new entry (for external)
+5. Create OAuth client ID: choose Web application and add e.g. 'http://localhost' and 'http://localhost:5500' to 'Authorised JavaScript origins' and 'http://localhost:5500' to 'Authorised redirect URIs'
+
+The client ID is the public identifier of the app in Google’s login system. Client-ID: 276995857018-9foeghnr835nqq9kc2dpbl5j9ibljodg.apps.googleusercontent.com
