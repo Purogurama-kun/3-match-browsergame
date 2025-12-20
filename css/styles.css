@@ -78,6 +78,56 @@ body {
     margin-top: 0.5rem;
 }
 
+.game__main-menu-auth {
+    display: grid;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 12px;
+    border: 1px solid #2f3654;
+    background: #0c0f1b;
+}
+
+.game__auth-summary {
+    display: grid;
+    gap: 0.15rem;
+}
+
+.game__auth-label {
+    font-size: 0.95rem;
+    color: #cfd5ff;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.game__auth-status {
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: #7bffb0;
+}
+
+.game__auth-progress {
+    color: #cfd5ff;
+    font-size: 0.95rem;
+}
+
+.game__auth-actions {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.game__auth-hint {
+    margin: 0;
+    color: #cfd5ff;
+    font-size: 0.9rem;
+}
+
+.game__auth-error {
+    margin: 0;
+    color: #ffb4b4;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
 .game__main-menu-button {
     padding: 0.75rem 1rem;
     border-radius: 12px;
@@ -91,8 +141,22 @@ body {
     box-shadow: 0 10px 30px rgba(63, 214, 198, 0.35);
 }
 
+.game__main-menu-button--secondary {
+    background: linear-gradient(135deg, #4b7bf5, #5d9bff);
+    border-color: #5d9bff;
+    color: #0b1429;
+    box-shadow: 0 10px 30px rgba(93, 155, 255, 0.35);
+}
+
 .game__main-menu-button:hover {
     filter: brightness(1.05);
+}
+
+.game__main-menu-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    filter: none;
+    box-shadow: none;
 }
 
 .game__main-menu-note {

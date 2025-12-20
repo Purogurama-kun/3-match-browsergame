@@ -30,6 +30,12 @@ python3 -m http.server
 
 Then open `http://localhost:5500` in your browser.
 
+## Login & Fortschritt
+
+- Im Hauptmenü kannst du dich per Google Login anmelden (Client-ID ist bereits hinterlegt).
+- Nach erfolgreicher Anmeldung wird dein Name im Menü angezeigt.
+- Der höchste freigeschaltete Level wird lokal gespeichert und über dein Google-Konto zugeordnet, sodass dein Fortschritt nur für dich geladen wird.
+
 ## Project structure
 
 - `index.html` page markup
