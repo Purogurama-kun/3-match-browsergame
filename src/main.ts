@@ -31,11 +31,12 @@ class GameApp {
     private googleAuth: GoogleAuth;
     private progressStore: ProgressStore;
     private currentUser: GoogleUser | null = null;
+    private isProgressLoading = false;
     private highestUnlockedLevel = 1;
     private game: Match3Game;
 
     private startGame(): void {
-        if (!this.currentUser) return;
+        if (!this.currentUser || this.isProgressLoading) return;
         this.hideMainMenu();
         this.game.start(this.highestUnlockedLevel);
     }
@@ -67,26 +68,78 @@ class GameApp {
     }
 
     private handleLogin(user: GoogleUser): void {
+        this.isProgressLoading = true;
         this.currentUser = user;
-        const stored = this.progressStore.load(user.id);
-        this.highestUnlockedLevel = stored.highestLevel;
-        this.googleAuth.setProgressLevel(this.highestUnlockedLevel);
+        this.highestUnlockedLevel = 1;
+        this.googleAuth.clearError();
+        this.googleAuth.showProgressLoading();
         this.updateStartButtonState();
+        void this.loadProgress(user.id);
+    }
+
+    private async loadProgress(userId: string): Promise<void> {
+        try {
+            const stored = await this.progressStore.load(userId);
+            if (!this.isCurrentUser(userId)) return;
+            this.highestUnlockedLevel = stored.highestLevel;
+            this.googleAuth.setProgressLevel(this.highestUnlockedLevel);
+            this.googleAuth.clearError();
+        } catch (error) {
+            console.error('Failed to load progress', error);
+            if (this.isCurrentUser(userId)) {
+                this.highestUnlockedLevel = 1;
+                this.googleAuth.showError(
+                    'Fortschritt konnte nicht geladen werden. Standard-Level 1 wird verwendet.'
+                );
+                this.googleAuth.setProgressLevel(this.highestUnlockedLevel);
+            }
+        } finally {
+            if (this.isCurrentUser(userId)) {
+                this.isProgressLoading = false;
+                this.updateStartButtonState();
+            }
+        }
     }
 
     private saveProgress(unlockedLevel: number): void {
         if (!this.currentUser) return;
         this.highestUnlockedLevel = Math.max(this.highestUnlockedLevel, unlockedLevel);
-        this.progressStore.save(this.currentUser.id, this.highestUnlockedLevel);
         this.googleAuth.setProgressLevel(this.highestUnlockedLevel);
         this.updateStartButtonState();
+        void this.persistProgress(this.currentUser.id, this.highestUnlockedLevel);
+    }
+
+    private async persistProgress(userId: string, highestLevel: number): Promise<void> {
+        try {
+            const stored = await this.progressStore.save(userId, highestLevel);
+            if (!this.isCurrentUser(userId)) return;
+            this.highestUnlockedLevel = Math.max(this.highestUnlockedLevel, stored.highestLevel);
+            this.googleAuth.setProgressLevel(this.highestUnlockedLevel);
+            this.googleAuth.clearError();
+        } catch (error) {
+            console.error('Failed to save progress', error);
+            if (this.isCurrentUser(userId)) {
+                this.googleAuth.showError(
+                    'Fortschritt konnte nicht gespeichert werden. Bitte Verbindung prüfen.'
+                );
+            }
+        }
+    }
+
+    private isCurrentUser(userId: string): boolean {
+        return Boolean(this.currentUser && this.currentUser.id === userId);
     }
 
     private updateStartButtonState(): void {
         const isAuthenticated = Boolean(this.currentUser);
-        this.startButton.disabled = !isAuthenticated;
+        const isLoading = this.isProgressLoading;
+        this.startButton.disabled = !isAuthenticated || isLoading;
         if (!isAuthenticated) {
             this.startButton.textContent = 'Level Modus';
+            return;
+        }
+        if (isLoading) {
+            this.startButton.textContent = 'Fortschritt wird geladen...';
             return;
         }
         const labelLevel = Math.max(1, this.highestUnlockedLevel);

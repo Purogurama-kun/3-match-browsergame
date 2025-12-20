@@ -81,6 +81,10 @@ class GoogleAuth {
         this.progressLabel.textContent = 'Fortschritt: Level ' + normalized;
     }
 
+    showProgressLoading(): void {
+        this.progressLabel.textContent = 'Fortschritt wird geladen...';
+    }
+
     setLoggedOut(): void {
         this.statusLabel.textContent = 'Nicht angemeldet';
         this.setProgressLevel(1);
@@ -147,12 +151,12 @@ class GoogleAuth {
         }
     }
 
-    private showError(message: string): void {
+    showError(message: string): void {
         this.errorLabel.textContent = message;
         this.errorLabel.removeAttribute('hidden');
     }
 
-    private clearError(): void {
+    clearError(): void {
         this.errorLabel.textContent = '';
         this.errorLabel.setAttribute('hidden', 'true');
     }
