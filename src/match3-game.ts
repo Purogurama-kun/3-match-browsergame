@@ -102,7 +102,7 @@ class Match3Game {
     private readonly baseCellPoints = 10;
     private readonly minMultiplier = 0.5;
     private readonly maxMultiplier = 5;
-    private readonly maxBombDropChance = 0.1;
+    private readonly maxBombDropChance = 0.05; // 5%
     private levelDefinition!: LevelDefinition;
 
     start(): void {
