@@ -7,6 +7,8 @@ class Hud {
         this.moves = getRequiredElement('moves');
         this.scoreProgress = getRequiredElement('score-progress');
         this.scoreProgressFill = getRequiredElement('score-progress-fill');
+        this.statusText = getRequiredElement('status-text');
+        this.statusIcon = getRequiredElement('status-icon');
         this.goalsList = this.getGoalsListElement();
         this.swapModeSelect = this.getSwapModeElement();
         this.optionsToggle = this.getOptionsToggle();
@@ -62,6 +64,10 @@ class Hud {
     }
     setAudioEnabled(enabled) {
         this.setAudioToggleState(enabled);
+    }
+    setStatus(text, icon) {
+        this.statusText.textContent = text;
+        this.statusIcon.textContent = icon;
     }
     getSwapModeElement() {
         const element = getRequiredElement('swap-mode');
