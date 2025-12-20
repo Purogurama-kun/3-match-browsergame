@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"> <!-- important for mobile devices to get the scaling right! -->
     <title>Match-3 Browsergame mit Sounds</title>
     <link rel="stylesheet" href="css/styles.css" />
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script type="module" src="dist/main.js"></script>
 </head>
 <body class="game game--menu">
@@ -24,8 +25,22 @@
                 Kombiniere farbige Süßigkeiten, löse Explosionen aus und knacke die Levelziele. Starte direkt in
                 den Level Modus oder passe dein Erlebnis über das Optionsmenü an.
             </p>
+            <div class="game__main-menu-auth">
+                <div class="game__auth-summary">
+                    <div class="game__auth-label">Google Login</div>
+                    <div id="auth-status" class="game__auth-status">Nicht angemeldet</div>
+                    <div id="auth-progress" class="game__auth-progress">Fortschritt: Level 1</div>
+                </div>
+                <div class="game__auth-actions">
+                    <button id="google-login" class="game__main-menu-button game__main-menu-button--secondary" type="button">
+                        Mit Google anmelden
+                    </button>
+                    <p class="game__auth-hint">Vor Spielstart bitte anmelden, damit der Fortschritt deinem Konto zugeordnet wird.</p>
+                    <p id="auth-error" class="game__auth-error" hidden></p>
+                </div>
+            </div>
             <div class="game__main-menu-actions">
-                <button id="start-level" class="game__main-menu-button" type="button">Level Modus</button>
+                <button id="start-level" class="game__main-menu-button" type="button" disabled>Level Modus</button>
                 <p class="game__main-menu-note">Optionen über das Menü oben rechts öffnen</p>
             </div>
         </div>

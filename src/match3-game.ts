@@ -106,10 +106,11 @@ class Match3Game {
     private readonly maxBombDropChance = 0.05; // 5%
     private levelDefinition!: LevelDefinition;
     private boardAnimating: boolean;
+    private progressListener: ((level: number) => void) | null = null;
 
-    start(): void {
+    start(level: number): void {
         this.hud.closeOptions();
-        this.initLevel(1);
+        this.initLevel(level);
         this.createBoard();
     }
 
@@ -128,6 +129,10 @@ class Match3Game {
 
     onExitGameRequested(handler: () => void): void {
         this.hud.onExitGame(handler);
+    }
+
+    onProgressChange(handler: (highestUnlockedLevel: number) => void): void {
+        this.progressListener = handler;
     }
 
     closeOptions(): void {
@@ -468,6 +473,7 @@ class Match3Game {
         const nextLevel = Math.min(rawNextLevel, LEVELS.length);
         if (didWin) {
             this.sounds.play('levelUp');
+            this.notifyProgress(nextLevel);
         } else {
             this.sounds.play('levelFail');
         }
@@ -901,6 +907,12 @@ class Match3Game {
             row: Math.floor(index / GRID_SIZE),
             col: index % GRID_SIZE
         };
+    }
+
+    private notifyProgress(unlockedLevel: number): void {
+        if (this.progressListener) {
+            this.progressListener(unlockedLevel);
+        }
     }
 }
 
