@@ -15,6 +15,7 @@ class Board {
         this.touchStartY = null;
         this.touchStartCell = null;
         this.swipeThreshold = 18;
+        this.blockedIndices = new Set();
     }
 
     private gameEl: HTMLElement;
@@ -25,15 +26,28 @@ class Board {
     private touchStartY: number | null;
     private touchStartCell: HTMLDivElement | null;
     private swipeThreshold: number;
+    private blockedIndices: Set<number>;
 
-    create(): void {
+    create(config?: { blockedCells?: number[]; hardCandies?: number[] }): void {
+        this.blockedIndices = new Set(config?.blockedCells ?? []);
+        const hardCandies = new Set(config?.hardCandies ?? []);
         this.cells = [];
         this.gameEl.innerHTML = '';
         for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
             const cell = document.createElement('div');
             cell.className = 'game__cell';
-            this.applyColor(cell, this.pickColorForIndex(i));
             cell.dataset.index = String(i);
+            cell.dataset.booster = BOOSTERS.NONE;
+            cell.dataset.blocked = this.blockedIndices.has(i) ? 'true' : 'false';
+            cell.dataset.hard = 'false';
+            if (this.isBlockedCell(cell)) {
+                cell.classList.add('game__cell--void');
+                this.gameEl.appendChild(cell);
+                this.cells.push(cell);
+                continue;
+            }
+            this.applyColor(cell, this.pickColorForIndex(i));
+            this.setHardCandy(cell, hardCandies.has(i));
             cell.dataset.booster = BOOSTERS.NONE;
             cell.addEventListener('click', () => this.onCellClick(cell));
             cell.addEventListener('touchstart', (event) => this.handleTouchStart(event, cell), { passive: false });
@@ -61,6 +75,18 @@ class Board {
         return (cell.dataset.booster as BoosterType) ?? BOOSTERS.NONE;
     }
 
+    isBlockedIndex(index: number): boolean {
+        return this.blockedIndices.has(index);
+    }
+
+    isBlockedCell(cell: HTMLDivElement): boolean {
+        return cell.dataset.blocked === 'true';
+    }
+
+    isHardCandy(cell: HTMLDivElement): boolean {
+        return cell.dataset.hard === 'true';
+    }
+
     setCellColor(cell: HTMLDivElement, color: string): void {
         this.applyColor(cell, color);
     }
@@ -70,12 +96,22 @@ class Board {
         this.updateBoosterVisual(cell);
     }
 
+    setHardCandy(cell: HTMLDivElement, isHard: boolean): void {
+        cell.dataset.hard = isHard ? 'true' : 'false';
+        cell.classList.toggle('game__cell--hard', isHard);
+    }
+
+    softenCandy(cell: HTMLDivElement): void {
+        this.setHardCandy(cell, false);
+    }
+
     clearCell(cell: HTMLDivElement): void {
         cell.classList.remove('game__cell--explode');
         this.setCellColor(cell, '');
         this.setBooster(cell, BOOSTERS.NONE);
         cell.textContent = '';
         cell.style.removeProperty('color');
+        this.setHardCandy(cell, false);
     }
 
     updateBoosterVisual(cell: HTMLDivElement): void {
@@ -112,6 +148,9 @@ class Board {
         const colorA = this.getCellColor(a);
         this.setCellColor(a, this.getCellColor(b));
         this.setCellColor(b, colorA);
+        const isHardA = this.isHardCandy(a);
+        this.setHardCandy(a, this.isHardCandy(b));
+        this.setHardCandy(b, isHardA);
         [a.dataset.booster, b.dataset.booster] = [b.dataset.booster, a.dataset.booster];
         this.updateBoosterVisual(a);
         this.updateBoosterVisual(b);
@@ -178,6 +217,7 @@ class Board {
     private pickColorForIndex(index: number): string {
         const row = Math.floor(index / GRID_SIZE);
         const col = index % GRID_SIZE;
+        if (this.isBlockedIndex(index)) return '';
         const wouldCreateMatch = (color: string): boolean => {
             const left1 = col >= 1 ? this.getExistingColor(index - 1) : null;
             const left2 = col >= 2 ? this.getExistingColor(index - 2) : null;
@@ -202,7 +242,9 @@ class Board {
 
     private getExistingColor(index: number): string | null {
         const cell = this.cells[index];
-        return cell ? this.getCellColor(cell) : null;
+        if (!cell) return null;
+        if (this.isBlockedCell(cell)) return null;
+        return this.getCellColor(cell);
     }
 
     private applyColor(cell: HTMLDivElement, color: string): void {
