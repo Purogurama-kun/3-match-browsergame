@@ -5,6 +5,7 @@ import { Board } from './board.js';
 import { GameState, GoalProgress, LevelGoal, SwapMode, SwipeDirection } from './types.js';
 import { getRequiredElement } from './dom.js';
 import { describeGoal, getLevelDefinition } from './levels.js';
+import { SpeechSynthesis } from './SpeechSynthesis.js';
 
 type MatchResult = {
     matched: Set<number>;
@@ -580,7 +581,9 @@ class Match3Game {
         }
         this.moveEvaluationEl.textContent = message;
         this.moveEvaluationEl.classList.add('game__move-evaluation--visible');
-        this.speakEvaluation(message);
+        if (this.sounds.isEnabled()) {
+            SpeechSynthesis.speakShortText(message);
+        }
         this.moveEvaluationTimer = window.setTimeout(() => {
             this.moveEvaluationEl.classList.remove('game__move-evaluation--visible');
             this.moveEvaluationTimer = null;
@@ -596,14 +599,8 @@ class Match3Game {
         return '';
     }
 
-    private speakEvaluation(message: string): void {
-        if (!('speechSynthesis' in window)) return;
-        if (!this.sounds.isEnabled()) return;
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(message);
-        utterance.lang = 'en-US';
-        window.speechSynthesis.speak(utterance);
-    }
+    
+
 
     private createMatchAccumulator(): MatchAccumulator {
         return {

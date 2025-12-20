@@ -1,4 +1,4 @@
-# 3-Match Browsergame
+# Explosive candy
 
 Small Match-3 browser game with boosters, goals, and sound feedback, written in TypeScript.
 
