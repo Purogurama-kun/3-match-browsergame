@@ -108,8 +108,30 @@ class Match3Game {
     private boardAnimating: boolean;
 
     start(): void {
+        this.hud.closeOptions();
         this.initLevel(1);
         this.createBoard();
+    }
+
+    stop(): void {
+        this.generation++;
+        this.clearPendingTimers();
+        this.board.clear();
+        this.resetMoveTracking();
+        this.moveEvaluationEl.classList.remove('game__move-evaluation--visible');
+        if (this.moveEvaluationTimer !== null) {
+            clearTimeout(this.moveEvaluationTimer);
+            this.moveEvaluationTimer = null;
+        }
+        this.hud.resetStatus();
+    }
+
+    onExitGameRequested(handler: () => void): void {
+        this.hud.onExitGame(handler);
+    }
+
+    closeOptions(): void {
+        this.hud.closeOptions();
     }
 
     private screenShake(): void {

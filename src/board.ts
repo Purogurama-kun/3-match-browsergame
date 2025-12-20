@@ -59,6 +59,12 @@ class Board {
         }
     }
 
+    clear(): void {
+        this.cells = [];
+        this.blockedIndices.clear();
+        this.gameEl.innerHTML = '';
+    }
+
     getCell(index: number): HTMLDivElement {
         const cell = this.cells[index];
         if (!cell) {

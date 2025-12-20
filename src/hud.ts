@@ -19,6 +19,7 @@ class Hud {
         this.optionsModal = this.getOptionsModal();
         this.audioToggle = this.getAudioToggle();
         this.difficultyLabel = this.getDifficultyLabel();
+        this.exitButton = this.getExitButton();
         this.setAudioToggleState(true);
         this.hideOptionsModal();
     }
@@ -38,6 +39,7 @@ class Hud {
     private optionsModal: HTMLElement;
     private audioToggle: HTMLButtonElement;
     private difficultyLabel: HTMLElement;
+    private exitButton: HTMLButtonElement;
 
     render(state: GameState): void {
         this.score.textContent = state.score + '/' + state.targetScore;
@@ -101,6 +103,21 @@ class Hud {
         this.statusIcon.textContent = icon;
     }
 
+    onExitGame(handler: () => void): void {
+        this.exitButton.addEventListener('click', () => {
+            this.hideOptionsModal();
+            handler();
+        });
+    }
+
+    closeOptions(): void {
+        this.hideOptionsModal();
+    }
+
+    resetStatus(): void {
+        this.setStatus('Bereit für Kombos!', '✨');
+    }
+
     private getSwapModeElement(): HTMLSelectElement {
         const element = getRequiredElement('swap-mode');
         if (!(element instanceof HTMLSelectElement)) {
@@ -151,6 +168,14 @@ class Hud {
 
     private getDifficultyLabel(): HTMLElement {
         return getRequiredElement('difficulty');
+    }
+
+    private getExitButton(): HTMLButtonElement {
+        const element = getRequiredElement('exit-game');
+        if (!(element instanceof HTMLButtonElement)) {
+            throw new Error('Exit game button is not a button');
+        }
+        return element;
     }
 
     private updateProgress(score: number, target: number): void {
