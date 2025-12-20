@@ -32,6 +32,13 @@ Then open `http://localhost:5500` in your browser.
 
 The PHP server exposes `backend/progress.php`, which persists user progress to `backend/progress.sqlite`. The database file is created automatically on first write.
 
+## Setup php
+
+Use `http://127.0.0.1:5500/backend/phpinfo.php` to see the php.ini location.
+
+- php.ini must have: extension=pdo_sqlite, extension=sqlite3.
+- `sudo apt-get install php-sqlite3`
+
 ## Login & Fortschritt
 
 - Im Hauptmenü kannst du dich per Google Login anmelden (Client-ID ist bereits hinterlegt) – du kannst aber auch als Gast direkt den Level Modus starten.
