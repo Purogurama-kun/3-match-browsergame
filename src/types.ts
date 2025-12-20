@@ -43,6 +43,7 @@ type GameState = {
     movesLeft: number;
     goals: GoalProgress[];
     difficulty: number;
+    comboMultiplier: number;
 };
 
 export {

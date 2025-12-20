@@ -6,7 +6,9 @@ import { getRequiredElement } from './dom.js';
 import { describeGoal, getLevelDefinition } from './levels.js';
 class Match3Game {
     constructor() {
-        this.defaultStatus = { text: 'Bereit für Kombos!', icon: '✨' };
+        this.baseCellPoints = 10;
+        this.minMultiplier = 0.5;
+        this.maxMultiplier = 5;
         this.gameEl = getRequiredElement('game');
         this.sounds = new SoundManager();
         this.hud = new Hud();
@@ -30,7 +32,8 @@ class Match3Game {
             targetScore: 0,
             movesLeft: 0,
             goals: [],
-            difficulty: 1
+            difficulty: 1,
+            comboMultiplier: 1
         };
         this.generation = 0;
         this.pendingTimers = [];
@@ -39,6 +42,8 @@ class Match3Game {
         this.modalText = getRequiredElement('result-text');
         this.modalButton = getRequiredElement('result-button');
         this.modalCallback = null;
+        this.moveActive = false;
+        this.currentMoveScore = 0;
         this.modalButton.addEventListener('click', () => this.hideResultModal());
         this.modalEl.addEventListener('click', (event) => {
             if (event.target === this.modalEl) {
@@ -71,7 +76,8 @@ class Match3Game {
             targetScore: definition.targetScore,
             movesLeft: definition.moves,
             goals: this.createGoals(definition.goals),
-            difficulty: definition.difficulty
+            difficulty: definition.difficulty,
+            comboMultiplier: 1
         };
     }
     createGoals(levelGoals) {
@@ -85,7 +91,8 @@ class Match3Game {
         this.generation++;
         this.clearPendingTimers();
         this.board.create();
-        this.hud.setStatus(this.defaultStatus.text, this.defaultStatus.icon);
+        this.resetMoveTracking();
+        this.renderMultiplierStatus(0, 0);
         this.updateHud();
     }
     handleCellClick(cell) {
@@ -305,7 +312,6 @@ class Match3Game {
             else {
                 this.sounds.play('match');
             }
-            this.updateComboStatus(matchResult);
             this.screenShake();
             matched.forEach((idx) => {
                 const cell = this.board.getCell(idx);
@@ -322,6 +328,7 @@ class Match3Game {
             }, 350);
             return;
         }
+        this.finalizeMoveScore();
         if (this.isLevelComplete()) {
             this.endLevel(true);
             return;
@@ -338,7 +345,7 @@ class Match3Game {
         cell.classList.add('game__cell--explode');
         this.defer(() => {
             this.board.clearCell(cell);
-            this.state.score += 10;
+            this.awardScore(this.baseCellPoints);
             this.updateGoalsForDestroyedCell(color);
             this.updateHud();
             this.checkWinCondition();
@@ -360,6 +367,10 @@ class Match3Game {
         const col = index % GRID_SIZE;
         const booster = this.board.getCellBooster(cell);
         this.updateGoalsForBooster(booster);
+        if (consumesMove) {
+            this.state.movesLeft--;
+            this.beginMove();
+        }
         if (booster === BOOSTERS.LINE) {
             this.sounds.play('lineBomb');
             const affected = new Set();
@@ -380,7 +391,6 @@ class Match3Game {
             this.destroyCircularArea(row, col, 2);
         }
         if (consumesMove) {
-            this.state.movesLeft--;
             this.defer(() => this.dropCells(), 300);
         }
         this.updateHud();
@@ -475,18 +485,18 @@ class Match3Game {
             return;
         }
         this.board.swapCells(first, second);
-        this.state.movesLeft--;
-        this.updateHud();
         if (this.swapMode === 'require-match') {
             const { matched } = this.findMatches();
             if (matched.size === 0) {
                 this.board.swapCells(first, second);
-                this.state.movesLeft++;
-                this.updateHud();
+                this.resetMoveTracking();
                 this.showInvalidMove(second);
                 return;
             }
         }
+        this.state.movesLeft--;
+        this.beginMove();
+        this.updateHud();
         this.defer(() => this.checkMatches(), 120);
     }
     defer(callback, delay) {
@@ -560,37 +570,51 @@ class Match3Game {
             return goal;
         });
     }
-    updateComboStatus(matchResult) {
-        if (matchResult.matched.size === 0)
+    awardScore(basePoints) {
+        const effective = Math.round(basePoints * this.state.comboMultiplier);
+        this.state.score += effective;
+        this.currentMoveScore += effective;
+    }
+    beginMove() {
+        this.moveActive = true;
+        this.currentMoveScore = 0;
+    }
+    resetMoveTracking() {
+        this.moveActive = false;
+        this.currentMoveScore = 0;
+    }
+    finalizeMoveScore() {
+        if (!this.moveActive)
             return;
-        const boosterPriority = [
-            BOOSTERS.BURST_LARGE,
-            BOOSTERS.BURST_MEDIUM,
-            BOOSTERS.BURST_SMALL,
-            BOOSTERS.LINE
-        ];
-        const boosterMessages = {
-            [BOOSTERS.NONE]: { text: '', icon: '' },
-            [BOOSTERS.LINE]: { text: 'Linienbombe geladen!', icon: '💣' },
-            [BOOSTERS.BURST_SMALL]: { text: 'Kreuz-Explosion!', icon: '🧨' },
-            [BOOSTERS.BURST_MEDIUM]: { text: 'Flächenblast bereit!', icon: '💥' },
-            [BOOSTERS.BURST_LARGE]: { text: 'Mega-Bombe entstanden!', icon: '☢️' }
-        };
-        const createdBooster = boosterPriority.find((type) => matchResult.createdBoosterTypes.includes(type));
-        if (createdBooster) {
-            const message = boosterMessages[createdBooster];
-            this.hud.setStatus(message.text, message.icon);
-            return;
-        }
-        if (matchResult.largestMatch >= 5) {
-            this.hud.setStatus('Mega-Kombo! 5er Match!', '⚡');
-            return;
-        }
-        if (matchResult.largestMatch === 4) {
-            this.hud.setStatus('Starke Vierer-Kette!', '🔥');
-            return;
-        }
-        this.hud.setStatus('Match gefunden!', '✨');
+        const delta = this.calculateMultiplierDelta(this.currentMoveScore);
+        this.state.comboMultiplier = this.clampMultiplier(this.state.comboMultiplier + delta);
+        this.renderMultiplierStatus(delta, this.currentMoveScore);
+        this.resetMoveTracking();
+        this.updateHud();
+    }
+    calculateMultiplierDelta(moveScore) {
+        if (moveScore >= 150)
+            return 0.5;
+        if (moveScore >= 90)
+            return 0.35;
+        if (moveScore >= 60)
+            return 0.2;
+        if (moveScore === 0)
+            return -0.3;
+        if (moveScore < 30)
+            return -0.15;
+        return 0;
+    }
+    clampMultiplier(multiplier) {
+        const rounded = Math.round(multiplier * 100) / 100;
+        return Math.min(this.maxMultiplier, Math.max(this.minMultiplier, rounded));
+    }
+    renderMultiplierStatus(delta, moveScore) {
+        const icon = delta > 0 ? '⬆️' : delta < 0 ? '⬇️' : '✨';
+        const formattedMultiplier = 'x' + this.state.comboMultiplier.toFixed(2);
+        const scorePart = moveScore > 0 ? ' · +' + moveScore + ' Punkte' : '';
+        const prefix = delta > 0 ? 'Starker Zug!' : delta < 0 ? 'Tempo verloren!' : 'Multiplikator';
+        this.hud.setStatus(prefix + ' ' + formattedMultiplier + scorePart, icon);
     }
 }
 export { Match3Game };
