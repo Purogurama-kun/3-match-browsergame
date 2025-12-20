@@ -255,6 +255,39 @@ class Board {
             cell.style.removeProperty('--cell-color');
         }
     }
+
+    playSpawnAnimation(): number {
+        const baseDuration = 550;
+        let longestDelay = 0;
+
+        this.cells.forEach((cell) => {
+            if (this.isBlockedCell(cell)) return;
+            const index = Number(cell.dataset.index);
+            const { row, col } = this.getRowCol(index);
+            const delay = row * 70 + col * 12;
+            longestDelay = Math.max(longestDelay, delay);
+            cell.classList.remove('game__cell--spawn');
+            cell.style.animationDelay = delay + 'ms';
+            cell.classList.add('game__cell--spawn');
+            cell.addEventListener(
+                'animationend',
+                () => {
+                    cell.classList.remove('game__cell--spawn');
+                    cell.style.removeProperty('animation-delay');
+                },
+                { once: true }
+            );
+        });
+
+        return baseDuration + longestDelay;
+    }
+
+    private getRowCol(index: number): { row: number; col: number } {
+        return {
+            row: Math.floor(index / GRID_SIZE),
+            col: index % GRID_SIZE
+        };
+    }
 }
 
 export { Board };
