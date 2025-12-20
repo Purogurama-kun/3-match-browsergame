@@ -13,6 +13,7 @@ Small Match-3 browser game with boosters, goals, and sound feedback, written in 
 - Free-swap or require-match swap modes, plus swipe and click controls.
 - Combo multiplier scoring with HUD feedback.
 - Sound effects, optional audio toggle, and screen shake on impactful actions.
+- 5% chance of bombs falling from above on max multiplier (0% chnace on x0 multiplier)
 
 ## Known errors
 
