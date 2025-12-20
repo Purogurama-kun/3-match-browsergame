@@ -599,9 +599,6 @@ class Match3Game {
         return '';
     }
 
-    
-
-
     private createMatchAccumulator(): MatchAccumulator {
         return {
             matched: new Set<number>(),

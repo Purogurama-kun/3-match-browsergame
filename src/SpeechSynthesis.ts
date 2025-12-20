@@ -1,81 +1,41 @@
-class SpeechSynthesis
-{
-    private static voices: any[] = [];
-    private static voicesPromise: Promise<SpeechSynthesisVoice[]> | null = null;
+// SpeechSynthesis.ts
+// Reliable cross-browser Web Speech wrapper (Chrome / Firefox / Safari)
 
-    public static async speakShortText(message: string): Promise<void> 
-    {
+class SpeechSynthesis {
+    private static voices: SpeechSynthesisVoice[] = [];
+
+    /**
+     * Speaks very short text (1–2 words) in a game-friendly way.
+     */
+    public static async speakShortText(message: string): Promise<void> {
         if (!('speechSynthesis' in window)) return;
 
-        window.speechSynthesis.cancel();
+        if (SpeechSynthesis.voices.length == 0) {
+            SpeechSynthesis.voices = speechSynthesis.getVoices();
+        }
 
-        const messageWithPause = message.replace(' ', '… '); // For very short speech, adding a tiny pause improves naturalness
-        const utterance = new SpeechSynthesisUtterance(messageWithPause);
+        // Micro-pause improves naturalness for short phrases
+        const text = message.replace(' ', '… ');
+
+        const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'en-US';
-        utterance.rate = 1.08; // Faster = less robotic
-        utterance.pitch = 1.05; // For 2-word phrases, the default pacing is often too slow and flat.
+        utterance.rate = 1.08;
+        utterance.pitch = 1.05;
+        utterance.volume = 1.0;
 
-        if (!SpeechSynthesis.voices.length) {
-            await SpeechSynthesis.loadVoices();
+        // Prefer best available voice
+        const voice =
+            this.voices.find(v => v.name.includes('Google') && v.lang === 'en-US') ||
+            this.voices.find(v => v.name.includes('Microsoft') && v.lang === 'en-US') ||
+            this.voices.find(v => v.lang === 'en-US');
+
+        if (voice) {
+            utterance.voice = voice;
         }
 
-        // Prefer high-quality voices
-        const preferredVoice =
-            SpeechSynthesis.voices.find((v:any) => v.name.includes('Google') && v.lang === 'en-US') ||
-            SpeechSynthesis.voices.find((v:any) => v.name.includes('Microsoft') && v.lang === 'en-US') ||
-            SpeechSynthesis.voices.find((v:any) => v.lang === 'en-US');
-
-        if (preferredVoice) {
-            utterance.voice = preferredVoice;
-        }
-
+        window.speechSynthesis.cancel();
         window.speechSynthesis.speak(utterance);
     }
-
-    public static loadVoices(): Promise<SpeechSynthesisVoice[]> {
-        if (SpeechSynthesis.voicesPromise) {
-            return SpeechSynthesis.voicesPromise;
-        }
-
-        SpeechSynthesis.voicesPromise = new Promise(resolve => {
-            const resolveVoices = (): SpeechSynthesisVoice[] | null => {
-                const availableVoices = speechSynthesis.getVoices();
-                if (availableVoices.length) {
-                    SpeechSynthesis.voices = availableVoices;
-                    resolve(availableVoices);
-                    return availableVoices;
-                }
-                return null;
-            };
-
-            if (resolveVoices()) {
-                return;
-            }
-
-            const onVoicesChanged = (): void => {
-                if (resolveVoices()) {
-                    speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
-                    clearTimeout(timeoutId);
-                }
-            };
-
-            const timeoutId = window.setTimeout(() => {
-                speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
-                if (!SpeechSynthesis.voices.length) {
-                    SpeechSynthesis.voicesPromise = null;
-                }
-                resolve(SpeechSynthesis.voices);
-            }, 2000);
-
-            speechSynthesis.addEventListener('voiceschanged', onVoicesChanged);
-        });
-
-        return SpeechSynthesis.voicesPromise;
-    }
 }
-
-document.addEventListener('click', async () => { // chrome does not load voices until user interaction happend
-    await SpeechSynthesis.loadVoices();
-}, { once: true });
 
 export { SpeechSynthesis };
