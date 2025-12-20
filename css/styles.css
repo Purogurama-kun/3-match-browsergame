@@ -115,6 +115,29 @@ body {
     gap: 0.35rem;
 }
 
+.game__auth-button {
+    display: inline-flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.game__auth-button--disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.game__auth-button-text {
+    display: inline-block;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    border: 1px solid #5fd1a2;
+    background: linear-gradient(135deg, #36c9a9, #3fd6c6);
+    color: #04131f;
+    font-weight: 800;
+    font-size: 1.05rem;
+    text-align: center;
+}
+
 .game__auth-hint {
     margin: 0;
     color: #cfd5ff;
