@@ -85,9 +85,9 @@ class GoogleAuth {
         this.progressLabel.textContent = 'Fortschritt wird geladen...';
     }
 
-    setLoggedOut(): void {
+    setLoggedOut(level: number = 1): void {
         this.statusLabel.textContent = 'Nicht angemeldet';
-        this.setProgressLevel(1);
+        this.setProgressLevel(level);
         this.enableLogin();
     }
 
