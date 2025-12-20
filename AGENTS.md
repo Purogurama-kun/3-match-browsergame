@@ -46,3 +46,4 @@ Guidelines for AI agents working in this repository.
 - Document non-obvious rules, constraints, and edge cases.
 - Do not restate code.
 - Remove stale comments during refactors.
+- Comment in english.
