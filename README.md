@@ -57,6 +57,8 @@ Then open `http://localhost:5500` in your browser.
 2. create project
 3. Go to: "Menu > APIs and services > OAuth consent screen"
 4. Add a new entry (for external)
-5. Create OAuth client ID: choose Web application and add e.g. 'http://localhost' and 'http://localhost:5500' to 'Authorised JavaScript origins' and 'http://localhost:5500' to 'Authorised redirect URIs'
+5. Create OAuth client ID: choose Web application and for local testing add 'http://localhost:5500' and 'http://127.0.0.1:5500' to 'Authorised JavaScript origins' and NOTHING to 'Authorised redirect URIs'. This setting is used with FedCM (is a method to do google auth in javascript).
+6. Go to: "Menu > APIs and services > OAuth consent screen > Audience" add here test users. When your project is in the publishing status testing, then only test users can login.
 
+Note that 'http://localhost:5500' ≠ 'http://127.0.0.1:5500'! FedCM is extremly strict.
 The client ID is the public identifier of the app in Google’s login system. Client-ID: 276995857018-9foeghnr835nqq9kc2dpbl5j9ibljodg.apps.googleusercontent.com
