@@ -13,6 +13,14 @@ type MatchResult = {
     createdBoosterTypes: BoosterType[];
 };
 
+type MatchAccumulator = {
+    matched: Set<number>;
+    boostersToCreate: { index: number; type: BoosterType }[];
+    boosterSlots: Set<number>;
+    createdBoosterTypes: Set<BoosterType>;
+    largestMatch: number;
+};
+
 class Match3Game {
     constructor() {
         this.gameEl = getRequiredElement('game');
@@ -183,171 +191,19 @@ class Match3Game {
     }
 
     private findMatches(): MatchResult {
-        const matched = new Set<number>();
-        const boostersToCreate: { index: number; type: BoosterType }[] = [];
-        const boosterSlots = new Set<number>();
-        const createdBoosterTypes = new Set<BoosterType>();
-        let largestMatch = 0;
+        const accumulator = this.createMatchAccumulator();
 
-        const indexAt = (row: number, col: number): number => row * GRID_SIZE + col;
-        const colorAt = (row: number, col: number): string => {
-            if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) return '';
-            const cell = this.board.getCell(indexAt(row, col));
-            const booster = this.board.getCellBooster(cell);
-            if (booster === BOOSTERS.BURST_LARGE) return '';
-            return this.board.getCellColor(cell);
+        this.scanSquareMatches(accumulator);
+        this.scanTPatterns(accumulator);
+        this.scanLPatterns(accumulator);
+        this.scanLineMatches(accumulator);
+
+        return {
+            matched: accumulator.matched,
+            boostersToCreate: accumulator.boostersToCreate,
+            largestMatch: accumulator.largestMatch,
+            createdBoosterTypes: Array.from(accumulator.createdBoosterTypes)
         };
-        const addBooster = (index: number, type: BoosterType): void => {
-            if (boosterSlots.has(index)) return;
-            boosterSlots.add(index);
-            boostersToCreate.push({ index, type });
-            createdBoosterTypes.add(type);
-        };
-        const rotateOffset = (offset: { row: number; col: number }, times: number): { row: number; col: number } => {
-            let row = offset.row;
-            let col = offset.col;
-            for (let i = 0; i < times; i++) {
-                const newRow = col;
-                const newCol = 2 - row;
-                row = newRow;
-                col = newCol;
-            }
-            return { row, col };
-        };
-        const checkPatternAt = (
-            originRow: number,
-            originCol: number,
-            offsets: { row: number; col: number }[],
-            boosterOffset: { row: number; col: number } | null,
-            boosterType: BoosterType | null
-        ): void => {
-            let color = '';
-            const indices: number[] = [];
-            for (const offset of offsets) {
-                const row = originRow + offset.row;
-                const col = originCol + offset.col;
-                const cellColor = colorAt(row, col);
-                if (!cellColor) return;
-                if (!color) color = cellColor;
-                if (cellColor !== color) return;
-                indices.push(indexAt(row, col));
-            }
-            indices.forEach((idx) => matched.add(idx));
-            if (boosterOffset && boosterType) {
-                const boosterIndex = indexAt(originRow + boosterOffset.row, originCol + boosterOffset.col);
-                addBooster(boosterIndex, boosterType);
-            }
-            largestMatch = Math.max(largestMatch, offsets.length);
-        };
-        const checkLine = (indices: number[]): void => {
-            let streak = 1;
-            const getColorForIndex = (idx: number): string => {
-                const cell = this.board.getCell(idx);
-                const booster = this.board.getCellBooster(cell);
-                if (booster === BOOSTERS.BURST_LARGE) return '';
-                return this.board.getCellColor(cell);
-            };
-            for (let i = 1; i <= indices.length; i++) {
-                const prevIndex = indices[i - 1];
-                const currIndex = i < indices.length ? indices[i] : undefined;
-                if (prevIndex === undefined) {
-                    throw new Error('Missing index at position: ' + (i - 1));
-                }
-                const prevColor = getColorForIndex(prevIndex);
-                const currColor = currIndex !== undefined ? getColorForIndex(currIndex) : '';
-                if (currColor && currColor === prevColor) {
-                    streak++;
-                } else {
-                    if (streak >= 3 && prevColor) {
-                        const streakCells = indices.slice(i - streak, i);
-                        streakCells.forEach((idx) => matched.add(idx));
-                        if (streak === 4) {
-                            const lineIndex = streakCells[1];
-                            if (lineIndex === undefined) {
-                                throw new Error('Missing line booster index');
-                            }
-                            addBooster(lineIndex, BOOSTERS.LINE);
-                        }
-                        if (streak >= 5) {
-                            const centerIndex = streakCells[Math.floor(streakCells.length / 2)];
-                            if (centerIndex === undefined) {
-                                throw new Error('Missing large blast index');
-                            }
-                            addBooster(centerIndex, BOOSTERS.BURST_LARGE);
-                        }
-                        largestMatch = Math.max(largestMatch, streak);
-                    }
-                    streak = 1;
-                }
-            }
-        };
-
-        for (let r = 0; r < GRID_SIZE - 1; r++) {
-            for (let c = 0; c < GRID_SIZE - 1; c++) {
-                checkPatternAt(
-                    r,
-                    c,
-                    [
-                        { row: 0, col: 0 },
-                        { row: 0, col: 1 },
-                        { row: 1, col: 0 },
-                        { row: 1, col: 1 }
-                    ],
-                    { row: 0, col: 0 },
-                    BOOSTERS.BURST_SMALL
-                );
-            }
-        }
-
-        const tBaseOffsets = [
-            { row: 0, col: 0 },
-            { row: 0, col: 1 },
-            { row: 0, col: 2 },
-            { row: 1, col: 1 },
-            { row: 2, col: 1 }
-        ];
-        const tBoosterOffset = { row: 1, col: 1 };
-        for (let rotation = 0; rotation < 4; rotation++) {
-            const offsets = tBaseOffsets.map((offset) => rotateOffset(offset, rotation));
-            const boosterOffset = rotateOffset(tBoosterOffset, rotation);
-            for (let r = 0; r < GRID_SIZE - 2; r++) {
-                for (let c = 0; c < GRID_SIZE - 2; c++) {
-                    checkPatternAt(r, c, offsets, boosterOffset, BOOSTERS.BURST_MEDIUM);
-                }
-            }
-        }
-
-        const lBaseOffsets = [
-            { row: 0, col: 0 },
-            { row: 1, col: 0 },
-            { row: 2, col: 0 },
-            { row: 2, col: 1 },
-            { row: 2, col: 2 }
-        ];
-        const lBoosterOffset = { row: 2, col: 0 };
-        for (let rotation = 0; rotation < 4; rotation++) {
-            const offsets = lBaseOffsets.map((offset) => rotateOffset(offset, rotation));
-            const boosterOffset = rotateOffset(lBoosterOffset, rotation);
-            for (let r = 0; r < GRID_SIZE - 2; r++) {
-                for (let c = 0; c < GRID_SIZE - 2; c++) {
-                    checkPatternAt(r, c, offsets, boosterOffset, BOOSTERS.BURST_MEDIUM);
-                }
-            }
-        }
-
-        for (let r = 0; r < GRID_SIZE; r++) {
-            const indices: number[] = [];
-            for (let c = 0; c < GRID_SIZE; c++) indices.push(r * GRID_SIZE + c);
-            checkLine(indices);
-        }
-
-        for (let c = 0; c < GRID_SIZE; c++) {
-            const indices: number[] = [];
-            for (let r = 0; r < GRID_SIZE; r++) indices.push(r * GRID_SIZE + c);
-            checkLine(indices);
-        }
-
-        return { matched, boostersToCreate, largestMatch, createdBoosterTypes: Array.from(createdBoosterTypes) };
     }
 
     private checkMatches(): void {
@@ -683,6 +539,196 @@ class Match3Game {
         const scorePart = moveScore > 0 ? ' · +' + moveScore + ' Punkte' : '';
         const prefix = delta > 0 ? 'Starker Zug!' : delta < 0 ? 'Tempo verloren!' : 'Multiplikator';
         this.hud.setStatus(prefix + ' ' + formattedMultiplier + scorePart, icon);
+    }
+
+    private createMatchAccumulator(): MatchAccumulator {
+        return {
+            matched: new Set<number>(),
+            boostersToCreate: [],
+            boosterSlots: new Set<number>(),
+            createdBoosterTypes: new Set<BoosterType>(),
+            largestMatch: 0
+        };
+    }
+
+    private scanSquareMatches(accumulator: MatchAccumulator): void {
+        const offsets = [
+            { row: 0, col: 0 },
+            { row: 0, col: 1 },
+            { row: 1, col: 0 },
+            { row: 1, col: 1 }
+        ];
+        this.scanPattern(offsets, { row: 0, col: 0 }, BOOSTERS.BURST_SMALL, accumulator);
+    }
+
+    private scanTPatterns(accumulator: MatchAccumulator): void {
+        const offsets = [
+            { row: 0, col: 0 },
+            { row: 0, col: 1 },
+            { row: 0, col: 2 },
+            { row: 1, col: 1 },
+            { row: 2, col: 1 }
+        ];
+        this.scanRotatedPatterns(offsets, { row: 1, col: 1 }, BOOSTERS.BURST_MEDIUM, accumulator);
+    }
+
+    private scanLPatterns(accumulator: MatchAccumulator): void {
+        const offsets = [
+            { row: 0, col: 0 },
+            { row: 1, col: 0 },
+            { row: 2, col: 0 },
+            { row: 2, col: 1 },
+            { row: 2, col: 2 }
+        ];
+        this.scanRotatedPatterns(offsets, { row: 2, col: 0 }, BOOSTERS.BURST_MEDIUM, accumulator);
+    }
+
+    private scanLineMatches(accumulator: MatchAccumulator): void {
+        for (let r = 0; r < GRID_SIZE; r++) {
+            const indices: number[] = [];
+            for (let c = 0; c < GRID_SIZE; c++) {
+                indices.push(r * GRID_SIZE + c);
+            }
+            this.checkLine(indices, accumulator);
+        }
+
+        for (let c = 0; c < GRID_SIZE; c++) {
+            const indices: number[] = [];
+            for (let r = 0; r < GRID_SIZE; r++) {
+                indices.push(r * GRID_SIZE + c);
+            }
+            this.checkLine(indices, accumulator);
+        }
+    }
+
+    private checkLine(indices: number[], accumulator: MatchAccumulator): void {
+        let streak = 1;
+        const getColorForIndex = (idx: number): string => {
+            const cell = this.board.getCell(idx);
+            const booster = this.board.getCellBooster(cell);
+            if (booster === BOOSTERS.BURST_LARGE) return '';
+            return this.board.getCellColor(cell);
+        };
+        for (let i = 1; i <= indices.length; i++) {
+            const prevIndex = indices[i - 1];
+            const currIndex = i < indices.length ? indices[i] : undefined;
+            if (prevIndex === undefined) {
+                throw new Error('Missing index at position: ' + (i - 1));
+            }
+            const prevColor = getColorForIndex(prevIndex);
+            const currColor = currIndex !== undefined ? getColorForIndex(currIndex) : '';
+            if (currColor && currColor === prevColor) {
+                streak++;
+            } else {
+                if (streak >= 3 && prevColor) {
+                    const streakCells = indices.slice(i - streak, i);
+                    streakCells.forEach((idx) => accumulator.matched.add(idx));
+                    if (streak === 4) {
+                        const lineIndex = streakCells[1];
+                        if (lineIndex === undefined) {
+                            throw new Error('Missing line booster index');
+                        }
+                        this.addBoosterSlot(lineIndex, BOOSTERS.LINE, accumulator);
+                    }
+                    if (streak >= 5) {
+                        const centerIndex = streakCells[Math.floor(streakCells.length / 2)];
+                        if (centerIndex === undefined) {
+                            throw new Error('Missing large blast index');
+                        }
+                        this.addBoosterSlot(centerIndex, BOOSTERS.BURST_LARGE, accumulator);
+                    }
+                    accumulator.largestMatch = Math.max(accumulator.largestMatch, streak);
+                }
+                streak = 1;
+            }
+        }
+    }
+
+    private scanRotatedPatterns(
+        baseOffsets: { row: number; col: number }[],
+        boosterOffset: { row: number; col: number },
+        boosterType: BoosterType,
+        accumulator: MatchAccumulator
+    ): void {
+        for (let rotation = 0; rotation < 4; rotation++) {
+            const offsets = baseOffsets.map((offset) => this.rotateOffset(offset, rotation));
+            const rotatedBoosterOffset = this.rotateOffset(boosterOffset, rotation);
+            this.scanPattern(offsets, rotatedBoosterOffset, boosterType, accumulator);
+        }
+    }
+
+    private scanPattern(
+        offsets: { row: number; col: number }[],
+        boosterOffset: { row: number; col: number } | null,
+        boosterType: BoosterType | null,
+        accumulator: MatchAccumulator
+    ): void {
+        const allOffsets = boosterOffset ? offsets.concat([boosterOffset]) : offsets;
+        const maxRow = Math.max(...allOffsets.map((offset) => offset.row));
+        const maxCol = Math.max(...allOffsets.map((offset) => offset.col));
+        for (let r = 0; r <= GRID_SIZE - (maxRow + 1); r++) {
+            for (let c = 0; c <= GRID_SIZE - (maxCol + 1); c++) {
+                this.checkPatternAt(r, c, offsets, boosterOffset, boosterType, accumulator);
+            }
+        }
+    }
+
+    private checkPatternAt(
+        originRow: number,
+        originCol: number,
+        offsets: { row: number; col: number }[],
+        boosterOffset: { row: number; col: number } | null,
+        boosterType: BoosterType | null,
+        accumulator: MatchAccumulator
+    ): void {
+        let color = '';
+        const indices: number[] = [];
+        for (const offset of offsets) {
+            const row = originRow + offset.row;
+            const col = originCol + offset.col;
+            const cellColor = this.getColorAt(row, col);
+            if (!cellColor) return;
+            if (!color) color = cellColor;
+            if (cellColor !== color) return;
+            indices.push(this.indexAt(row, col));
+        }
+        indices.forEach((idx) => accumulator.matched.add(idx));
+        if (boosterOffset && boosterType) {
+            const boosterIndex = this.indexAt(originRow + boosterOffset.row, originCol + boosterOffset.col);
+            this.addBoosterSlot(boosterIndex, boosterType, accumulator);
+        }
+        accumulator.largestMatch = Math.max(accumulator.largestMatch, offsets.length);
+    }
+
+    private addBoosterSlot(index: number, type: BoosterType, accumulator: MatchAccumulator): void {
+        if (accumulator.boosterSlots.has(index)) return;
+        accumulator.boosterSlots.add(index);
+        accumulator.boostersToCreate.push({ index, type });
+        accumulator.createdBoosterTypes.add(type);
+    }
+
+    private getColorAt(row: number, col: number): string {
+        if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) return '';
+        const cell = this.board.getCell(this.indexAt(row, col));
+        const booster = this.board.getCellBooster(cell);
+        if (booster === BOOSTERS.BURST_LARGE) return '';
+        return this.board.getCellColor(cell);
+    }
+
+    private rotateOffset(offset: { row: number; col: number }, times: number): { row: number; col: number } {
+        let row = offset.row;
+        let col = offset.col;
+        for (let i = 0; i < times; i++) {
+            const newRow = col;
+            const newCol = 2 - row;
+            row = newRow;
+            col = newCol;
+        }
+        return { row, col };
+    }
+
+    private indexAt(row: number, col: number): number {
+        return row * GRID_SIZE + col;
     }
 }
 
