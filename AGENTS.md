@@ -26,7 +26,7 @@ Guidelines for AI agents working in this repository.
 - Keep `tsconfig.json` strict; do not loosen types.
 - Run `tsc` before serving.
 - Use a local web server (ES modules required).
-- Update `README.md` when structure or run instructions change.
+- Update `README.md` and use english when structure or run instructions change.
 
 ## Design rules
 
