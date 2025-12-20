@@ -96,6 +96,8 @@ class Match3Game {
         this.updateHud();
     }
     handleCellClick(cell) {
+        if (this.moveActive)
+            return;
         if (this.state.movesLeft <= 0)
             return;
         const booster = this.board.getCellBooster(cell);
@@ -126,6 +128,8 @@ class Match3Game {
         this.trySwap(firstSelected, cell);
     }
     handleCellSwipe(cell, direction) {
+        if (this.moveActive)
+            return;
         if (this.state.movesLeft <= 0)
             return;
         const neighbor = this.getNeighbor(cell, direction);

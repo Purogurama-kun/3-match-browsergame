@@ -135,6 +135,7 @@ class Match3Game {
     }
 
     private handleCellClick(cell: HTMLDivElement): void {
+        if (this.moveActive) return;
         if (this.state.movesLeft <= 0) return;
 
         const booster = this.board.getCellBooster(cell);
@@ -170,6 +171,7 @@ class Match3Game {
     }
 
     private handleCellSwipe(cell: HTMLDivElement, direction: SwipeDirection): void {
+        if (this.moveActive) return;
         if (this.state.movesLeft <= 0) return;
         const neighbor = this.getNeighbor(cell, direction);
         if (!neighbor) return;
