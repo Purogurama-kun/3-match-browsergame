@@ -1,6 +1,7 @@
 class SpeechSynthesis
 {
     private static voices: any[] = [];
+    private static voicesPromise: Promise<SpeechSynthesisVoice[]> | null = null;
 
     public static async speakShortText(message: string): Promise<void> 
     {
@@ -32,19 +33,44 @@ class SpeechSynthesis
     }
 
     public static loadVoices(): Promise<SpeechSynthesisVoice[]> {
-        return new Promise(resolve => {
-            const v = speechSynthesis.getVoices();
-            console.log("voices", v);
-            if (v.length) {
-                SpeechSynthesis.voices = v;
-                resolve(v);
-            } else {
-                speechSynthesis.onvoiceschanged = () => {
-                    SpeechSynthesis.voices = speechSynthesis.getVoices();
-                    resolve(SpeechSynthesis.voices);
-                };
+        if (SpeechSynthesis.voicesPromise) {
+            return SpeechSynthesis.voicesPromise;
+        }
+
+        SpeechSynthesis.voicesPromise = new Promise(resolve => {
+            const resolveVoices = (): SpeechSynthesisVoice[] | null => {
+                const availableVoices = speechSynthesis.getVoices();
+                if (availableVoices.length) {
+                    SpeechSynthesis.voices = availableVoices;
+                    resolve(availableVoices);
+                    return availableVoices;
+                }
+                return null;
+            };
+
+            if (resolveVoices()) {
+                return;
             }
+
+            const onVoicesChanged = (): void => {
+                if (resolveVoices()) {
+                    speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
+                    clearTimeout(timeoutId);
+                }
+            };
+
+            const timeoutId = window.setTimeout(() => {
+                speechSynthesis.removeEventListener('voiceschanged', onVoicesChanged);
+                if (!SpeechSynthesis.voices.length) {
+                    SpeechSynthesis.voicesPromise = null;
+                }
+                resolve(SpeechSynthesis.voices);
+            }, 2000);
+
+            speechSynthesis.addEventListener('voiceschanged', onVoicesChanged);
         });
+
+        return SpeechSynthesis.voicesPromise;
     }
 }
 
