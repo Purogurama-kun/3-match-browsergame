@@ -2,6 +2,7 @@ import { Match3Game } from './match3-game.js';
 import { getRequiredElement } from './dom.js';
 import { GoogleAuth, GoogleUser } from './google-auth.js';
 import { ProgressStore } from './progress-store.js';
+import { LocalProgressStore } from './local-progress-store.js';
 
 class GameApp {
     constructor() {
@@ -9,6 +10,7 @@ class GameApp {
         this.mainMenu = getRequiredElement('main-menu');
         this.startButton = this.getStartButton();
         this.progressStore = new ProgressStore();
+        this.localProgress = new LocalProgressStore();
         this.googleAuth = new GoogleAuth({
             loginButtonId: 'google-login',
             statusId: 'auth-status',
@@ -17,6 +19,8 @@ class GameApp {
             onLogin: (user) => this.handleLogin(user)
         });
         this.game = new Match3Game();
+
+        this.loadLocalProgress();
 
         this.startButton.addEventListener('click', () => this.startGame());
         this.game.onExitGameRequested(() => this.returnToMenu());
@@ -30,13 +34,14 @@ class GameApp {
     private startButton: HTMLButtonElement;
     private googleAuth: GoogleAuth;
     private progressStore: ProgressStore;
+    private localProgress: LocalProgressStore;
     private currentUser: GoogleUser | null = null;
     private isProgressLoading = false;
     private highestUnlockedLevel = 1;
     private game: Match3Game;
 
     private startGame(): void {
-        if (!this.currentUser || this.isProgressLoading) return;
+        if (this.isProgressLoading) return;
         this.hideMainMenu();
         this.game.start(this.highestUnlockedLevel);
     }
@@ -57,6 +62,13 @@ class GameApp {
     private hideMainMenu(): void {
         this.body.classList.remove('game--menu');
         this.mainMenu.setAttribute('hidden', 'true');
+    }
+
+    private loadLocalProgress(): void {
+        const stored = this.localProgress.load();
+        this.highestUnlockedLevel = Math.max(this.highestUnlockedLevel, stored.highestLevel);
+        this.googleAuth.setLoggedOut(this.highestUnlockedLevel);
+        this.updateStartButtonState();
     }
 
     private getStartButton(): HTMLButtonElement {
@@ -105,6 +117,7 @@ class GameApp {
         this.highestUnlockedLevel = Math.max(this.highestUnlockedLevel, unlockedLevel);
         this.googleAuth.setProgressLevel(this.highestUnlockedLevel);
         this.updateStartButtonState();
+        this.localProgress.save(this.highestUnlockedLevel);
         if (!this.currentUser) return;
         void this.persistProgress(this.currentUser.id, this.highestUnlockedLevel);
     }
@@ -133,9 +146,9 @@ class GameApp {
     private updateStartButtonState(): void {
         const isAuthenticated = Boolean(this.currentUser);
         const isLoading = this.isProgressLoading;
-        this.startButton.disabled = !isAuthenticated || isLoading;
+        this.startButton.disabled = isLoading;
         if (!isAuthenticated) {
-            this.startButton.textContent = 'Level Modus';
+            this.startButton.textContent = 'Level Modus (Gast)';
             return;
         }
         if (isLoading) {

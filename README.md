@@ -34,9 +34,10 @@ The PHP server exposes `backend/progress.php`, which persists user progress to `
 
 ## Login & Fortschritt
 
-- Im Hauptmenü kannst du dich per Google Login anmelden (Client-ID ist bereits hinterlegt).
+- Im Hauptmenü kannst du dich per Google Login anmelden (Client-ID ist bereits hinterlegt) – du kannst aber auch als Gast direkt den Level Modus starten.
 - Nach erfolgreicher Anmeldung wird dein Name im Menü angezeigt.
 - Der höchste freigeschaltete Level wird serverseitig in einer SQLite-Datenbank gespeichert. Beim Login wird der Fortschritt anhand deiner Google-User-ID geladen, sodass er geräteunabhängig verfügbar ist.
+- Fortschritt ohne Login wird lokal gespeichert (localStorage). Meldest du dich später an, wird der lokale Fortschritt mit deinem Konto synchronisiert.
 
 ## Project structure
 
