@@ -76,10 +76,12 @@ class SoundManager {
     private getAvailableAudio(pool: [HTMLAudioElement, ...HTMLAudioElement[]]): HTMLAudioElement {
         const available = pool.find((audio) => audio.paused || audio.ended);
         if (available) {
-            this.resetAudio(available);
+            this.prepareForPlayback(available);
             return available;
         }
-        return pool[0];
+        const fallback = pool[0];
+        this.prepareForPlayback(fallback);
+        return fallback;
     }
 
     private canPlayOgg(): boolean {
@@ -105,20 +107,31 @@ class SoundManager {
         Object.values(this.sounds).forEach((pool) => {
             pool.forEach((audio) => {
                 audio.muted = true;
+                audio.volume = 0;
                 const playPromise = audio.play();
+                if (playPromise && typeof playPromise.catch === 'function') {
+                    playPromise.catch(() => {});
+                }
                 if (playPromise && typeof playPromise.finally === 'function') {
-                    playPromise.finally(() => this.resetAudio(audio));
+                    playPromise.finally(() => this.resetAudio(audio, true));
                 } else {
-                    this.resetAudio(audio);
+                    this.resetAudio(audio, true);
                 }
             });
         });
     }
 
-    private resetAudio(audio: HTMLAudioElement): void {
+    private prepareForPlayback(audio: HTMLAudioElement): void {
+        this.resetAudio(audio);
+        audio.muted = false;
+        audio.volume = 1;
+    }
+
+    private resetAudio(audio: HTMLAudioElement, keepMuted: boolean = false): void {
         audio.pause();
         audio.currentTime = 0;
-        audio.muted = false;
+        audio.muted = keepMuted;
+        audio.volume = keepMuted ? 0 : 1;
     }
 
     private stopAll(): void {
