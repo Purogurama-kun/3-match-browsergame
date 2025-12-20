@@ -27,6 +27,30 @@ body {
     --cell-size: 3.75rem;
 }
 
+.game__move-evaluation {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    z-index: 30;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+    font-size: clamp(2rem, 4vw + 1rem, 3.5rem);
+    font-weight: 900;
+    text-align: center;
+    color: #fff7d1;
+    text-shadow:
+        0 0 18px rgba(255, 196, 86, 0.65),
+        0 0 32px rgba(255, 111, 145, 0.55);
+}
+
+.game__move-evaluation--visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 .game__menu-button {
     position: fixed;
     top: 0.5rem;

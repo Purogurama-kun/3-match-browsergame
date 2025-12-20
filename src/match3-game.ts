@@ -64,6 +64,9 @@ class Match3Game {
         this.modalCallback = null;
         this.moveActive = false;
         this.currentMoveScore = 0;
+        this.currentMoveBaseScore = 0;
+        this.moveEvaluationEl = getRequiredElement('move-evaluation');
+        this.moveEvaluationTimer = null;
 
         this.modalButton.addEventListener('click', () => this.hideResultModal());
         this.modalEl.addEventListener('click', (event) => {
@@ -93,6 +96,9 @@ class Match3Game {
     private modalCallback: (() => void) | null;
     private moveActive: boolean;
     private currentMoveScore: number;
+    private currentMoveBaseScore: number;
+    private moveEvaluationEl: HTMLElement;
+    private moveEvaluationTimer: number | null;
     private readonly baseCellPoints = 10;
     private readonly minMultiplier = 0.5;
     private readonly maxMultiplier = 5;
@@ -518,16 +524,19 @@ class Match3Game {
         const effective = Math.round(basePoints * this.state.comboMultiplier);
         this.state.score += effective;
         this.currentMoveScore += effective;
+        this.currentMoveBaseScore += basePoints;
     }
 
     private beginMove(): void {
         this.moveActive = true;
         this.currentMoveScore = 0;
+        this.currentMoveBaseScore = 0;
     }
 
     private resetMoveTracking(): void {
         this.moveActive = false;
         this.currentMoveScore = 0;
+        this.currentMoveBaseScore = 0;
     }
 
     private finalizeMoveScore(): void {
@@ -535,6 +544,7 @@ class Match3Game {
         const delta = this.calculateMultiplierDelta(this.currentMoveScore);
         this.state.comboMultiplier = this.clampMultiplier(this.state.comboMultiplier + delta);
         this.renderMultiplierStatus(delta, this.currentMoveScore);
+        this.showMoveEvaluation(this.currentMoveBaseScore);
         this.resetMoveTracking();
         this.updateHud();
     }
@@ -559,6 +569,40 @@ class Match3Game {
         const scorePart = moveScore > 0 ? ' · +' + moveScore + ' Punkte' : '';
         const prefix = delta > 0 ? 'Starker Zug!' : delta < 0 ? 'Tempo verloren!' : 'Multiplikator';
         this.hud.setStatus(prefix + ' ' + formattedMultiplier + scorePart, icon);
+    }
+
+    private showMoveEvaluation(baseMoveScore: number): void {
+        const message = this.getMoveEvaluationMessage(baseMoveScore);
+        if (!message) return;
+        if (this.moveEvaluationTimer !== null) {
+            clearTimeout(this.moveEvaluationTimer);
+            this.moveEvaluationTimer = null;
+        }
+        this.moveEvaluationEl.textContent = message;
+        this.moveEvaluationEl.classList.add('game__move-evaluation--visible');
+        this.speakEvaluation(message);
+        this.moveEvaluationTimer = window.setTimeout(() => {
+            this.moveEvaluationEl.classList.remove('game__move-evaluation--visible');
+            this.moveEvaluationTimer = null;
+        }, 2000);
+    }
+
+    private getMoveEvaluationMessage(baseMoveScore: number): string {
+        if (baseMoveScore >= 1600) return 'Candy Chaos!';
+        if (baseMoveScore >= 800) return 'Sweetplosion!';
+        if (baseMoveScore >= 400) return 'Candy Blast!';
+        if (baseMoveScore >= 200) return 'Candy Frenzy!';
+        if (baseMoveScore >= 100) return 'Sweet Heat!';
+        return '';
+    }
+
+    private speakEvaluation(message: string): void {
+        if (!('speechSynthesis' in window)) return;
+        if (!this.sounds.isEnabled()) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(message);
+        utterance.lang = 'en-US';
+        window.speechSynthesis.speak(utterance);
     }
 
     private createMatchAccumulator(): MatchAccumulator {
