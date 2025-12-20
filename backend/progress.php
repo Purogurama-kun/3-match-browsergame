@@ -57,8 +57,21 @@ function ensureSchema(PDO $database): void
 function handleGet(PDO $database): void
 {
     $userId = requireUserId($_GET['userId'] ?? null);
+    $localLevel = clampLevel($_GET['localLevel'] ?? 1);
     $progress = fetchProgress($database, $userId);
-    $highestLevel = isset($progress['highest_level']) ? clampLevel($progress['highest_level']) : 1;
+
+    if (!$progress) {
+        registerProgress($database, $userId, $localLevel);
+        $progress = [
+            'user_id' => $userId,
+            'highest_level' => $localLevel,
+            'data' => '{}'
+        ];
+    }
+
+    $highestLevel = isset($progress['highest_level'])
+        ? clampLevel($progress['highest_level'])
+        : $localLevel;
 
     respond(200, [
         'highestLevel' => $highestLevel,
@@ -113,6 +126,11 @@ function saveProgress(PDO $database, string $userId, int $highestLevel, string $
     $statement->bindValue(':highest_level', $highestLevel, PDO::PARAM_INT);
     $statement->bindValue(':data', $data, PDO::PARAM_STR);
     $statement->execute();
+}
+
+function registerProgress(PDO $database, string $userId, int $localLevel): void
+{
+    saveProgress($database, $userId, $localLevel, '{}');
 }
 
 function requireUserId(?string $rawUserId): string

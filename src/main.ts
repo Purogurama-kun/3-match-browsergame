@@ -68,18 +68,18 @@ class GameApp {
     }
 
     private handleLogin(user: GoogleUser): void {
+        const localHighestLevel = this.highestUnlockedLevel;
         this.isProgressLoading = true;
         this.currentUser = user;
-        this.highestUnlockedLevel = 1;
         this.googleAuth.clearError();
         this.googleAuth.showProgressLoading();
         this.updateStartButtonState();
-        void this.loadProgress(user.id);
+        void this.loadProgress(user.id, localHighestLevel);
     }
 
-    private async loadProgress(userId: string): Promise<void> {
+    private async loadProgress(userId: string, localHighestLevel: number): Promise<void> {
         try {
-            const stored = await this.progressStore.load(userId);
+            const stored = await this.progressStore.load(userId, localHighestLevel);
             if (!this.isCurrentUser(userId)) return;
             this.highestUnlockedLevel = stored.highestLevel;
             this.googleAuth.setProgressLevel(this.highestUnlockedLevel);
@@ -87,7 +87,7 @@ class GameApp {
         } catch (error) {
             console.error('Failed to load progress', error);
             if (this.isCurrentUser(userId)) {
-                this.highestUnlockedLevel = 1;
+                this.highestUnlockedLevel = Math.max(1, localHighestLevel);
                 this.googleAuth.showError(
                     'Fortschritt konnte nicht geladen werden. Standard-Level 1 wird verwendet.'
                 );
@@ -102,10 +102,10 @@ class GameApp {
     }
 
     private saveProgress(unlockedLevel: number): void {
-        if (!this.currentUser) return;
         this.highestUnlockedLevel = Math.max(this.highestUnlockedLevel, unlockedLevel);
         this.googleAuth.setProgressLevel(this.highestUnlockedLevel);
         this.updateStartButtonState();
+        if (!this.currentUser) return;
         void this.persistProgress(this.currentUser.id, this.highestUnlockedLevel);
     }
 
