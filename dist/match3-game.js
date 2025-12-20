@@ -6,6 +6,7 @@ import { getRequiredElement } from './dom.js';
 import { describeGoal, getLevelDefinition } from './levels.js';
 class Match3Game {
     constructor() {
+        this.defaultStatus = { text: 'Bereit für Kombos!', icon: '✨' };
         this.gameEl = getRequiredElement('game');
         this.sounds = new SoundManager();
         this.hud = new Hud();
@@ -84,6 +85,7 @@ class Match3Game {
         this.generation++;
         this.clearPendingTimers();
         this.board.create();
+        this.hud.setStatus(this.defaultStatus.text, this.defaultStatus.icon);
         this.updateHud();
     }
     handleCellClick(cell) {
@@ -132,6 +134,8 @@ class Match3Game {
         const matched = new Set();
         const boostersToCreate = [];
         const boosterSlots = new Set();
+        const createdBoosterTypes = new Set();
+        let largestMatch = 0;
         const indexAt = (row, col) => row * GRID_SIZE + col;
         const colorAt = (row, col) => {
             if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE)
@@ -147,6 +151,7 @@ class Match3Game {
                 return;
             boosterSlots.add(index);
             boostersToCreate.push({ index, type });
+            createdBoosterTypes.add(type);
         };
         const rotateOffset = (offset, times) => {
             let row = offset.row;
@@ -179,6 +184,7 @@ class Match3Game {
                 const boosterIndex = indexAt(originRow + boosterOffset.row, originCol + boosterOffset.col);
                 addBooster(boosterIndex, boosterType);
             }
+            largestMatch = Math.max(largestMatch, offsets.length);
         };
         const checkLine = (indices) => {
             let streak = 1;
@@ -218,6 +224,7 @@ class Match3Game {
                             }
                             addBooster(centerIndex, BOOSTERS.BURST_LARGE);
                         }
+                        largestMatch = Math.max(largestMatch, streak);
                     }
                     streak = 1;
                 }
@@ -279,10 +286,11 @@ class Match3Game {
                 indices.push(r * GRID_SIZE + c);
             checkLine(indices);
         }
-        return { matched, boostersToCreate };
+        return { matched, boostersToCreate, largestMatch, createdBoosterTypes: Array.from(createdBoosterTypes) };
     }
     checkMatches() {
-        const { matched, boostersToCreate } = this.findMatches();
+        const matchResult = this.findMatches();
+        const { matched, boostersToCreate } = matchResult;
         if (matched.size > 0) {
             const hasBlastBooster = boostersToCreate.some((boost) => boost.type === BOOSTERS.BURST_SMALL ||
                 boost.type === BOOSTERS.BURST_MEDIUM ||
@@ -297,6 +305,7 @@ class Match3Game {
             else {
                 this.sounds.play('match');
             }
+            this.updateComboStatus(matchResult);
             this.screenShake();
             matched.forEach((idx) => {
                 const cell = this.board.getCell(idx);
@@ -550,6 +559,38 @@ class Match3Game {
             }
             return goal;
         });
+    }
+    updateComboStatus(matchResult) {
+        if (matchResult.matched.size === 0)
+            return;
+        const boosterPriority = [
+            BOOSTERS.BURST_LARGE,
+            BOOSTERS.BURST_MEDIUM,
+            BOOSTERS.BURST_SMALL,
+            BOOSTERS.LINE
+        ];
+        const boosterMessages = {
+            [BOOSTERS.NONE]: { text: '', icon: '' },
+            [BOOSTERS.LINE]: { text: 'Linienbombe geladen!', icon: '💣' },
+            [BOOSTERS.BURST_SMALL]: { text: 'Kreuz-Explosion!', icon: '🧨' },
+            [BOOSTERS.BURST_MEDIUM]: { text: 'Flächenblast bereit!', icon: '💥' },
+            [BOOSTERS.BURST_LARGE]: { text: 'Mega-Bombe entstanden!', icon: '☢️' }
+        };
+        const createdBooster = boosterPriority.find((type) => matchResult.createdBoosterTypes.includes(type));
+        if (createdBooster) {
+            const message = boosterMessages[createdBooster];
+            this.hud.setStatus(message.text, message.icon);
+            return;
+        }
+        if (matchResult.largestMatch >= 5) {
+            this.hud.setStatus('Mega-Kombo! 5er Match!', '⚡');
+            return;
+        }
+        if (matchResult.largestMatch === 4) {
+            this.hud.setStatus('Starke Vierer-Kette!', '🔥');
+            return;
+        }
+        this.hud.setStatus('Match gefunden!', '✨');
     }
 }
 export { Match3Game };

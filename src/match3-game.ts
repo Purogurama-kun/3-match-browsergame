@@ -6,6 +6,13 @@ import { GameState, GoalProgress, LevelGoal, SwapMode, SwipeDirection } from './
 import { getRequiredElement } from './dom.js';
 import { describeGoal, getLevelDefinition } from './levels.js';
 
+type MatchResult = {
+    matched: Set<number>;
+    boostersToCreate: { index: number; type: BoosterType }[];
+    largestMatch: number;
+    createdBoosterTypes: BoosterType[];
+};
+
 class Match3Game {
     constructor() {
         this.gameEl = getRequiredElement('game');
@@ -73,6 +80,7 @@ class Match3Game {
     private modalText: HTMLElement;
     private modalButton: HTMLButtonElement;
     private modalCallback: (() => void) | null;
+    private readonly defaultStatus = { text: 'Bereit für Kombos!', icon: '✨' };
 
     start(): void {
         this.initLevel(1);
@@ -113,6 +121,7 @@ class Match3Game {
         this.generation++;
         this.clearPendingTimers();
         this.board.create();
+        this.hud.setStatus(this.defaultStatus.text, this.defaultStatus.icon);
         this.updateHud();
     }
 
@@ -162,13 +171,12 @@ class Match3Game {
         this.trySwap(cell, neighbor);
     }
 
-    private findMatches(): {
-        matched: Set<number>;
-        boostersToCreate: { index: number; type: BoosterType }[];
-    } {
+    private findMatches(): MatchResult {
         const matched = new Set<number>();
         const boostersToCreate: { index: number; type: BoosterType }[] = [];
         const boosterSlots = new Set<number>();
+        const createdBoosterTypes = new Set<BoosterType>();
+        let largestMatch = 0;
 
         const indexAt = (row: number, col: number): number => row * GRID_SIZE + col;
         const colorAt = (row: number, col: number): string => {
@@ -182,6 +190,7 @@ class Match3Game {
             if (boosterSlots.has(index)) return;
             boosterSlots.add(index);
             boostersToCreate.push({ index, type });
+            createdBoosterTypes.add(type);
         };
         const rotateOffset = (offset: { row: number; col: number }, times: number): { row: number; col: number } => {
             let row = offset.row;
@@ -217,6 +226,7 @@ class Match3Game {
                 const boosterIndex = indexAt(originRow + boosterOffset.row, originCol + boosterOffset.col);
                 addBooster(boosterIndex, boosterType);
             }
+            largestMatch = Math.max(largestMatch, offsets.length);
         };
         const checkLine = (indices: number[]): void => {
             let streak = 1;
@@ -254,6 +264,7 @@ class Match3Game {
                             }
                             addBooster(centerIndex, BOOSTERS.BURST_LARGE);
                         }
+                        largestMatch = Math.max(largestMatch, streak);
                     }
                     streak = 1;
                 }
@@ -325,11 +336,12 @@ class Match3Game {
             checkLine(indices);
         }
 
-        return { matched, boostersToCreate };
+        return { matched, boostersToCreate, largestMatch, createdBoosterTypes: Array.from(createdBoosterTypes) };
     }
 
     private checkMatches(): void {
-        const { matched, boostersToCreate } = this.findMatches();
+        const matchResult = this.findMatches();
+        const { matched, boostersToCreate } = matchResult;
 
         if (matched.size > 0) {
             const hasBlastBooster = boostersToCreate.some(
@@ -346,6 +358,7 @@ class Match3Game {
             } else {
                 this.sounds.play('match');
             }
+            this.updateComboStatus(matchResult);
             this.screenShake();
             matched.forEach((idx) => {
                 const cell = this.board.getCell(idx);
@@ -607,6 +620,38 @@ class Match3Game {
             }
             return goal;
         });
+    }
+
+    private updateComboStatus(matchResult: MatchResult): void {
+        if (matchResult.matched.size === 0) return;
+        const boosterPriority = [
+            BOOSTERS.BURST_LARGE,
+            BOOSTERS.BURST_MEDIUM,
+            BOOSTERS.BURST_SMALL,
+            BOOSTERS.LINE
+        ] as const;
+        const boosterMessages: Record<BoosterType, { text: string; icon: string }> = {
+            [BOOSTERS.NONE]: { text: '', icon: '' },
+            [BOOSTERS.LINE]: { text: 'Linienbombe geladen!', icon: '💣' },
+            [BOOSTERS.BURST_SMALL]: { text: 'Kreuz-Explosion!', icon: '🧨' },
+            [BOOSTERS.BURST_MEDIUM]: { text: 'Flächenblast bereit!', icon: '💥' },
+            [BOOSTERS.BURST_LARGE]: { text: 'Mega-Bombe entstanden!', icon: '☢️' }
+        };
+        const createdBooster = boosterPriority.find((type) => matchResult.createdBoosterTypes.includes(type));
+        if (createdBooster) {
+            const message = boosterMessages[createdBooster];
+            this.hud.setStatus(message.text, message.icon);
+            return;
+        }
+        if (matchResult.largestMatch >= 5) {
+            this.hud.setStatus('Mega-Kombo! 5er Match!', '⚡');
+            return;
+        }
+        if (matchResult.largestMatch === 4) {
+            this.hud.setStatus('Starke Vierer-Kette!', '🔥');
+            return;
+        }
+        this.hud.setStatus('Match gefunden!', '✨');
     }
 }
 

@@ -9,6 +9,8 @@ class Hud {
         this.moves = getRequiredElement('moves');
         this.scoreProgress = getRequiredElement('score-progress');
         this.scoreProgressFill = getRequiredElement('score-progress-fill');
+        this.statusText = getRequiredElement('status-text');
+        this.statusIcon = getRequiredElement('status-icon');
         this.goalsList = this.getGoalsListElement();
         this.swapModeSelect = this.getSwapModeElement();
         this.optionsToggle = this.getOptionsToggle();
@@ -24,6 +26,8 @@ class Hud {
     private moves: HTMLElement;
     private scoreProgress: HTMLElement;
     private scoreProgressFill: HTMLElement;
+    private statusText: HTMLElement;
+    private statusIcon: HTMLElement;
     private goalsList: HTMLUListElement;
     private swapModeSelect: HTMLSelectElement;
     private optionsToggle: HTMLButtonElement;
@@ -85,6 +89,11 @@ class Hud {
 
     setAudioEnabled(enabled: boolean): void {
         this.setAudioToggleState(enabled);
+    }
+
+    setStatus(text: string, icon: string): void {
+        this.statusText.textContent = text;
+        this.statusIcon.textContent = icon;
     }
 
     private getSwapModeElement(): HTMLSelectElement {
