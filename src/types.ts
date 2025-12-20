@@ -1,5 +1,7 @@
 import { BoosterType, ColorKey } from './constants.js';
 
+type Difficulty = 'easy' | 'normal' | 'hard' | 'expert' | 'nightmare';
+
 type SwapMode = 'free-swap' | 'require-match';
 
 type SwipeDirection = 'up' | 'down' | 'left' | 'right';
@@ -32,7 +34,7 @@ type LevelDefinition = {
     moves: number;
     targetScore: number;
     goals: LevelGoal[];
-    difficulty: number;
+    difficulty: Difficulty;
     missingCells?: number[];
     hardCandies?: number[];
 };
@@ -44,7 +46,7 @@ type GameState = {
     targetScore: number;
     movesLeft: number;
     goals: GoalProgress[];
-    difficulty: number;
+    difficulty: Difficulty;
     comboMultiplier: number;
 };
 
@@ -58,5 +60,6 @@ export {
     ActivateBoosterGoal,
     GoalProgress,
     LevelDefinition,
-    LevelGoal
+    LevelGoal,
+    Difficulty
 };

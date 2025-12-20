@@ -1,5 +1,5 @@
 import { GRID_SIZE, BOOSTERS, ColorKey, getColorHex } from './constants.js';
-import { ActivateBoosterGoal, DestroyColorGoal, LevelDefinition, LevelGoal } from './types.js';
+import { ActivateBoosterGoal, DestroyColorGoal, Difficulty, LevelDefinition, LevelGoal } from './types.js';
 
 const indexAt = (row: number, col: number): number => row * GRID_SIZE + col;
 
@@ -14,7 +14,10 @@ const MID_HARD_CROSS = [indexAt(2, 3), indexAt(2, 4), indexAt(5, 3), indexAt(5, 
 const EDGE_HARD_GUARDS = [indexAt(1, 1), indexAt(1, 6), indexAt(6, 1), indexAt(6, 6)];
 const FINAL_HARD_RING = [indexAt(2, 2), indexAt(2, 5), indexAt(5, 2), indexAt(5, 5), indexAt(3, 3), indexAt(4, 4)];
 
-const LEVELS: LevelDefinition[] = [
+type LevelDifficultyValue = Difficulty | number;
+type LevelDefinitionInput = Omit<LevelDefinition, 'difficulty'> & { difficulty: LevelDifficultyValue };
+
+const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 1,
         moves: 20,
@@ -118,7 +121,8 @@ const LEVELS: LevelDefinition[] = [
             { type: 'destroy-color', color: 'purple', target: 22 },
             { type: 'activate-booster', booster: BOOSTERS.LINE, target: 3 },
             { type: 'activate-booster', booster: BOOSTERS.BURST_LARGE, target: 1 }
-        ]
+        ],
+        hardCandies: INNER_HARD_SHELL
     },
     {
         id: 11,
@@ -129,7 +133,8 @@ const LEVELS: LevelDefinition[] = [
             { type: 'destroy-color', color: 'red', target: 24 },
             { type: 'activate-booster', booster: BOOSTERS.BURST_SMALL, target: 3 },
             { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 2 }
-        ]
+        ],
+        hardCandies: MID_HARD_CROSS
     },
     {
         id: 12,
@@ -140,7 +145,8 @@ const LEVELS: LevelDefinition[] = [
             { type: 'destroy-color', color: 'amber', target: 24 },
             { type: 'destroy-color', color: 'green', target: 20 },
             { type: 'activate-booster', booster: BOOSTERS.LINE, target: 3 }
-        ]
+        ],
+        missingCells: CORNER_GAPS
     },
     {
         id: 13,
@@ -151,7 +157,8 @@ const LEVELS: LevelDefinition[] = [
             { type: 'destroy-color', color: 'blue', target: 24 },
             { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 3 },
             { type: 'activate-booster', booster: BOOSTERS.BURST_SMALL, target: 3 }
-        ]
+        ],
+        hardCandies: EDGE_HARD_GUARDS
     },
     {
         id: 14,
@@ -162,7 +169,8 @@ const LEVELS: LevelDefinition[] = [
             { type: 'destroy-color', color: 'purple', target: 26 },
             { type: 'destroy-color', color: 'red', target: 22 },
             { type: 'activate-booster', booster: BOOSTERS.LINE, target: 3 }
-        ]
+        ],
+        missingCells: CENTER_GAPS
     },
     {
         id: 15,
@@ -173,7 +181,8 @@ const LEVELS: LevelDefinition[] = [
             { type: 'destroy-color', color: 'green', target: 26 },
             { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 3 },
             { type: 'activate-booster', booster: BOOSTERS.BURST_LARGE, target: 1 }
-        ]
+        ],
+        hardCandies: INNER_HARD_SHELL
     },
     {
         id: 16,
@@ -185,7 +194,8 @@ const LEVELS: LevelDefinition[] = [
             { type: 'destroy-color', color: 'blue', target: 24 },
             { type: 'activate-booster', booster: BOOSTERS.LINE, target: 3 },
             { type: 'activate-booster', booster: BOOSTERS.BURST_SMALL, target: 4 }
-        ]
+        ],
+        missingCells: DIAGONAL_GAPS
     },
     {
         id: 17,
@@ -196,7 +206,8 @@ const LEVELS: LevelDefinition[] = [
             { type: 'destroy-color', color: 'purple', target: 28 },
             { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 3 },
             { type: 'activate-booster', booster: BOOSTERS.LINE, target: 3 }
-        ]
+        ],
+        hardCandies: MID_HARD_CROSS
     },
     {
         id: 18,
@@ -207,7 +218,8 @@ const LEVELS: LevelDefinition[] = [
             { type: 'destroy-color', color: 'red', target: 28 },
             { type: 'destroy-color', color: 'green', target: 24 },
             { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 3 }
-        ]
+        ],
+        missingCells: EDGE_GAPS
     },
     {
         id: 19,
@@ -218,7 +230,8 @@ const LEVELS: LevelDefinition[] = [
             { type: 'destroy-color', color: 'amber', target: 30 },
             { type: 'activate-booster', booster: BOOSTERS.LINE, target: 3 },
             { type: 'activate-booster', booster: BOOSTERS.BURST_LARGE, target: 1 }
-        ]
+        ],
+        hardCandies: EDGE_HARD_GUARDS
     },
     {
         id: 20,
@@ -230,7 +243,9 @@ const LEVELS: LevelDefinition[] = [
             { type: 'destroy-color', color: 'purple', target: 28 },
             { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 4 },
             { type: 'activate-booster', booster: BOOSTERS.BURST_LARGE, target: 1 }
-        ]
+        ],
+        missingCells: STAIR_GAPS,
+        hardCandies: INNER_HARD_SHELL
     },
     {
         id: 21,
@@ -622,6 +637,40 @@ const LEVELS: LevelDefinition[] = [
         hardCandies: [...FINAL_HARD_RING, ...EDGE_HARD_GUARDS]
     }
 ];
+
+const LEVELS: LevelDefinition[] = RAW_LEVELS.map((definition, index) =>
+    normalizeLevelDefinition(definition, index + 1)
+);
+
+function normalizeLevelDefinition(definition: LevelDefinitionInput, id: number): LevelDefinition {
+    return {
+        ...definition,
+        id,
+        difficulty: normalizeDifficulty(definition.difficulty),
+        ...(definition.missingCells ? { missingCells: [...definition.missingCells] } : {}),
+        ...(definition.hardCandies ? { hardCandies: [...definition.hardCandies] } : {})
+    };
+}
+
+function normalizeDifficulty(value: LevelDifficultyValue): Difficulty {
+    if (typeof value === 'string') {
+        return value;
+    }
+    // Preserve the original numeric progression by mapping ranges to named buckets.
+    if (value <= 10) {
+        return 'easy';
+    }
+    if (value <= 22) {
+        return 'normal';
+    }
+    if (value <= 35) {
+        return 'hard';
+    }
+    if (value <= 50) {
+        return 'expert';
+    }
+    return 'nightmare';
+}
 
 function getLevelDefinition(levelNumber: number): LevelDefinition {
     const clamped = Math.min(Math.max(1, levelNumber), LEVELS.length);
