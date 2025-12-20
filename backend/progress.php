@@ -52,6 +52,36 @@ function ensureSchema(PDO $database): void
             updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         )'
     );
+
+    $columns = fetchExistingColumns($database);
+
+    if (!isset($columns['data'])) {
+        $database->exec('ALTER TABLE user_progress ADD COLUMN data TEXT NOT NULL DEFAULT "{}"');
+        $database->exec('UPDATE user_progress SET data = "{}" WHERE data IS NULL');
+    }
+
+    if (!isset($columns['updated_at'])) {
+        $database->exec(
+            'ALTER TABLE user_progress ADD COLUMN updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP'
+        );
+        $database->exec(
+            'UPDATE user_progress SET updated_at = CURRENT_TIMESTAMP WHERE updated_at IS NULL'
+        );
+    }
+}
+
+function fetchExistingColumns(PDO $database): array
+{
+    $statement = $database->query('PRAGMA table_info(user_progress)');
+    $columns = [];
+
+    foreach ($statement->fetchAll() as $column) {
+        if (isset($column['name'])) {
+            $columns[(string) $column['name']] = true;
+        }
+    }
+
+    return $columns;
 }
 
 function handleGet(PDO $database): void
