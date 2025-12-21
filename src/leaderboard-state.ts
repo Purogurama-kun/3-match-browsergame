@@ -1,24 +1,19 @@
 import { BoosterType } from './constants.js';
 import { BoardConfig, GameModeState, ModeContext } from './game-mode-state.js';
-import { GameMode, GameState } from './types.js';
+import {
+    GameMode,
+    GameState,
+    LeaderboardEntry,
+    LeaderboardIdentity,
+    LeaderboardMode,
+    LeaderboardScope
+} from './types.js';
 import { getRequiredElement } from './dom.js';
-
-type LeaderboardMode = Extract<GameMode, 'level' | 'blocker'>;
-type LeaderboardScope = 'global' | 'personal';
-
-type LeaderboardEntry = {
-    player: string;
-    completedOn: string;
-    country?: string;
-    level?: number;
-    score?: number;
-};
+import { LeaderboardStore } from './leaderboard-store.js';
 
 type LeaderboardStateOptions = {
     onExit: () => void;
-    currentPlayer: string;
-    highestLevel: number;
-    blockerHighScore: number;
+    identity?: LeaderboardIdentity | null;
 };
 
 class LeaderboardState implements GameModeState {
@@ -33,6 +28,11 @@ class LeaderboardState implements GameModeState {
     private currentScope: LeaderboardScope = 'global';
     private dataset: Record<LeaderboardMode, Record<LeaderboardScope, LeaderboardEntry[]>>;
     private onExit: () => void;
+    private store: LeaderboardStore;
+    private identity: LeaderboardIdentity | null;
+    private isLoading = false;
+    private error: string | null = null;
+    private requestId = 0;
 
     constructor(options: LeaderboardStateOptions) {
         this.root = getRequiredElement('leaderboard');
@@ -47,11 +47,12 @@ class LeaderboardState implements GameModeState {
             global: this.getButton('leaderboard-scope-global'),
             personal: this.getButton('leaderboard-scope-personal')
         };
-        this.dataset = this.buildDataset(
-            options.currentPlayer,
-            options.highestLevel,
-            options.blockerHighScore
-        );
+        this.dataset = {
+            level: { global: [], personal: [] },
+            blocker: { global: [], personal: [] }
+        };
+        this.store = new LeaderboardStore();
+        this.identity = options.identity ?? null;
         this.onExit = options.onExit;
         this.attachHandlers();
     }
@@ -59,7 +60,7 @@ class LeaderboardState implements GameModeState {
     enter(_context: ModeContext): GameState {
         this.root.removeAttribute('hidden');
         this.syncActiveButtons();
-        this.render();
+        this.loadCurrent();
         this.backButton.focus();
         return {
             mode: 'leaderboard',
@@ -116,43 +117,97 @@ class LeaderboardState implements GameModeState {
     }
 
     update(options: LeaderboardStateOptions): void {
-        this.dataset = this.buildDataset(
-            options.currentPlayer,
-            options.highestLevel,
-            options.blockerHighScore
-        );
         this.onExit = options.onExit;
-        this.render();
+        this.identity = options.identity ?? null;
+        this.loadCurrent();
     }
 
     private attachHandlers(): void {
         this.modeButtons.level.addEventListener('click', () => {
             this.currentMode = 'level';
             this.syncActiveButtons();
-            this.render();
+            this.loadCurrent();
         });
         this.modeButtons.blocker.addEventListener('click', () => {
             this.currentMode = 'blocker';
             this.syncActiveButtons();
-            this.render();
+            this.loadCurrent();
         });
         this.scopeButtons.global.addEventListener('click', () => {
             this.currentScope = 'global';
             this.syncActiveButtons();
-            this.render();
+            this.loadCurrent();
         });
         this.scopeButtons.personal.addEventListener('click', () => {
             this.currentScope = 'personal';
             this.syncActiveButtons();
-            this.render();
+            this.loadCurrent();
         });
         this.backButton.addEventListener('click', () => this.onExit());
     }
 
+    private loadCurrent(): void {
+        if (this.currentScope === 'personal' && !this.identity) {
+            this.error = 'Bitte anmelden, um persönliche Ergebnisse zu sehen.';
+            this.isLoading = false;
+            this.dataset[this.currentMode][this.currentScope] = [];
+            this.render();
+            return;
+        }
+        void this.fetchEntries(this.currentMode, this.currentScope);
+    }
+
+    private async fetchEntries(mode: LeaderboardMode, scope: LeaderboardScope): Promise<void> {
+        const requestId = ++this.requestId;
+        this.error = null;
+        this.isLoading = true;
+        this.render();
+        try {
+            const entries = await this.store.load(mode, scope, this.identity);
+            const sorted = this.sortEntries(entries, mode);
+            if (requestId !== this.requestId) return;
+            this.dataset[mode][scope] = sorted;
+        } catch (error) {
+            console.error('Failed to load leaderboard', error);
+            if (requestId !== this.requestId) return;
+            this.error = 'Bestenliste konnte nicht geladen werden.';
+            this.dataset[mode][scope] = [];
+        } finally {
+            if (requestId !== this.requestId) return;
+            this.isLoading = false;
+            this.render();
+        }
+    }
+
+    private sortEntries(entries: LeaderboardEntry[], mode: LeaderboardMode): LeaderboardEntry[] {
+        const sorted = [...entries];
+        sorted.sort((a, b) => this.compareEntries(a, b, mode));
+        return sorted;
+    }
+
+    private compareEntries(a: LeaderboardEntry, b: LeaderboardEntry, mode: LeaderboardMode): number {
+        if (mode === 'level') {
+            const levelDiff = (b.level ?? 0) - (a.level ?? 0);
+            if (levelDiff !== 0) return levelDiff;
+        }
+        const scoreDiff = (b.score ?? 0) - (a.score ?? 0);
+        if (scoreDiff !== 0) return scoreDiff;
+        const timeDiff = new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime();
+        return timeDiff;
+    }
+
     private render(): void {
         this.list.innerHTML = '';
-        const entries = this.getEntries(this.currentMode, this.currentScope);
+        const entries = this.dataset[this.currentMode][this.currentScope];
         this.updateSubtitle(entries.length);
+        if (this.isLoading) {
+            this.renderMessage('Bestenliste wird geladen...');
+            return;
+        }
+        if (this.error) {
+            this.renderMessage(this.error);
+            return;
+        }
         if (entries.length === 0) {
             this.renderEmptyState();
             return;
@@ -169,7 +224,7 @@ class LeaderboardState implements GameModeState {
             user.className = 'leaderboard__user';
             const name = document.createElement('div');
             name.className = 'leaderboard__name';
-            name.textContent = entry.player;
+            name.textContent = entry.playerName;
             const meta = document.createElement('div');
             meta.className = 'leaderboard__meta';
             meta.textContent = this.buildMeta(entry);
@@ -195,9 +250,13 @@ class LeaderboardState implements GameModeState {
     }
 
     private renderEmptyState(): void {
+        this.renderMessage('Keine Einträge vorhanden.');
+    }
+
+    private renderMessage(message: string): void {
         const item = document.createElement('li');
         item.className = 'leaderboard__empty';
-        item.textContent = 'Keine Einträge vorhanden.';
+        item.textContent = message;
         this.list.appendChild(item);
     }
 
@@ -207,92 +266,6 @@ class LeaderboardState implements GameModeState {
         this.subtitle.textContent = scopeLabel + ' · ' + modeLabel + ' · ' + count + ' Einträge';
     }
 
-    private getEntries(mode: LeaderboardMode, scope: LeaderboardScope): LeaderboardEntry[] {
-        const entries = this.dataset[mode][scope];
-        const sorted = [...entries];
-        sorted.sort((a, b) => this.compareEntries(a, b, mode));
-        return sorted;
-    }
-
-    private compareEntries(a: LeaderboardEntry, b: LeaderboardEntry, mode: LeaderboardMode): number {
-        if (mode === 'level') {
-            const levelDiff = (b.level ?? 0) - (a.level ?? 0);
-            if (levelDiff !== 0) return levelDiff;
-        }
-        const scoreDiff = (b.score ?? 0) - (a.score ?? 0);
-        if (scoreDiff !== 0) return scoreDiff;
-        const timeDiff =
-            new Date(b.completedOn).getTime() - new Date(a.completedOn).getTime();
-        return timeDiff;
-    }
-
-    private buildDataset(
-        currentPlayer: string,
-        highestLevel: number,
-        blockerHighScore: number
-    ): Record<LeaderboardMode, Record<LeaderboardScope, LeaderboardEntry[]>> {
-        const today = this.getCurrentDate();
-        const personalLevelScore = Math.max(5000, highestLevel * 900);
-        const personalBlockerScore = Math.max(2000, blockerHighScore);
-
-        const personalLevelEntries: LeaderboardEntry[] = [
-            {
-                player: currentPlayer,
-                country: 'DE',
-                completedOn: today,
-                level: Math.max(1, highestLevel),
-                score: personalLevelScore
-            },
-            {
-                player: 'Co-Op Partner',
-                country: 'SE',
-                completedOn: today,
-                level: Math.max(1, highestLevel - 1),
-                score: personalLevelScore - 450
-            }
-        ];
-
-        const personalBlockerEntries: LeaderboardEntry[] = [
-            {
-                player: currentPlayer,
-                country: 'DE',
-                completedOn: today,
-                score: personalBlockerScore
-            },
-            {
-                player: 'Gastlauf',
-                country: 'FR',
-                completedOn: today,
-                score: Math.max(1500, Math.floor(personalBlockerScore * 0.8))
-            }
-        ];
-
-        const globalLevelEntries: LeaderboardEntry[] = [
-            { player: 'Mara', country: 'DE', completedOn: '2024-06-12', level: 42, score: 71200 },
-            { player: 'Amir', country: 'AE', completedOn: '2024-06-10', level: 41, score: 64500 },
-            { player: 'Lena', country: 'AT', completedOn: '2024-06-08', level: 39, score: 60450 },
-            { player: 'Davi', country: 'BR', completedOn: '2024-06-07', level: 37, score: 59800 }
-        ];
-
-        const globalBlockerEntries: LeaderboardEntry[] = [
-            { player: 'Jia', country: 'CN', completedOn: '2024-06-11', score: 8450 },
-            { player: 'Sara', country: 'GB', completedOn: '2024-06-10', score: 8120 },
-            { player: 'Noor', country: 'NL', completedOn: '2024-06-09', score: 7850 },
-            { player: 'Chris', country: 'US', completedOn: '2024-06-06', score: 7420 }
-        ];
-
-        return {
-            level: {
-                global: globalLevelEntries,
-                personal: personalLevelEntries
-            },
-            blocker: {
-                global: globalBlockerEntries,
-                personal: personalBlockerEntries
-            }
-        };
-    }
-
     private getMetricLabel(mode: LeaderboardMode): string {
         return mode === 'level' ? 'Erreichtes Level' : 'Blocker-Score';
     }
@@ -300,16 +273,15 @@ class LeaderboardState implements GameModeState {
     private formatMetricValue(entry: LeaderboardEntry, mode: LeaderboardMode): string {
         if (mode === 'level') {
             const level = entry.level ?? 0;
-            const score = entry.score ?? 0;
-            return 'Level ' + level + ' · ' + score + ' Punkte';
+            return 'Level ' + level;
         }
         return (entry.score ?? 0) + ' Punkte';
     }
 
     private buildMeta(entry: LeaderboardEntry): string {
-        const date = this.formatDate(entry.completedOn);
-        if (entry.country) {
-            return date + ' · ' + entry.country;
+        const date = this.formatDate(entry.completedAt);
+        if (entry.nationality) {
+            return date + ' · ' + entry.nationality;
         }
         return date;
     }
@@ -318,11 +290,6 @@ class LeaderboardState implements GameModeState {
         const parsed = new Date(dateString);
         if (Number.isNaN(parsed.getTime())) return dateString;
         return parsed.toLocaleDateString('de-DE', { dateStyle: 'medium' });
-    }
-
-    private getCurrentDate(): string {
-        const [datePart] = new Date().toISOString().split('T');
-        return datePart ?? new Date().toISOString();
     }
 
     private syncActiveButtons(): void {
