@@ -113,9 +113,13 @@ class GameApp {
         try {
             const stored = await this.progressStore.load(userId, localProgress);
             if (!this.isCurrentUser(userId)) return;
-            this.progress = this.mergeProgress(localProgress, stored);
-            this.googleAuth.setProgress(this.progress);
+            const mergedProgress = this.mergeProgress(localProgress, stored);
+            this.progress = mergedProgress;
+            this.googleAuth.setProgress(mergedProgress);
             this.googleAuth.clearError();
+            if (this.shouldPersistMergedProgress(stored, mergedProgress)) {
+                void this.persistProgress(userId, mergedProgress);
+            }
         } catch (error) {
             console.error('Failed to load progress', error);
             if (this.isCurrentUser(userId)) {
@@ -204,6 +208,13 @@ class GameApp {
             highestLevel: Math.max(current.highestLevel, incoming.highestLevel),
             endlessHighScore: Math.max(current.endlessHighScore, incoming.endlessHighScore)
         };
+    }
+
+    private shouldPersistMergedProgress(stored: StoredProgress, merged: StoredProgress): boolean {
+        return (
+            merged.highestLevel > stored.highestLevel ||
+            merged.endlessHighScore > stored.endlessHighScore
+        );
     }
 }
 
