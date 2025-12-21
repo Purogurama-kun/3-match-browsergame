@@ -1106,10 +1106,17 @@ class Match3Game {
             .map((pos) => this.indexAt(pos.row, pos.col));
     }
 
+    private isSwappable(index: number): boolean {
+        if (this.board.isBlockedIndex(index)) return false;
+        const cell = this.board.getCell(index);
+        if (this.board.isHardCandy(cell)) return false;
+        return Boolean(this.board.getCellColor(cell));
+    }
+
     private hasAnyValidMove(): boolean {
         const colors = this.getMatchableColorSnapshot();
         for (let i = 0; i < colors.length; i++) {
-            if (this.board.isBlockedIndex(i)) continue;
+            if (!this.isSwappable(i)) continue;
             const { row, col } = this.getRowCol(i);
             const neighbors = [
                 { row, col: col + 1 },
@@ -1118,7 +1125,7 @@ class Match3Game {
             for (const neighbor of neighbors) {
                 if (neighbor.row >= GRID_SIZE || neighbor.col >= GRID_SIZE) continue;
                 const neighborIndex = this.indexAt(neighbor.row, neighbor.col);
-                if (this.board.isBlockedIndex(neighborIndex)) continue;
+                if (!this.isSwappable(neighborIndex)) continue;
                 if (this.swapCreatesMatch(i, neighborIndex, colors)) return true;
             }
         }
