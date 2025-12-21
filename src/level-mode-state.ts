@@ -3,32 +3,16 @@ import { BoardConfig, GameModeState, ModeContext } from './game-mode-state.js';
 import { LevelDefinition, GameState, LevelGoal, GoalProgress } from './types.js';
 import { describeGoal, getLevelDefinition } from './levels.js';
 
-/**
- * Represents the standard level progression mode.
- *
- * @class
- */
 class LevelModeState implements GameModeState {
     readonly id = 'level';
     private levelNumber: number;
     private levelDefinition: LevelDefinition;
 
-    /**
-     * Creates a new level mode state for the given level number.
-     *
-     * @param {number} levelNumber - The level that should be loaded when entering the state.
-     */
     constructor(levelNumber: number) {
         this.levelNumber = Math.max(1, levelNumber);
         this.levelDefinition = getLevelDefinition(this.levelNumber);
     }
 
-    /**
-     * Initializes the level state and returns the base game state snapshot.
-     *
-     * @param {ModeContext} _context - Shared systems available to the state.
-     * @returns {GameState} Fresh game state for the selected level.
-     */
     enter(_context: ModeContext): GameState {
         this.levelDefinition = getLevelDefinition(this.levelNumber);
         return {
@@ -45,62 +29,28 @@ class LevelModeState implements GameModeState {
         };
     }
 
-    /**
-     * Cleans up state resources before leaving the mode.
-     *
-     * @param {ModeContext} _context - Shared systems available to the state.
-     */
     exit(_context: ModeContext): void {
         // Nothing to clean up yet.
     }
 
-    /**
-     * Indicates whether a move is allowed to start.
-     *
-     * @param {GameState} state - Current game state.
-     * @returns {boolean} True when at least one move remains.
-     */
     canStartMove(state: GameState): boolean {
         return state.movesLeft > 0;
     }
 
-    /**
-     * Consumes a move when the player acts.
-     *
-     * @param {GameState} state - Current game state.
-     */
     consumeMove(state: GameState): void {
         if (state.movesLeft > 0) {
             state.movesLeft--;
         }
     }
 
-    /**
-     * Responds after a move has finished resolving.
-     *
-     * @param {GameState} state - Current game state.
-     * @param {ModeContext} context - Shared systems available to the state.
-     */
     handleMoveResolved(state: GameState, context: ModeContext): void {
         this.checkForCompletion(state, context);
     }
 
-    /**
-     * Reacts when the board has no more cascading actions.
-     *
-     * @param {GameState} state - Current game state.
-     * @param {ModeContext} context - Shared systems available to the state.
-     */
     handleBoardSettled(state: GameState, context: ModeContext): void {
         this.checkForCompletion(state, context);
     }
 
-    /**
-     * Checks for win or loss conditions.
-     *
-     * @param {GameState} state - Current game state.
-     * @param {ModeContext} context - Shared systems available to the state.
-     */
     checkForCompletion(state: GameState, context: ModeContext): void {
         if (this.isLevelComplete(state)) {
             context.finishLevel('win', state.level);
@@ -111,13 +61,6 @@ class LevelModeState implements GameModeState {
         }
     }
 
-    /**
-     * Updates goal progress when a color block is destroyed.
-     *
-     * @param {GameState} state - Current game state.
-     * @param {string} color - Hex color value of the destroyed block.
-     * @param {ModeContext} _context - Shared systems available to the state.
-     */
     handleColorCleared(state: GameState, color: string, _context: ModeContext): void {
         const colorKey = getColorKeyFromHex(color);
         if (!colorKey) return;
@@ -129,13 +72,6 @@ class LevelModeState implements GameModeState {
         });
     }
 
-    /**
-     * Updates goal progress when a booster is activated.
-     *
-     * @param {GameState} state - Current game state.
-     * @param {BoosterType} booster - Booster used by the player.
-     * @param {ModeContext} _context - Shared systems available to the state.
-     */
     handleBoosterUsed(state: GameState, booster: BoosterType, _context: ModeContext): void {
         if (booster === 'none') return;
         state.goals = state.goals.map((goal) => {
@@ -146,11 +82,6 @@ class LevelModeState implements GameModeState {
         });
     }
 
-    /**
-     * Provides board configuration for the level.
-     *
-     * @returns {BoardConfig} Board setup options such as blocked or hard cells.
-     */
     getBoardConfig(): BoardConfig {
         const config: BoardConfig = {};
         if (this.levelDefinition.missingCells) config.blockedCells = this.levelDefinition.missingCells;
@@ -158,14 +89,8 @@ class LevelModeState implements GameModeState {
         return config;
     }
 
-    /**
-     * Hard candy never spawns dynamically in level mode.
-     *
-     * @param {GameState} _state - Current game state.
-     * @returns {boolean} Always false for level mode.
-     */
     shouldSpawnHardCandy(_state: GameState): boolean {
-        return false;
+        return false; // Hard candy never spawns dynamically in level mode.
     }
 
     private createGoals(levelGoals: LevelGoal[]): GoalProgress[] {

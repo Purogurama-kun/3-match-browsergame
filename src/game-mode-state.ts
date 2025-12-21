@@ -6,11 +6,7 @@ import { GameMode, GameState } from './types.js';
 
 type BoardConfig = { blockedCells?: number[]; hardCandies?: number[] };
 
-/**
- * Defines the services a game mode needs to interact with shared systems.
- *
- * @interface
- */
+/** Defines the services a game mode needs to interact with shared systems. */
 interface ModeContext {
     getHud(): Hud;
     getBoard(): Board;
@@ -26,11 +22,7 @@ interface ModeContext {
     isModalVisible(): boolean;
 }
 
-/**
- * Represents a concrete game mode handled by the state machine.
- *
- * @interface
- */
+/** Represents a concrete game mode handled by the state machine. */
 interface GameModeState {
     readonly id: GameMode;
     enter(context: ModeContext): GameState;
