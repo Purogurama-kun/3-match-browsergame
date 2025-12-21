@@ -56,6 +56,7 @@ type LevelDefinition = {
     difficulty: Difficulty;
     missingCells?: number[];
     hardCandies?: number[];
+    blockerGenerators?: number[];
 };
 
 type GameState = {

@@ -95,6 +95,22 @@
     filter: saturate(1.05);
 }
 
+.board__cell--generator {
+    background:
+        linear-gradient(140deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.6)),
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.08) 0 8px, rgba(0, 0, 0, 0.2) 8px 16px),
+        var(--cell-color, #1f2937);
+    color: #e2e8f0;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.board__cell--generator-hit {
+    animation: generator-hit 0.35s ease;
+    box-shadow:
+        0 0 0.875rem 0.25rem rgba(226, 232, 240, 0.35),
+        inset 0 0 0 2px rgba(148, 163, 184, 0.5);
+}
+
 .board__cell--bomb-line {
     box-shadow: 0 0 0.9375rem 0.25rem rgba(255, 235, 59, 0.35), inset 0 0 0 1px rgba(255, 235, 59, 0.6);
 }
@@ -139,6 +155,12 @@
 @keyframes explode {
     0% { transform: scale(1); opacity: 1; }
     100% { transform: scale(1.8); opacity: 0; }
+}
+
+@keyframes generator-hit {
+    0% { transform: scale(1); filter: brightness(1); }
+    45% { transform: scale(0.95); filter: brightness(1.2); }
+    100% { transform: scale(1); filter: brightness(1); }
 }
 
 @keyframes shake {

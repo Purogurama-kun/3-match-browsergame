@@ -16,6 +16,7 @@ class Board {
         this.touchStartCell = null;
         this.swipeThreshold = 18;
         this.blockedIndices = new Set();
+        this.blockerGeneratorColor = '#1f2937';
     }
 
     private gameEl: HTMLElement;
@@ -27,10 +28,12 @@ class Board {
     private touchStartCell: HTMLDivElement | null;
     private swipeThreshold: number;
     private blockedIndices: Set<number>;
+    private blockerGeneratorColor: string;
 
-    create(config?: { blockedCells?: number[]; hardCandies?: number[] }): void {
+    create(config?: { blockedCells?: number[]; hardCandies?: number[]; blockerGenerators?: number[] }): void {
         this.blockedIndices = new Set(config?.blockedCells ?? []);
         const hardCandies = new Set(config?.hardCandies ?? []);
+        const blockerGenerators = new Set(config?.blockerGenerators ?? []);
         this.cells = [];
         this.gameEl.innerHTML = '';
         for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
@@ -40,6 +43,7 @@ class Board {
             cell.dataset.booster = BOOSTERS.NONE;
             cell.dataset.blocked = this.blockedIndices.has(i) ? 'true' : 'false';
             cell.dataset.hard = 'false';
+            cell.dataset.generator = 'false';
             if (this.isBlockedCell(cell)) {
                 cell.classList.add('board__cell--void');
                 this.gameEl.appendChild(cell);
@@ -47,7 +51,11 @@ class Board {
                 continue;
             }
             this.applyColor(cell, this.pickColorForIndex(i));
-            this.setHardCandy(cell, hardCandies.has(i));
+            const isGenerator = blockerGenerators.has(i);
+            if (isGenerator) {
+                this.setBlockerGenerator(cell, true);
+            }
+            this.setHardCandy(cell, isGenerator || hardCandies.has(i));
             cell.dataset.booster = BOOSTERS.NONE;
             cell.addEventListener('click', () => this.onCellClick(cell));
             cell.addEventListener('touchstart', (event) => this.handleTouchStart(event, cell), { passive: false });
@@ -93,6 +101,19 @@ class Board {
         return cell.dataset.hard === 'true';
     }
 
+    isBlockerGenerator(cell: HTMLDivElement): boolean {
+        return cell.dataset.generator === 'true';
+    }
+
+    getBlockerGeneratorIndices(): number[] {
+        const indices: number[] = [];
+        for (const cell of this.cells) {
+            if (!this.isBlockerGenerator(cell)) continue;
+            indices.push(Number(cell.dataset.index));
+        }
+        return indices;
+    }
+
     setCellColor(cell: HTMLDivElement, color: string): void {
         this.applyColor(cell, color);
     }
@@ -107,12 +128,35 @@ class Board {
         cell.classList.toggle('board__cell--hard', isHard);
     }
 
+    setBlockerGenerator(cell: HTMLDivElement, isGenerator: boolean, isHard: boolean = true): void {
+        cell.dataset.generator = isGenerator ? 'true' : 'false';
+        cell.classList.toggle('board__cell--generator', isGenerator);
+        cell.classList.remove('board__cell--generator-hit');
+        if (isGenerator) {
+            if (!this.getCellColor(cell)) {
+                this.setCellColor(cell, this.blockerGeneratorColor);
+            }
+            this.setBooster(cell, BOOSTERS.NONE);
+            this.setHardCandy(cell, isHard);
+            cell.textContent = '⛓️';
+        } else {
+            cell.textContent = '';
+        }
+    }
+
+    markBlockerGeneratorHit(cell: HTMLDivElement): void {
+        if (!this.isBlockerGenerator(cell)) return;
+        cell.classList.add('board__cell--generator-hit');
+        cell.addEventListener('animationend', () => cell.classList.remove('board__cell--generator-hit'), { once: true });
+    }
+
     softenCandy(cell: HTMLDivElement): void {
         this.setHardCandy(cell, false);
     }
 
     clearCell(cell: HTMLDivElement): void {
         cell.classList.remove('board__cell--explode');
+        this.setBlockerGenerator(cell, false, false);
         this.setCellColor(cell, '');
         this.setBooster(cell, BOOSTERS.NONE);
         cell.textContent = '';
@@ -155,8 +199,13 @@ class Board {
         this.setCellColor(a, this.getCellColor(b));
         this.setCellColor(b, colorA);
         const isHardA = this.isHardCandy(a);
-        this.setHardCandy(a, this.isHardCandy(b));
+        const isHardB = this.isHardCandy(b);
+        this.setHardCandy(a, isHardB);
         this.setHardCandy(b, isHardA);
+        const isGeneratorA = this.isBlockerGenerator(a);
+        const isGeneratorB = this.isBlockerGenerator(b);
+        this.setBlockerGenerator(a, isGeneratorB, isHardB);
+        this.setBlockerGenerator(b, isGeneratorA, isHardA);
         [a.dataset.booster, b.dataset.booster] = [b.dataset.booster, a.dataset.booster];
         this.updateBoosterVisual(a);
         this.updateBoosterVisual(b);
@@ -250,6 +299,7 @@ class Board {
         const cell = this.cells[index];
         if (!cell) return null;
         if (this.isBlockedCell(cell)) return null;
+        if (this.isBlockerGenerator(cell)) return null;
         return this.getCellColor(cell);
     }
 

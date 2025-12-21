@@ -1,4 +1,4 @@
-import { BoosterType } from './constants.js';
+import { BoosterType, GRID_SIZE } from './constants.js';
 import { BoardConfig, GameModeState, ModeContext } from './game-mode-state.js';
 import { GameState } from './types.js';
 
@@ -84,7 +84,7 @@ class BlockerModeState implements GameModeState {
     }
 
     getBoardConfig(): BoardConfig {
-        return {};
+        return { blockerGenerators: this.getStartingGenerators() };
     }
 
     shouldSpawnHardCandy(_state: GameState): boolean {
@@ -124,6 +124,16 @@ class BlockerModeState implements GameModeState {
         this.updateBlockerTargetScore(state);
         context.notifyBlockerHighScore(this.personalBest);
         context.getHud().setStatus('Neuer Highscore!', '🏆');
+    }
+
+    private getStartingGenerators(): number[] {
+        const edgeSlots = [
+            { row: 0, col: 1 },
+            { row: 1, col: GRID_SIZE - 1 },
+            { row: GRID_SIZE - 1, col: GRID_SIZE - 2 },
+            { row: GRID_SIZE - 2, col: 0 }
+        ];
+        return edgeSlots.map((slot) => slot.row * GRID_SIZE + slot.col);
     }
 }
 
