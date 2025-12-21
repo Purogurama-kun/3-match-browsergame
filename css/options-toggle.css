@@ -1,0 +1,32 @@
+.options-toggle {
+    position: fixed;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 5px;
+    gap: 0.5rem;
+    border: none;
+    background: #0c0f1b;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.options-toggle:hover {
+    background: #13182b;
+}
+
+.options-toggle__icon {
+    display: grid;
+    gap: 0.22rem;
+}
+
+.options-toggle__line {
+    display: block;
+    width: 1.6rem;
+    height: 0.16rem;
+    background: #fff;
+    border-radius: 999px;
+}

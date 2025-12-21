@@ -91,7 +91,7 @@ class Match3Game {
             }
         });
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && this.modalEl.classList.contains('game__modal--visible')) {
+            if (event.key === 'Escape' && this.modalEl.classList.contains('modal--visible')) {
                 this.hideResultModal();
             }
         });
@@ -148,12 +148,12 @@ class Match3Game {
         this.clearPendingTimers();
         this.board.clear();
         this.resetMoveTracking();
-        this.moveEvaluationEl.classList.remove('game__move-evaluation--visible');
+        this.moveEvaluationEl.classList.remove('move-evaluation--visible');
         if (this.moveEvaluationTimer !== null) {
             clearTimeout(this.moveEvaluationTimer);
             this.moveEvaluationTimer = null;
         }
-        this.modalEl.classList.remove('game__modal--visible');
+        this.modalEl.classList.remove('modal--visible');
         this.modalCallback = null;
         this.hud.resetStatus();
     }
@@ -175,8 +175,8 @@ class Match3Game {
     }
 
     private screenShake(): void {
-        this.gameEl.classList.add('game__board--shake');
-        setTimeout(() => this.gameEl.classList.remove('game__board--shake'), 350);
+        this.gameEl.classList.add('board--shake');
+        setTimeout(() => this.gameEl.classList.remove('board--shake'), 350);
     }
 
     private updateHud(): void {
@@ -307,26 +307,26 @@ class Match3Game {
 
         if (!this.state.selected) {
             this.state.selected = cell;
-            cell.classList.add('game__cell--selected');
+            cell.classList.add('board__cell--selected');
             return;
         }
 
         if (cell === this.state.selected) {
-            this.state.selected.classList.remove('game__cell--selected');
+            this.state.selected.classList.remove('board__cell--selected');
             this.state.selected = null;
             return;
         }
 
         if (!this.areAdjacent(this.state.selected, cell)) {
             this.showInvalidMove(this.state.selected);
-            this.state.selected.classList.remove('game__cell--selected');
+            this.state.selected.classList.remove('board__cell--selected');
             this.state.selected = cell;
-            cell.classList.add('game__cell--selected');
+            cell.classList.add('board__cell--selected');
             return;
         }
 
         const firstSelected = this.state.selected;
-        this.state.selected.classList.remove('game__cell--selected');
+        this.state.selected.classList.remove('board__cell--selected');
         this.state.selected = null;
         this.trySwap(firstSelected, cell);
     }
@@ -338,7 +338,7 @@ class Match3Game {
         const neighbor = this.getNeighbor(cell, direction);
         if (!neighbor) return;
         if (this.state.selected) {
-            this.state.selected.classList.remove('game__cell--selected');
+            this.state.selected.classList.remove('board__cell--selected');
             this.state.selected = null;
         }
         this.trySwap(cell, neighbor);
@@ -436,8 +436,8 @@ class Match3Game {
         }
         const booster = this.board.getCellBooster(cell);
         const color = this.board.getCellColor(cell);
-        if ((!color && booster === BOOSTERS.NONE) || cell.classList.contains('game__cell--explode')) return;
-        cell.classList.add('game__cell--explode');
+        if ((!color && booster === BOOSTERS.NONE) || cell.classList.contains('board__cell--explode')) return;
+        cell.classList.add('board__cell--explode');
         this.defer(() => {
             this.board.clearCell(cell);
             this.awardScore(this.baseCellPoints);
@@ -667,8 +667,8 @@ class Match3Game {
     }
 
     private showInvalidMove(cell: HTMLDivElement): void {
-        cell.classList.add('game__cell--shake');
-        this.defer(() => cell.classList.remove('game__cell--shake'), 350);
+        cell.classList.add('board__cell--shake');
+        this.defer(() => cell.classList.remove('board__cell--shake'), 350);
     }
 
     private showResultModal(
@@ -689,13 +689,13 @@ class Match3Game {
             this.modalTitle.textContent = 'Level verloren!';
             this.modalText.textContent = 'Versuche es direkt noch einmal.';
         }
-        this.modalEl.classList.add('game__modal--visible');
+        this.modalEl.classList.add('modal--visible');
         this.modalButton.focus();
     }
 
     private hideResultModal(): void {
-        if (!this.modalEl.classList.contains('game__modal--visible')) return;
-        this.modalEl.classList.remove('game__modal--visible');
+        if (!this.modalEl.classList.contains('modal--visible')) return;
+        this.modalEl.classList.remove('modal--visible');
         const callback = this.modalCallback;
         this.modalCallback = null;
         if (callback) callback();
@@ -808,7 +808,7 @@ class Match3Game {
 
     private handleEndlessBoardSettled(): void {
         if (this.state.mode !== 'endless') return;
-        if (this.modalEl.classList.contains('game__modal--visible')) return;
+        if (this.modalEl.classList.contains('modal--visible')) return;
         if (this.hasAnyValidMove()) return;
         this.endEndlessRun();
     }
@@ -829,7 +829,7 @@ class Match3Game {
         this.modalText.textContent =
             'Punkte: ' + finalScore + '. Bester Lauf: ' + bestScore + '. Gleich noch einmal?';
         this.modalButton.textContent = 'Neu starten';
-        this.modalEl.classList.add('game__modal--visible');
+        this.modalEl.classList.add('modal--visible');
         this.modalButton.focus();
     }
 
@@ -879,12 +879,12 @@ class Match3Game {
             this.moveEvaluationTimer = null;
         }
         this.moveEvaluationEl.textContent = message;
-        this.moveEvaluationEl.classList.add('game__move-evaluation--visible');
+        this.moveEvaluationEl.classList.add('move-evaluation--visible');
         if (this.sounds.isEnabled()) {
             this.speech(message);
         }
         this.moveEvaluationTimer = window.setTimeout(() => {
-            this.moveEvaluationEl.classList.remove('game__move-evaluation--visible');
+            this.moveEvaluationEl.classList.remove('move-evaluation--visible');
             this.moveEvaluationTimer = null;
         }, 2000);
     }
