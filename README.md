@@ -25,8 +25,11 @@ Small Match-3 browser game with boosters, goals, and sound feedback, written in 
 This project uses ES modules and TypeScript, so you need to build it and run a local web server.
 
 ```bash
+npm init -y
+npm install --save-dev typescript
+npm install --save-dev jsdoc
 tsc -w
-php -S 0.0.0.0:5500 -t .
+php -c backend/php.ini -S 0.0.0.0:5500 -t .
 ```
 
 Then open `http://localhost:5500` in your browser.
@@ -39,6 +42,14 @@ Use `http://127.0.0.1:5500/backend/phpinfo.php` to see the php.ini location.
 
 - php.ini must have: extension=pdo_sqlite, extension=sqlite3.
 - `sudo apt-get install php-sqlite3`
+
+## Technical details
+
+The project uses the following concepts:
+- BEM in CSS
+- JSDoc for javascript commenting
+- npm
+- typescript
 
 ## Login & Fortschritt
 

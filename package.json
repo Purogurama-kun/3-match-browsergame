@@ -1,0 +1,28 @@
+{
+  "name": "3-match-browsergame",
+  "version": "1.0.0",
+  "description": "Small Match-3 browser game with boosters, goals, and sound feedback, written in TypeScript.",
+  "main": "index.js",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "docs": "jsdoc -c jsdoc.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Purogurama-kun/3-match-browsergame.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Purogurama-kun/3-match-browsergame/issues"
+  },
+  "homepage": "https://github.com/Purogurama-kun/3-match-browsergame#readme",
+  "devDependencies": {
+    "jsdoc": "^4.0.5",
+    "typescript": "^5.9.3"
+  }
+}

@@ -25,6 +25,11 @@ Guidelines for AI agents working in this repository.
 
 - Keep `tsconfig.json` strict; do not loosen types.
 - Run `tsc` before serving.
+- npm is used only for dependency management and scripts
+- TypeScript compiler (`tsc`) is the source of truth for builds
+- No runtime JavaScript is committed to the repository
+- Do not remove npm usage
+- Prefer `npm run <script>` over direct tool invocation
 - Use a local web server (ES modules required).
 - Update `README.md` and use english when structure or run instructions change.
 
