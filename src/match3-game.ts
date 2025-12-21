@@ -695,11 +695,12 @@ class Match3Game implements ModeContext {
 
     private hardenCellsFromGenerator(generatorIndex: number): void {
         const { row, col } = this.getRowCol(generatorIndex);
-        const targets = this.collectIndicesWithinRadius(row, col, this.generatorSpreadRadius)
+        const target = this.collectIndicesWithinRadius(row, col, this.generatorSpreadRadius)
             .map((index) => ({ index, distance: this.getManhattanDistance(row, col, index) }))
             .filter((entry) => this.isValidGeneratorTarget(entry.index))
-            .sort((a, b) => (a.distance === b.distance ? a.index - b.index : a.distance - b.distance));
-        targets.forEach((target) => this.hardenCell(target.index));
+            .sort((a, b) => (a.distance === b.distance ? a.index - b.index : a.distance - b.distance))[0];
+        if (!target) return;
+        this.hardenCell(target.index);
     }
 
     private collectIndicesWithinRadius(row: number, col: number, radius: number): number[] {
