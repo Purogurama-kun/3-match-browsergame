@@ -39,6 +39,8 @@ body {
 }
 
 .game__main-menu-card {
+    display: grid;
+    gap: 0.75rem;
     background: linear-gradient(145deg, #0f1327, #1d2142);
     border: 1px solid #2f3654;
     border-radius: 16px;
@@ -46,8 +48,12 @@ body {
     box-shadow:
         0 12px 30px rgba(0, 0, 0, 0.5),
         inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    display: grid;
-    gap: 0.75rem;
+}
+
+@media (max-width: 780px) {
+    .game__main-menu-card {
+        padding: 0.8rem;
+    }
 }
 
 .game__main-menu-lead {
