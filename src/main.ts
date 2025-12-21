@@ -3,6 +3,7 @@ import { getRequiredElement } from './dom.js';
 import { GoogleAuth, GoogleUser } from './google-auth.js';
 import { ProgressStore, StoredProgress } from './progress-store.js';
 import { LocalProgressStore } from './local-progress-store.js';
+import type { LeaderboardIdentity, LeaderboardMode } from './types.js';
 
 class GameApp {
     constructor() {
@@ -69,9 +70,7 @@ class GameApp {
         this.body.classList.add('match-app--leaderboard');
         this.leaderboard.removeAttribute('hidden');
         this.game.showLeaderboard({
-            currentPlayer: this.currentUser?.name ?? 'Gast',
-            highestLevel: this.progress.highestLevel,
-            blockerHighScore: this.progress.blockerHighScore,
+            identity: this.getIdentity(),
             onExit: () => this.returnToMenu()
         });
     }
@@ -99,6 +98,14 @@ class GameApp {
     private hideLeaderboard(): void {
         this.body.classList.remove('match-app--leaderboard');
         this.leaderboard.setAttribute('hidden', 'true');
+    }
+
+    private getIdentity(): LeaderboardIdentity | null {
+        if (!this.currentUser) return null;
+        return {
+            id: this.currentUser.id,
+            name: this.currentUser.name
+        };
     }
 
     private loadLocalProgress(): void {
@@ -151,7 +158,7 @@ class GameApp {
             this.googleAuth.setProgress(mergedProgress);
             this.googleAuth.clearError();
             if (this.shouldPersistMergedProgress(stored, mergedProgress)) {
-                void this.persistProgress(userId, mergedProgress);
+                void this.persistProgress(userId, mergedProgress, 'both');
             }
         } catch (error) {
             console.error('Failed to load progress', error);
@@ -179,7 +186,7 @@ class GameApp {
         this.updateStartButtonState();
         this.progress = this.localProgress.save(this.progress);
         if (!this.currentUser) return;
-        void this.persistProgress(this.currentUser.id, this.progress);
+        void this.persistProgress(this.currentUser.id, this.progress, 'level');
     }
 
     private saveBlockerHighScore(score: number): void {
@@ -191,12 +198,16 @@ class GameApp {
         this.googleAuth.setProgress(this.progress);
         this.progress = this.localProgress.save(this.progress);
         if (!this.currentUser) return;
-        void this.persistProgress(this.currentUser.id, this.progress);
+        void this.persistProgress(this.currentUser.id, this.progress, 'blocker');
     }
 
-    private async persistProgress(userId: string, progress: StoredProgress): Promise<void> {
+    private async persistProgress(
+        userId: string,
+        progress: StoredProgress,
+        mode: LeaderboardMode | 'both'
+    ): Promise<void> {
         try {
-            const stored = await this.progressStore.save(userId, progress);
+            const stored = await this.progressStore.save(userId, progress, mode, this.getIdentity());
             if (!this.isCurrentUser(userId)) return;
             this.progress = this.mergeProgress(this.progress, stored);
             this.googleAuth.setProgress(this.progress);

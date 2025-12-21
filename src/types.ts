@@ -8,6 +8,23 @@ type SwipeDirection = 'up' | 'down' | 'left' | 'right';
 
 type GameMode = 'level' | 'blocker' | 'leaderboard';
 
+type LeaderboardMode = Extract<GameMode, 'level' | 'blocker'>;
+type LeaderboardScope = 'global' | 'personal';
+
+type LeaderboardEntry = {
+    playerName: string;
+    completedAt: string;
+    nationality?: string | null;
+    level?: number;
+    score?: number;
+};
+
+type LeaderboardIdentity = {
+    id: string;
+    name: string;
+    nationality?: string | null;
+};
+
 type GoalType = 'destroy-color' | 'activate-booster';
 
 type ActivatableBoosterType = Exclude<BoosterType, 'none'>;
@@ -66,5 +83,9 @@ export {
     LevelDefinition,
     LevelGoal,
     Difficulty,
-    GameMode
+    GameMode,
+    LeaderboardMode,
+    LeaderboardScope,
+    LeaderboardEntry,
+    LeaderboardIdentity
 };

@@ -1,3 +1,5 @@
+import type { LeaderboardIdentity, LeaderboardMode } from './types.js';
+
 type ProgressData = {
     blockerHighScore: number;
 };
@@ -8,8 +10,19 @@ type StoredProgress = {
 };
 
 type ProgressResponse = {
-    highestLevel?: number;
-    data?: Partial<ProgressData>;
+    highestLevel?: unknown;
+    blockerHighScore?: unknown;
+    bestScore?: unknown;
+    data?: Partial<ProgressData> | null;
+};
+
+type HistoryResponse = {
+    entries?: unknown;
+};
+
+type HistoryRow = {
+    highestLevel?: unknown;
+    score?: unknown;
 };
 
 class ProgressStore {
@@ -19,57 +32,103 @@ class ProgressStore {
 
     async load(userId: string, localProgress?: StoredProgress): Promise<StoredProgress> {
         const normalizedUserId = this.requireUserId(userId);
-        const normalizedLocalLevel = this.normalizeLevel(localProgress?.highestLevel);
-        const url = this.endpoint + '?' + new URLSearchParams({
-            userId: normalizedUserId,
-            localLevel: String(normalizedLocalLevel)
-        }).toString();
+        const normalizedLocal = this.normalizeProgress(localProgress);
 
-        const response = await fetch(url, {
-            headers: {
-                Accept: 'application/json'
-            }
-        });
+        const [bestLevel, bestBlockerScore] = await Promise.all([
+            this.fetchBestFromHistory('level', normalizedUserId),
+            this.fetchBestFromHistory('blocker', normalizedUserId)
+        ]);
 
-        if (!response.ok) {
-            throw new Error('Failed to load progress: ' + response.status);
-        }
-
-        const payload = (await response.json()) as ProgressResponse;
-        return this.normalizeProgress(payload, localProgress);
+        return {
+            highestLevel: Math.max(normalizedLocal.highestLevel, bestLevel),
+            blockerHighScore: Math.max(normalizedLocal.blockerHighScore, bestBlockerScore)
+        };
     }
 
-    async save(userId: string, progress: StoredProgress): Promise<StoredProgress> {
+    async save(
+        userId: string,
+        progress: StoredProgress,
+        mode: LeaderboardMode | 'both' = 'both',
+        identity?: LeaderboardIdentity | null
+    ): Promise<StoredProgress> {
         const normalizedUserId = this.requireUserId(userId);
-        const normalized = this.normalizeProgress(
-            { highestLevel: progress.highestLevel, data: { blockerHighScore: progress.blockerHighScore } },
-            progress
-        );
+        const normalized = this.normalizeProgress(progress);
+        const payload = {
+            userId: normalizedUserId,
+            highestLevel: normalized.highestLevel,
+            score: normalized.blockerHighScore,
+            blockerHighScore: normalized.blockerHighScore,
+            data: { blockerHighScore: normalized.blockerHighScore },
+            completedAt: new Date().toISOString(),
+            ...(identity
+                ? {
+                      displayName: identity.name,
+                      nationality: identity.nationality ?? undefined
+                  }
+                : {}),
+            ...(mode !== 'both' ? { mode: this.mapMode(mode) } : {})
+        };
 
         const response = await fetch(this.endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                userId: normalizedUserId,
-                highestLevel: normalized.highestLevel,
-                data: { blockerHighScore: normalized.blockerHighScore }
-            })
+            body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
             throw new Error('Failed to save progress: ' + response.status);
         }
 
-        const payload = (await response.json()) as ProgressResponse;
-        return this.normalizeProgress(payload, normalized);
+        const serverPayload = (await response.json()) as ProgressResponse;
+        return this.normalizeProgress(serverPayload, normalized);
+    }
+
+    private async fetchBestFromHistory(mode: LeaderboardMode, userId: string): Promise<number> {
+        const response = await fetch(
+            this.endpoint +
+                '?' +
+                new URLSearchParams({
+                    action: 'history',
+                    mode: this.mapMode(mode),
+                    userId,
+                    limit: '1',
+                    offset: '0'
+                }).toString(),
+            {
+                headers: {
+                    Accept: 'application/json'
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error('Failed to load history: ' + response.status);
+        }
+
+        const payload = (await response.json()) as HistoryResponse;
+        const entries = Array.isArray(payload.entries) ? payload.entries : [];
+        const [best] = entries as HistoryRow[];
+
+        if (!best) {
+            return mode === 'level' ? 1 : 0;
+        }
+
+        return mode === 'level'
+            ? this.normalizeLevel(best.highestLevel)
+            : this.normalizeScore(best.score);
     }
 
     private normalizeProgress(payload?: ProgressResponse, fallback?: StoredProgress): StoredProgress {
-        const highestLevel = this.normalizeLevel(payload?.highestLevel ?? fallback?.highestLevel);
+        const highestLevel = this.normalizeLevel(
+            payload?.highestLevel ?? fallback?.highestLevel
+        );
         const blockerHighScore = this.normalizeScore(
-            payload?.data?.blockerHighScore ?? fallback?.blockerHighScore
+            payload?.blockerHighScore ??
+                payload?.bestScore ??
+                payload?.data?.blockerHighScore ??
+                fallback?.blockerHighScore
         );
         return { highestLevel, blockerHighScore };
     }
@@ -97,6 +156,10 @@ class ProgressStore {
         }
         const normalized = Math.floor(level);
         return Math.max(1, Math.min(normalized, this.maxLevel));
+    }
+
+    private mapMode(mode: LeaderboardMode): 'LevelMode' | 'BlockerMode' {
+        return mode === 'level' ? 'LevelMode' : 'BlockerMode';
     }
 }
 
