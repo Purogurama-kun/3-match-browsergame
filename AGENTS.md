@@ -44,6 +44,12 @@ Guidelines for AI agents working in this repository.
 - Reduce deep nesting via early returns or helpers.
 - Prefer behavior-preserving refactors unless told otherwise.
 
+## Git Ignore Policy
+
+- Generated files must not be tracked
+- `.gitignore` changes require removing files from the index
+- Do not re-add ignored files to the repository
+
 ## Comments
 
 - Comment *why*, not *what*.
