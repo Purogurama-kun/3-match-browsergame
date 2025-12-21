@@ -1,5 +1,5 @@
 import { BOOSTERS, getColorHex } from './constants.js';
-import { ActivatableBoosterType, Difficulty, GameState, GoalProgress, SwapMode } from './types.js';
+import { ActivatableBoosterType, Difficulty, GameMode, GameState, GoalProgress, SwapMode } from './types.js';
 import { getRequiredElement } from './dom.js';
 
 class Hud {
@@ -42,13 +42,16 @@ class Hud {
     private exitButton: HTMLButtonElement;
 
     render(state: GameState): void {
-        this.score.textContent = state.score + '/' + state.targetScore;
+        this.score.textContent =
+            state.mode === 'endless'
+                ? state.score + ' Punkte (Bestwert: ' + state.bestScore + ')'
+                : state.score + '/' + state.targetScore;
         this.level.textContent = String(state.level);
-        this.moves.textContent = String(state.movesLeft);
+        this.moves.textContent = state.mode === 'endless' ? '∞' : String(state.movesLeft);
         this.applyDifficultyStyle(state.difficulty);
 
-        this.updateProgress(state.score, state.targetScore);
-        this.renderGoals(state.goals);
+        this.updateProgress(state);
+        this.renderGoals(state.goals, state.mode);
     }
 
     getSwapMode(): SwapMode {
@@ -178,17 +181,28 @@ class Hud {
         return element;
     }
 
-    private updateProgress(score: number, target: number): void {
-        const clampedScore = Math.max(0, score);
-        const ratio = Math.min(1, clampedScore / Math.max(1, target));
+    private updateProgress(state: GameState): void {
+        const clampedScore = Math.max(0, state.score);
+        const target = state.mode === 'endless'
+            ? Math.max(1, Math.max(state.targetScore, state.bestScore, clampedScore))
+            : Math.max(1, state.targetScore);
+        const ratio = Math.min(1, clampedScore / target);
+        const ariaText =
+            state.mode === 'endless'
+                ? 'Punktestand ' + clampedScore + ' von ' + target + '. Bester Lauf: ' + state.bestScore
+                : 'Punktestand ' + clampedScore + ' von ' + target;
         this.scoreProgress.setAttribute('aria-valuenow', clampedScore.toString());
         this.scoreProgress.setAttribute('aria-valuemax', target.toString());
-        this.scoreProgress.setAttribute('aria-valuetext', 'Punktestand ' + clampedScore + ' von ' + target);
+        this.scoreProgress.setAttribute('aria-valuetext', ariaText);
         this.scoreProgressFill.style.width = (ratio * 100).toFixed(1) + '%';
     }
 
-    private renderGoals(goals: GoalProgress[]): void {
+    private renderGoals(goals: GoalProgress[], mode: GameMode): void {
         this.goalsList.innerHTML = '';
+        if (mode === 'endless') {
+            this.renderEndlessHint();
+            return;
+        }
         goals.forEach((goal) => {
             const item = document.createElement('li');
             item.className = 'game__goal';
@@ -255,6 +269,16 @@ class Hud {
         const label = this.formatDifficultyLabel(difficulty);
         this.difficultyLabel.textContent = label;
         this.levelCard.setAttribute('aria-label', 'Level ' + this.level.textContent + ' – ' + label);
+    }
+
+    private renderEndlessHint(): void {
+        const item = document.createElement('li');
+        item.className = 'game__goal game__goal--hint';
+        const label = document.createElement('span');
+        label.className = 'game__goal-label';
+        label.textContent = 'Halte so lange wie möglich durch. Harte Bonbons erscheinen im Verlauf.';
+        item.appendChild(label);
+        this.goalsList.appendChild(item);
     }
 
     private formatDifficultyLabel(difficulty: Difficulty): string {

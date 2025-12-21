@@ -6,6 +6,8 @@ type SwapMode = 'free-swap' | 'require-match';
 
 type SwipeDirection = 'up' | 'down' | 'left' | 'right';
 
+type GameMode = 'level' | 'endless';
+
 type GoalType = 'destroy-color' | 'activate-booster';
 
 type ActivatableBoosterType = Exclude<BoosterType, 'none'>;
@@ -40,8 +42,10 @@ type LevelDefinition = {
 };
 
 type GameState = {
+    mode: GameMode;
     selected: HTMLDivElement | null;
     score: number;
+    bestScore: number;
     level: number;
     targetScore: number;
     movesLeft: number;
@@ -61,5 +65,6 @@ export {
     GoalProgress,
     LevelDefinition,
     LevelGoal,
-    Difficulty
+    Difficulty,
+    GameMode
 };

@@ -22,15 +22,17 @@
             <div class="game__main-menu-lead">Willkommen zu</div>
             <h1 id="main-menu-title" class="game__main-menu-title">Explosive Candy</h1>
             <p class="game__main-menu-text">
-                Kombiniere farbige Süßigkeiten, löse Explosionen aus und knacke die Levelziele. Starte direkt in
-                den Level Modus oder passe dein Erlebnis über das Optionsmenü an.
+                Kombiniere farbige Süßigkeiten, löse Explosionen aus und knacke die Levelziele. Starte im
+                Level Modus oder sichere dir im Endlos Modus einen neuen Highscore, während das Spielfeld
+                immer härter wird.
             </p>
-            <div class="game__main-menu-auth">
-                <div class="game__auth-summary">
-                    <div class="game__auth-label">Google Login</div>
-                    <div id="auth-status" class="game__auth-status">Nicht angemeldet</div>
-                    <div id="auth-progress" class="game__auth-progress">Fortschritt: Level 1</div>
-                </div>
+                <div class="game__main-menu-auth">
+                    <div class="game__auth-summary">
+                        <div class="game__auth-label">Google Login</div>
+                        <div id="auth-status" class="game__auth-status">Nicht angemeldet</div>
+                        <div id="auth-progress" class="game__auth-progress">Fortschritt: Level 1</div>
+                        <div id="auth-progress-endless" class="game__auth-progress">Endlos-Highscore: 0</div>
+                    </div>
                 <div class="game__auth-actions">
                     <div id="google-login" class="game__auth-button">
                         <span class="game__auth-button-text">Mit Google anmelden</span>
@@ -41,7 +43,8 @@
             </div>
             <div class="game__main-menu-actions">
                 <button id="start-level" class="game__main-menu-button" type="button" disabled>Level Modus</button>
-                <p class="game__main-menu-note">Optionen über das Menü oben rechts öffnen</p>
+                <button id="start-endless" class="game__main-menu-button game__main-menu-button--secondary" type="button">Endlos Modus</button>
+                <p class="game__main-menu-note">Highscores werden wie dein Level-Fortschritt gespeichert. Optionen über das Menü oben rechts öffnen.</p>
             </div>
         </div>
     </div>

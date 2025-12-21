@@ -10,6 +10,7 @@ Small Match-3 browser game with boosters, goals, and sound feedback, written in 
 - 50 kuratierte Levels mit steigenden Zielen, Boss-ähnlichen Herausforderungen alle zehn Stufen und Layouts mit fehlenden Zellen.
 - Levels mit begrenzten Zügen, Zielpunkten und pro-Level-Zielen (Farben zerstören oder Booster aktivieren).
 - Harte Bonbons, die erst durch angrenzende Matches oder Bombenexplosionen weich werden und danach matchbar sind.
+- Endlos-Modus mit zunehmender Härte, Highscore-Speicherung und automatischer Niederlage, sobald keine gültigen Züge mehr existieren.
 - Free-swap or require-match swap modes, plus swipe and click controls.
 - Combo multiplier scoring with HUD feedback.
 - Sound effects, optional audio toggle, and screen shake on impactful actions.
@@ -43,8 +44,8 @@ Use `http://127.0.0.1:5500/backend/phpinfo.php` to see the php.ini location.
 
 - Im Hauptmenü kannst du dich per Google Login anmelden (Client-ID ist bereits hinterlegt) – du kannst aber auch als Gast direkt den Level Modus starten.
 - Nach erfolgreicher Anmeldung wird dein Name im Menü angezeigt.
-- Der höchste freigeschaltete Level wird serverseitig in einer SQLite-Datenbank gespeichert. Beim Login wird der Fortschritt anhand deiner Google-User-ID geladen, sodass er geräteunabhängig verfügbar ist.
-- Fortschritt ohne Login wird lokal gespeichert (localStorage). Meldest du dich später an, wird der lokale Fortschritt mit deinem Konto synchronisiert.
+- Der höchste freigeschaltete Level und dein Endlos-Highscore werden serverseitig in einer SQLite-Datenbank gespeichert. Beim Login wird der Fortschritt anhand deiner Google-User-ID geladen, sodass er geräteunabhängig verfügbar ist.
+- Fortschritt ohne Login wird lokal gespeichert (localStorage). Meldest du dich später an, wird der lokale Fortschritt inklusive Highscore mit deinem Konto synchronisiert.
 
 ## Project structure
 

@@ -796,6 +796,12 @@ body {
     position: relative;
 }
 
+.game__goal--hint {
+    grid-template-columns: 1fr;
+    color: #cfd5ff;
+    border-style: dashed;
+}
+
 .game__goal-chip {
     display: inline-flex;
     align-items: center;
@@ -836,6 +842,16 @@ body {
     margin: -1px;
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+.game__goal--hint .game__goal-label {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    clip: auto;
+    padding: 0;
     border: 0;
 }
 
