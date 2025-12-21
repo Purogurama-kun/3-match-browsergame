@@ -102,10 +102,11 @@ function handleGet(PDO $database): void
     $highestLevel = isset($progress['highest_level'])
         ? clampLevel($progress['highest_level'])
         : $localLevel;
+    $data = normalizeData(decodeData($progress['data'] ?? '{}'));
 
     respond(200, [
         'highestLevel' => $highestLevel,
-        'data' => decodeData($progress['data'] ?? '{}')
+        'data' => $data
     ]);
 }
 
@@ -119,13 +120,15 @@ function handlePost(PDO $database): void
     $progress = fetchProgress($database, $userId);
     $currentLevel = isset($progress['highest_level']) ? (int) $progress['highest_level'] : 1;
     $highestLevel = max($currentLevel, $submittedLevel);
-    $encodedData = json_encode($data, JSON_THROW_ON_ERROR);
+    $existingData = decodeData($progress['data'] ?? '{}');
+    $normalizedData = normalizeData($data, $existingData);
+    $encodedData = json_encode($normalizedData, JSON_THROW_ON_ERROR);
 
     saveProgress($database, $userId, $highestLevel, $encodedData);
 
     respond(200, [
         'highestLevel' => $highestLevel,
-        'data' => $data
+        'data' => $normalizedData
     ]);
 }
 
@@ -160,7 +163,8 @@ function saveProgress(PDO $database, string $userId, int $highestLevel, string $
 
 function registerProgress(PDO $database, string $userId, int $localLevel): void
 {
-    saveProgress($database, $userId, $localLevel, '{}');
+    $data = json_encode(normalizeData([]), JSON_THROW_ON_ERROR);
+    saveProgress($database, $userId, $localLevel, $data);
 }
 
 function requireUserId(?string $rawUserId): string
@@ -226,4 +230,25 @@ function respond(int $status, array $payload): void
     http_response_code($status);
     echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
+}
+
+function normalizeData(array $data, array $existing = []): array
+{
+    $currentScore = clampScore($existing['endlessHighScore'] ?? 0);
+    $submittedScore = clampScore($data['endlessHighScore'] ?? 0);
+    $endlessHighScore = max($currentScore, $submittedScore);
+
+    return [
+        'endlessHighScore' => $endlessHighScore
+    ];
+}
+
+function clampScore(mixed $score): int
+{
+    if (!is_numeric($score)) {
+        return 0;
+    }
+
+    $normalized = (int) floor((float) $score);
+    return max(0, min(1000000000, $normalized));
 }
