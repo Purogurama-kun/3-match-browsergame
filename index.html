@@ -4,122 +4,130 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1"> <!-- important for mobile devices to get the scaling right! -->
     <title>Match-3 Browsergame mit Sounds</title>
-    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/match-app.css" />
+    <link rel="stylesheet" href="css/options-toggle.css" />
+    <link rel="stylesheet" href="css/main-menu.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+    <link rel="stylesheet" href="css/hud.css" />
+    <link rel="stylesheet" href="css/board.css" />
+    <link rel="stylesheet" href="css/move-evaluation.css" />
+    <link rel="stylesheet" href="css/modal.css" />
+    <link rel="stylesheet" href="css/options-modal.css" />
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script type="module" src="dist/main.js"></script>
 </head>
-<body class="game game--menu">
-    <button id="options-toggle" class="game__menu-button" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="options-modal">
-        <span class="game__menu-icon" aria-hidden="true">
-            <span class="game__menu-line"></span>
-            <span class="game__menu-line"></span>
-            <span class="game__menu-line"></span>
+<body class="match-app match-app--menu">
+    <button id="options-toggle" class="options-toggle" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="options-modal">
+        <span class="options-toggle__icon" aria-hidden="true">
+            <span class="options-toggle__line"></span>
+            <span class="options-toggle__line"></span>
+            <span class="options-toggle__line"></span>
         </span>
     </button>
 
-    <div id="main-menu" class="game__main-menu" role="dialog" aria-labelledby="main-menu-title">
-        <div class="game__main-menu-card">
-            <div class="game__main-menu-lead">Willkommen zu</div>
-            <h1 id="main-menu-title" class="game__main-menu-title">Explosive Candy</h1>
-            <p class="game__main-menu-text">
+    <div id="main-menu" class="main-menu" role="dialog" aria-labelledby="main-menu-title">
+        <div class="main-menu__card">
+            <div class="main-menu__lead">Willkommen zu</div>
+            <h1 id="main-menu-title" class="main-menu__title">Explosive Candy</h1>
+            <p class="main-menu__text">
                 Kombiniere farbige Süßigkeiten, löse Explosionen aus und knacke die Levelziele. Starte im
                 Level Modus oder sichere dir im Endlos Modus einen neuen Highscore, während das Spielfeld
                 immer härter wird.
             </p>
-                <div class="game__main-menu-auth">
-                    <div class="game__auth-summary">
-                        <div class="game__auth-label">Google Login</div>
-                        <div id="auth-status" class="game__auth-status">Nicht angemeldet</div>
-                        <div id="auth-progress" class="game__auth-progress">Fortschritt: Level 1</div>
-                        <div id="auth-progress-endless" class="game__auth-progress">Endlos-Highscore: 0</div>
+            <div class="auth">
+                <div class="auth__summary">
+                    <div class="auth__label">Google Login</div>
+                    <div id="auth-status" class="auth__status">Nicht angemeldet</div>
+                    <div id="auth-progress" class="auth__progress">Fortschritt: Level 1</div>
+                    <div id="auth-progress-endless" class="auth__progress">Endlos-Highscore: 0</div>
+                </div>
+                <div class="auth__actions">
+                    <div id="google-login" class="auth__button">
+                        <span class="auth__button-text">Mit Google anmelden</span>
                     </div>
-                <div class="game__auth-actions">
-                    <div id="google-login" class="game__auth-button">
-                        <span class="game__auth-button-text">Mit Google anmelden</span>
-                    </div>
-                    <p class="game__auth-hint">Vor Spielstart bitte anmelden, damit der Fortschritt deinem Konto zugeordnet wird.</p>
-                    <p id="auth-error" class="game__auth-error" hidden></p>
+                    <p class="auth__hint">Vor Spielstart bitte anmelden, damit der Fortschritt deinem Konto zugeordnet wird.</p>
+                    <p id="auth-error" class="auth__error" hidden></p>
                 </div>
             </div>
-            <div class="game__main-menu-actions">
-                <button id="start-level" class="game__main-menu-button" type="button" disabled>Level Modus</button>
-                <button id="start-endless" class="game__main-menu-button game__main-menu-button--secondary" type="button">Endlos Modus</button>
-                <p class="game__main-menu-note">Highscores werden wie dein Level-Fortschritt gespeichert. Optionen über das Menü oben rechts öffnen.</p>
+            <div class="main-menu__actions">
+                <button id="start-level" class="main-menu__button" type="button" disabled>Level Modus</button>
+                <button id="start-endless" class="main-menu__button main-menu__button--secondary" type="button">Endlos Modus</button>
+                <p class="main-menu__note">Highscores werden wie dein Level-Fortschritt gespeichert. Optionen über das Menü oben rechts öffnen.</p>
             </div>
         </div>
     </div>
-    <div id="hud" class="game__hud">
-        <div class="game__hud-row">
-            <div id="level-card" class="game__hud-card game__hud-card--stat game__hud-card--level">
-                <div class="game__hud-label">Lvl</div>
-                <div id="level" class="game__hud-value">1</div>
-                <div id="difficulty" class="game__hud-difficulty" style="display: none">Easy</div>
+    <div id="hud" class="hud">
+        <div class="hud__row">
+            <div id="level-card" class="hud__card hud__card--stat hud__card--level">
+                <div class="hud__label">Lvl</div>
+                <div id="level" class="hud__value">1</div>
+                <div id="difficulty" class="hud__difficulty" style="display: none">Easy</div>
             </div>
 
-            <div class="game__hud-card game__hud-card--stat">
-                <div class="game__hud-label">Züge</div>
-                <div id="moves" class="game__hud-value">20</div>
+            <div class="hud__card hud__card--stat">
+                <div class="hud__label">Züge</div>
+                <div id="moves" class="hud__value">20</div>
             </div>
 
-            <div class="game__status-bar" aria-live="polite">
-                <div id="status-icon" class="game__status-icon" aria-hidden="true">✨</div>
-                <div id="status-text" class="game__status-text">Bereit für Kombos!</div>
+            <div class="hud__status-bar" aria-live="polite">
+                <div id="status-icon" class="hud__status-icon" aria-hidden="true">✨</div>
+                <div id="status-text" class="hud__status-text">Bereit für Kombos!</div>
             </div>
         </div>
 
-        <div class="game__hud-card game__hud-card--goals">
-            <div class="game__hud-label">Ziele</div>
+        <div class="hud__card hud__card--goals">
+            <div class="hud__label">Ziele</div>
 
-            <div class="game__hud-progress">
-                <div id="score-progress" class="game__hud-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0">
-                    <div id="score-progress-fill" class="game__hud-progress-fill"></div>
+            <div class="hud__progress">
+                <div id="score-progress" class="hud__progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0">
+                    <div id="score-progress-fill" class="hud__progress-fill"></div>
                 </div>
-                <span class="game__hud-text">
-                    <span id="score" class="game__hud-value-strong">0/300</span>
+                <span class="hud__text">
+                    <span id="score" class="hud__value-strong">0/300</span>
                 </span>
             </div>
 
-            <ul id="goals-list" class="game__goals-list"></ul>
+            <ul id="goals-list" class="hud__goals-list"></ul>
         </div>
     </div>
-    <div id="game" class="game__board"></div>
+    <div id="game" class="board"></div>
 
-    <div id="move-evaluation" class="game__move-evaluation" role="status" aria-live="polite"></div>
+    <div id="move-evaluation" class="move-evaluation" role="status" aria-live="polite"></div>
 
-    <div id="result-modal" class="game__modal">
-        <div class="game__modal-dialog" role="dialog" aria-labelledby="result-title" aria-describedby="result-text">
-            <div class="game__modal-content">
-                <h2 id="result-title" class="game__modal-title"></h2>
-                <p id="result-text" class="game__modal-text"></p>
-                <button id="result-button" class="game__modal-button" type="button">Weiter</button>
+    <div id="result-modal" class="modal">
+        <div class="modal__dialog" role="dialog" aria-labelledby="result-title" aria-describedby="result-text">
+            <div class="modal__content">
+                <h2 id="result-title" class="modal__title"></h2>
+                <p id="result-text" class="modal__text"></p>
+                <button id="result-button" class="modal__button" type="button">Weiter</button>
             </div>
         </div>
     </div>
 
-    <div id="options-modal" class="game__options-modal" hidden>
-        <div class="game__options-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="options-modal-title">
-            <div class="game__options-modal-header">
-                <h2 id="options-modal-title" class="game__options-modal-title">Optionen</h2>
-                <button id="options-close" class="game__options-close" type="button" aria-label="Menü schließen">
-                    <span class="game__options-close-icon" aria-hidden="true">×</span>
+    <div id="options-modal" class="options-modal" hidden>
+        <div class="options-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="options-modal-title">
+            <div class="options-modal__header">
+                <h2 id="options-modal-title" class="options-modal__title">Optionen</h2>
+                <button id="options-close" class="options-modal__close" type="button" aria-label="Menü schließen">
+                    <span class="options-modal__close-icon" aria-hidden="true">×</span>
                 </button>
             </div>
-            <div class="game__options-modal-body">
-                <div class="game__options-group">
-                    <label class="game__options-label" for="swap-mode">Tausch-Regel</label>
-                    <select id="swap-mode" class="game__hud-select">
+            <div class="options-modal__body">
+                <div class="options-modal__group">
+                    <label class="options-modal__label" for="swap-mode">Tausch-Regel</label>
+                    <select id="swap-mode" class="options-modal__select">
                         <option value="require-match" selected>Nur mit Match</option>
                         <option value="free-swap">Jeder Tausch</option>
                     </select>
                 </div>
-                <div class="game__options-group">
-                    <span class="game__options-label">Audio</span>
-                    <button id="audio-toggle" class="game__options-action" type="button" aria-pressed="true">
+                <div class="options-modal__group">
+                    <span class="options-modal__label">Audio</span>
+                    <button id="audio-toggle" class="options-modal__action" type="button" aria-pressed="true">
                         Audio an
                     </button>
                 </div>
-                <div class="game__options-group">
-                    <button id="exit-game" class="game__options-action game__options-action--danger" type="button">
+                <div class="options-modal__group">
+                    <button id="exit-game" class="options-modal__action options-modal__action--danger" type="button">
                         Spiel beenden
                     </button>
                 </div>

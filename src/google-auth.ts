@@ -177,12 +177,12 @@ class GoogleAuth {
     }
 
     private disableLogin(): void {
-        this.loginContainer.classList.add('game__auth-button--disabled');
+        this.loginContainer.classList.add('auth__button--disabled');
         this.loginContainer.setAttribute('aria-disabled', 'true');
     }
 
     private enableLogin(): void {
-        this.loginContainer.classList.remove('game__auth-button--disabled');
+        this.loginContainer.classList.remove('auth__button--disabled');
         this.loginContainer.removeAttribute('aria-disabled');
     }
 

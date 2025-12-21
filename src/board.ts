@@ -35,13 +35,13 @@ class Board {
         this.gameEl.innerHTML = '';
         for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
             const cell = document.createElement('div');
-            cell.className = 'game__cell';
+            cell.className = 'board__cell';
             cell.dataset.index = String(i);
             cell.dataset.booster = BOOSTERS.NONE;
             cell.dataset.blocked = this.blockedIndices.has(i) ? 'true' : 'false';
             cell.dataset.hard = 'false';
             if (this.isBlockedCell(cell)) {
-                cell.classList.add('game__cell--void');
+                cell.classList.add('board__cell--void');
                 this.gameEl.appendChild(cell);
                 this.cells.push(cell);
                 continue;
@@ -104,7 +104,7 @@ class Board {
 
     setHardCandy(cell: HTMLDivElement, isHard: boolean): void {
         cell.dataset.hard = isHard ? 'true' : 'false';
-        cell.classList.toggle('game__cell--hard', isHard);
+        cell.classList.toggle('board__cell--hard', isHard);
     }
 
     softenCandy(cell: HTMLDivElement): void {
@@ -112,7 +112,7 @@ class Board {
     }
 
     clearCell(cell: HTMLDivElement): void {
-        cell.classList.remove('game__cell--explode');
+        cell.classList.remove('board__cell--explode');
         this.setCellColor(cell, '');
         this.setBooster(cell, BOOSTERS.NONE);
         cell.textContent = '';
@@ -122,29 +122,29 @@ class Board {
 
     updateBoosterVisual(cell: HTMLDivElement): void {
         cell.classList.remove(
-            'game__cell--bomb-line',
-            'game__cell--bomb-radius',
-            'game__cell--bomb-small',
-            'game__cell--bomb-medium',
-            'game__cell--bomb-large',
-            'game__cell--bomb-ultimate'
+            'board__cell--bomb-line',
+            'board__cell--bomb-radius',
+            'board__cell--bomb-small',
+            'board__cell--bomb-medium',
+            'board__cell--bomb-large',
+            'board__cell--bomb-ultimate'
         );
         cell.style.color = '#0b0f1d';
         cell.textContent = '';
         if (cell.dataset.booster === BOOSTERS.LINE) {
-            cell.classList.add('game__cell--bomb-line');
+            cell.classList.add('board__cell--bomb-line');
             cell.textContent = '💣';
         }
         if (cell.dataset.booster === BOOSTERS.BURST_SMALL) {
-            cell.classList.add('game__cell--bomb-small');
+            cell.classList.add('board__cell--bomb-small');
             cell.textContent = '🧨';
         }
         if (cell.dataset.booster === BOOSTERS.BURST_MEDIUM) {
-            cell.classList.add('game__cell--bomb-medium');
+            cell.classList.add('board__cell--bomb-medium');
             cell.textContent = '💥';
         }
         if (cell.dataset.booster === BOOSTERS.BURST_LARGE) {
-            cell.classList.add('game__cell--bomb-large', 'game__cell--bomb-ultimate');
+            cell.classList.add('board__cell--bomb-large', 'board__cell--bomb-ultimate');
             cell.style.color = '#f8fafc';
             cell.textContent = '☢️';
         }
@@ -272,13 +272,13 @@ class Board {
             const { row, col } = this.getRowCol(index);
             const delay = row * 70 + col * 12;
             longestDelay = Math.max(longestDelay, delay);
-            cell.classList.remove('game__cell--spawn');
+            cell.classList.remove('board__cell--spawn');
             cell.style.animationDelay = delay + 'ms';
-            cell.classList.add('game__cell--spawn');
+            cell.classList.add('board__cell--spawn');
             cell.addEventListener(
                 'animationend',
                 () => {
-                    cell.classList.remove('game__cell--spawn');
+                    cell.classList.remove('board__cell--spawn');
                     cell.style.removeProperty('animation-delay');
                 },
                 { once: true }

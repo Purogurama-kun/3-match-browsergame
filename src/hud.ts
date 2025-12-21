@@ -205,16 +205,16 @@ class Hud {
         }
         goals.forEach((goal) => {
             const item = document.createElement('li');
-            item.className = 'game__goal';
+            item.className = 'hud__goal';
             const remaining = Math.max(goal.target - goal.current, 0);
 
             const visual = this.createGoalVisual(goal);
             const counter = document.createElement('span');
-            counter.className = 'game__goal-count';
+            counter.className = 'hud__goal-count';
             counter.textContent = String(remaining);
 
             const label = document.createElement('span');
-            label.className = 'game__goal-label';
+            label.className = 'hud__goal-label';
             label.textContent = goal.description;
 
             item.setAttribute('aria-label', goal.description + ' verbleibend: ' + remaining);
@@ -249,13 +249,13 @@ class Hud {
     private createGoalVisual(goal: GoalProgress): HTMLElement {
         if (goal.type === 'destroy-color') {
             const chip = document.createElement('span');
-            chip.className = 'game__goal-chip game__goal-chip--color';
+            chip.className = 'hud__goal-chip hud__goal-chip--color';
             chip.style.setProperty('--goal-color', getColorHex(goal.color));
             chip.setAttribute('aria-hidden', 'true');
             return chip;
         }
         const chip = document.createElement('span');
-        chip.className = 'game__goal-chip game__goal-chip--booster';
+        chip.className = 'hud__goal-chip hud__goal-chip--booster';
         chip.textContent = this.getBoosterIcon(goal.booster);
         chip.setAttribute('aria-hidden', 'true');
         return chip;
@@ -264,7 +264,7 @@ class Hud {
     private applyDifficultyStyle(difficulty: Difficulty): void {
         const levels: Difficulty[] = ['easy', 'normal', 'hard', 'expert', 'nightmare'];
         levels.forEach((levelName) => {
-            this.levelCard.classList.toggle('game__hud-card--difficulty-' + levelName, levelName === difficulty);
+            this.levelCard.classList.toggle('hud__card--difficulty-' + levelName, levelName === difficulty);
         });
         const label = this.formatDifficultyLabel(difficulty);
         this.difficultyLabel.textContent = label;
@@ -273,9 +273,9 @@ class Hud {
 
     private renderEndlessHint(): void {
         const item = document.createElement('li');
-        item.className = 'game__goal game__goal--hint';
+        item.className = 'hud__goal hud__goal--hint';
         const label = document.createElement('span');
-        label.className = 'game__goal-label';
+        label.className = 'hud__goal-label';
         label.textContent = 'Halte so lange wie möglich durch. Harte Bonbons erscheinen im Verlauf.';
         item.appendChild(label);
         this.goalsList.appendChild(item);

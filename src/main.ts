@@ -65,14 +65,14 @@ class GameApp {
     }
 
     private showMainMenu(): void {
-        this.body.classList.add('game--menu');
+        this.body.classList.add('match-app--menu');
         this.mainMenu.removeAttribute('hidden');
         this.game.closeOptions();
         this.updateStartButtonState();
     }
 
     private hideMainMenu(): void {
-        this.body.classList.remove('game--menu');
+        this.body.classList.remove('match-app--menu');
         this.mainMenu.setAttribute('hidden', 'true');
     }
 

@@ -1,0 +1,52 @@
+html, body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+}
+
+.match-app {
+    font-family: Arial, sans-serif;
+    background: #1e1e2f;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 1.25rem;
+    min-height: 100vh;
+    min-height: 100dvh;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+    width: 100%;
+    overscroll-behavior-y: auto;
+
+    --cell-size: 3.75rem;
+}
+
+.match-app--menu .hud,
+.match-app--menu .board,
+.match-app--menu .move-evaluation {
+    display: none;
+}
+
+@media (max-width: 780px) {
+    .match-app {
+        --cell-size: 2.7rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .match-app {
+        --cell-size: 2.5rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .match-app {
+        --cell-size: 2.3rem;
+    }
+}

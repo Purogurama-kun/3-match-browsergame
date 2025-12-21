@@ -1,0 +1,109 @@
+.options-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 12, 24, 0.78);
+    padding: 1rem;
+    z-index: 15;
+}
+
+.options-modal[hidden] {
+    display: none;
+}
+
+.options-modal__dialog {
+    width: min(26rem, 100%);
+    background: #0f1327;
+    border: 1px solid #2f3654;
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    display: grid;
+    gap: 0.75rem;
+}
+
+.options-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem 0 1rem;
+    gap: 1rem;
+}
+
+.options-modal__title {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.options-modal__close {
+    border: none;
+    background: transparent;
+    color: #fff;
+    font-size: 1.4rem;
+    cursor: pointer;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+}
+
+.options-modal__close:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.options-modal__body {
+    padding: 0 1rem 1rem 1rem;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.options-modal__group {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.options-modal__label {
+    font-size: 0.95rem;
+    color: #cfd5ff;
+}
+
+.options-modal__select {
+    background: #0c0f1b;
+    border: 1px solid #2f3654;
+    padding: 0.35rem 0.5rem;
+    border-radius: 10px;
+    font-size: 1rem;
+    min-width: 12rem;
+    color: #fff;
+}
+
+.options-modal__action {
+    padding: 0.35rem 0.5rem;
+    border-radius: 10px;
+    border: 1px solid #2f3654;
+    background: #171c2f;
+    color: #fff;
+    cursor: pointer;
+    text-align: left;
+}
+
+.options-modal__action:hover {
+    background: #1c2238;
+}
+
+.options-modal__action[aria-pressed="false"] {
+    background: #0d1022;
+    color: #cfd5ff;
+}
+
+.options-modal__action--danger {
+    border-color: #5f1d2c;
+    background: #2a0f18;
+    color: #ffcdd2;
+}
+
+.options-modal__action--danger:hover {
+    background: #3a1823;
+}
