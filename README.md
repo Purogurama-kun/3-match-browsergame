@@ -34,7 +34,11 @@ php -c backend/php.ini -S 0.0.0.0:5500 -t .
 
 Then open `http://localhost:5500` in your browser.
 
-The PHP server exposes `backend/progress.php`, which persists user progress to `backend/progress.sqlite`. The database file is created automatically on first write.
+The PHP server exposes `backend/progress.php`, which persists user progress to `backend/progress.sqlite`. The database file is created automatically on first write and now also stores leaderboard runs:
+
+- `action=leaderboard&mode=LevelMode|BlockerMode` (GET) returns paged global entries ordered by best result.
+- `action=history&mode=LevelMode|BlockerMode&userId=<id>` (GET) returns the requesting user’s past runs ordered best-first.
+- POST requests still accept progress updates and now record completed runs for both modes when supplied.
 
 ### NPM run commands
 
