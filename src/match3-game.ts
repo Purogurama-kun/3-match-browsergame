@@ -626,8 +626,10 @@ class Match3Game {
     }
 
     private trySwap(first: HTMLDivElement, second: HTMLDivElement): void {
-        if (this.board.isBlockedCell(first) || this.board.isBlockedCell(second)) {
-            this.showInvalidMove(second);
+        const firstIsLocked = this.board.isBlockedCell(first) || this.board.isHardCandy(first);
+        const secondIsLocked = this.board.isBlockedCell(second) || this.board.isHardCandy(second);
+        if (firstIsLocked || secondIsLocked) {
+            this.showInvalidMove(firstIsLocked ? first : second);
             return;
         }
         if (!this.areAdjacent(first, second)) {
