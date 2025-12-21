@@ -244,7 +244,7 @@ class Match3Game {
     private refreshEndlessDifficulty(): void {
         this.endlessHardCandyChance = Math.min(
             this.maxHardCandyChance,
-            0.05 + this.endlessDifficultyTier * 0.04
+            0.05 + this.endlessDifficultyTier * 0.1
         );
         this.state.level = this.endlessDifficultyTier + 1;
         this.state.difficulty = this.mapDifficultyForTier(this.endlessDifficultyTier);
