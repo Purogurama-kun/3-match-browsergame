@@ -5,7 +5,7 @@ import { Board } from './board.js';
 import { GameState, SwapMode, SwipeDirection } from './types.js';
 import { getRequiredElement } from './dom.js';
 import { LEVELS } from './levels.js';
-import { GameModeState, ModeContext } from './game-mode-state.js';
+import { GameModeState, ModeContext, BoardConfig } from './game-mode-state.js';
 import { LevelModeState } from './level-mode-state.js';
 import { BlockerModeState } from './blocker-mode-state.js';
 import { LeaderboardState, LeaderboardStateOptions } from './leaderboard-state.js';
@@ -105,6 +105,9 @@ class Match3Game implements ModeContext {
     private progressListener: ((level: number) => void) | null = null;
     private blockerHighScoreListener: ((score: number) => void) | null = null;
     private leaderboardState: LeaderboardState | null = null;
+    private generatorMoveCounter = 0;
+    private readonly generatorSpreadInterval = 2;
+    private readonly generatorSpreadRadius = 3;
 
     startLevel(level: number): void {
         this.hud.closeOptions();
@@ -182,6 +185,7 @@ class Match3Game implements ModeContext {
         this.boardAnimating = true;
         const boardConfig = this.modeState.getBoardConfig();
         this.board.create(boardConfig);
+        this.generatorMoveCounter = 0;
         if (this.modeState.onBoardCreated) {
             this.modeState.onBoardCreated(this.state, this);
         }
@@ -191,7 +195,7 @@ class Match3Game implements ModeContext {
         this.animateBoardEntry();
     }
 
-    ensurePlayableBoard(boardConfig: { blockedCells?: number[]; hardCandies?: number[] }): void {
+    ensurePlayableBoard(boardConfig: BoardConfig): void {
         let attempts = 0;
         while (!this.hasAnyValidMove() && attempts < 5) {
             this.board.create(boardConfig);
@@ -325,13 +329,20 @@ class Match3Game implements ModeContext {
     private destroyCell(index: number): void {
         const cell = this.board.getCell(index);
         if (this.board.isBlockedIndex(index)) return;
+        const isGenerator = this.board.isBlockerGenerator(cell);
         if (this.board.isHardCandy(cell)) {
+            if (isGenerator) {
+                this.board.markBlockerGeneratorHit(cell);
+            }
             this.board.softenCandy(cell);
             return;
         }
         const booster = this.board.getCellBooster(cell);
         const color = this.board.getCellColor(cell);
         if ((!color && booster === BOOSTERS.NONE) || cell.classList.contains('board__cell--explode')) return;
+        if (isGenerator) {
+            this.board.markBlockerGeneratorHit(cell);
+        }
         cell.classList.add('board__cell--explode');
         this.defer(() => {
             this.board.clearCell(cell);
@@ -458,9 +469,17 @@ class Match3Game implements ModeContext {
                         const above = this.board.getCell(sourceIndex);
                         const sourceColor = this.board.getCellColor(above);
                         if (!sourceColor) continue;
-                        this.board.setCellColor(cell, sourceColor);
-                        this.board.setBooster(cell, this.board.getCellBooster(above));
-                        this.board.setHardCandy(cell, this.board.isHardCandy(above));
+                        const sourceIsHard = this.board.isHardCandy(above);
+                        const sourceIsGenerator = this.board.isBlockerGenerator(above);
+                        this.board.setBlockerGenerator(cell, sourceIsGenerator, sourceIsHard);
+                        if (!sourceIsGenerator) {
+                            this.board.setCellColor(cell, sourceColor);
+                            this.board.setBooster(cell, this.board.getCellBooster(above));
+                        } else {
+                            this.board.setCellColor(cell, this.board.getCellColor(above));
+                            this.board.setBooster(cell, BOOSTERS.NONE);
+                        }
+                        this.board.setHardCandy(cell, sourceIsHard);
                         this.board.clearCell(above);
                         break;
                     }
@@ -502,8 +521,10 @@ class Match3Game implements ModeContext {
     }
 
     private trySwap(first: HTMLDivElement, second: HTMLDivElement): void {
-        const firstIsLocked = this.board.isBlockedCell(first) || this.board.isHardCandy(first);
-        const secondIsLocked = this.board.isBlockedCell(second) || this.board.isHardCandy(second);
+        const firstIsLocked =
+            this.board.isBlockedCell(first) || this.board.isHardCandy(first) || this.board.isBlockerGenerator(first);
+        const secondIsLocked =
+            this.board.isBlockedCell(second) || this.board.isHardCandy(second) || this.board.isBlockerGenerator(second);
         if (firstIsLocked || secondIsLocked) {
             this.showInvalidMove(firstIsLocked ? first : second);
             return;
@@ -637,6 +658,8 @@ class Match3Game implements ModeContext {
         this.renderMultiplierStatus(delta, this.currentMoveScore);
         this.showMoveEvaluation(this.currentMoveBaseScore);
         this.resetMoveTracking();
+        this.generatorMoveCounter++;
+        this.triggerBlockerGeneratorsIfReady();
         this.updateHud();
         this.modeState.handleMoveResolved(this.state, this);
         this.modeState.checkForCompletion(this.state, this);
@@ -648,6 +671,7 @@ class Match3Game implements ModeContext {
         for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
             if (this.board.isBlockedIndex(i)) continue;
             const cell = this.board.getCell(i);
+            if (this.board.isBlockerGenerator(cell)) continue;
             if (this.board.isHardCandy(cell)) continue;
             if (!this.board.getCellColor(cell)) continue;
             candidates.push(i);
@@ -661,6 +685,54 @@ class Match3Game implements ModeContext {
             this.board.setBooster(cell, BOOSTERS.NONE);
             this.board.setHardCandy(cell, true);
         }
+    }
+
+    private triggerBlockerGeneratorsIfReady(): void {
+        if (this.generatorMoveCounter % this.generatorSpreadInterval !== 0) return;
+        const generators = this.board.getBlockerGeneratorIndices();
+        generators.forEach((index) => this.hardenCellsFromGenerator(index));
+    }
+
+    private hardenCellsFromGenerator(generatorIndex: number): void {
+        const { row, col } = this.getRowCol(generatorIndex);
+        const targets = this.collectIndicesWithinRadius(row, col, this.generatorSpreadRadius)
+            .map((index) => ({ index, distance: this.getManhattanDistance(row, col, index) }))
+            .filter((entry) => this.isValidGeneratorTarget(entry.index))
+            .sort((a, b) => (a.distance === b.distance ? a.index - b.index : a.distance - b.distance));
+        targets.forEach((target) => this.hardenCell(target.index));
+    }
+
+    private collectIndicesWithinRadius(row: number, col: number, radius: number): number[] {
+        const indices: number[] = [];
+        for (let r = 0; r < GRID_SIZE; r++) {
+            for (let c = 0; c < GRID_SIZE; c++) {
+                const distance = Math.abs(r - row) + Math.abs(c - col);
+                if (distance <= radius) {
+                    indices.push(this.indexAt(r, c));
+                }
+            }
+        }
+        return indices;
+    }
+
+    private isValidGeneratorTarget(index: number): boolean {
+        if (this.board.isBlockedIndex(index)) return false;
+        const cell = this.board.getCell(index);
+        if (this.board.isBlockerGenerator(cell)) return false;
+        if (this.board.isHardCandy(cell)) return false;
+        if (!this.board.getCellColor(cell)) return false;
+        return true;
+    }
+
+    private hardenCell(index: number): void {
+        const cell = this.board.getCell(index);
+        this.board.setBooster(cell, BOOSTERS.NONE);
+        this.board.setHardCandy(cell, true);
+    }
+
+    private getManhattanDistance(row: number, col: number, index: number): number {
+        const position = this.getRowCol(index);
+        return Math.abs(position.row - row) + Math.abs(position.col - col);
     }
 
     private calculateMultiplierDelta(moveScore: number): number {

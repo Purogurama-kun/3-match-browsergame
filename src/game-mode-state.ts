@@ -4,7 +4,7 @@ import { Hud } from './hud.js';
 import { SoundManager } from './sound-manager.js';
 import { GameMode, GameState } from './types.js';
 
-type BoardConfig = { blockedCells?: number[]; hardCandies?: number[] };
+type BoardConfig = { blockedCells?: number[]; hardCandies?: number[]; blockerGenerators?: number[] };
 
 /** Defines the services a game mode needs to interact with shared systems. */
 interface ModeContext {

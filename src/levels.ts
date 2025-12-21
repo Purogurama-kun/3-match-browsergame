@@ -648,7 +648,8 @@ function normalizeLevelDefinition(definition: LevelDefinitionInput, id: number):
         id,
         difficulty: normalizeDifficulty(definition.difficulty),
         ...(definition.missingCells ? { missingCells: [...definition.missingCells] } : {}),
-        ...(definition.hardCandies ? { hardCandies: [...definition.hardCandies] } : {})
+        ...(definition.hardCandies ? { hardCandies: [...definition.hardCandies] } : {}),
+        ...(definition.blockerGenerators ? { blockerGenerators: [...definition.blockerGenerators] } : {})
     };
 }
 
@@ -682,7 +683,8 @@ function getLevelDefinition(levelNumber: number): LevelDefinition {
         ...baseDefinition,
         id: clamped,
         ...(baseDefinition.missingCells ? { missingCells: [...baseDefinition.missingCells] } : {}),
-        ...(baseDefinition.hardCandies ? { hardCandies: [...baseDefinition.hardCandies] } : {})
+        ...(baseDefinition.hardCandies ? { hardCandies: [...baseDefinition.hardCandies] } : {}),
+        ...(baseDefinition.blockerGenerators ? { blockerGenerators: [...baseDefinition.blockerGenerators] } : {})
     };
 }
 
