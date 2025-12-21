@@ -1,19 +1,13 @@
-import { GRID_SIZE, BOOSTERS, BLACK_BOMB_COLOR, BoosterType, randomColor, getColorKeyFromHex } from './constants.js';
+import { GRID_SIZE, BOOSTERS, BLACK_BOMB_COLOR, BoosterType, randomColor } from './constants.js';
 import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
 import { Board } from './board.js';
-import {
-    Difficulty,
-    GameMode,
-    GameState,
-    GoalProgress,
-    LevelDefinition,
-    LevelGoal,
-    SwapMode,
-    SwipeDirection
-} from './types.js';
+import { GameState, SwapMode, SwipeDirection } from './types.js';
 import { getRequiredElement } from './dom.js';
-import { LEVELS, describeGoal, getLevelDefinition } from './levels.js';
+import { LEVELS } from './levels.js';
+import { GameModeState, ModeContext } from './game-mode-state.js';
+import { LevelModeState } from './level-mode-state.js';
+import { BlockerModeState } from './blocker-mode-state.js';
 
 type MatchResult = {
     matched: Set<number>;
@@ -30,7 +24,7 @@ type MatchAccumulator = {
     largestMatch: number;
 };
 
-class Match3Game {
+class Match3Game implements ModeContext {
     constructor() {
         this.gameEl = getRequiredElement('game');
         this.sounds = new SoundManager();
@@ -52,26 +46,11 @@ class Match3Game {
         });
         this.hud.initOptionsMenu();
         this.hud.setAudioEnabled(this.sounds.isEnabled());
-        this.state = {
-            mode: 'level',
-            selected: null,
-            score: 0,
-            bestScore: 0,
-            level: 1,
-            targetScore: 0,
-            movesLeft: 0,
-            goals: [],
-            difficulty: 'easy',
-            comboMultiplier: 1
-        };
+        this.modeState = new LevelModeState(1);
+        this.state = this.modeState.enter(this);
 
         this.generation = 0;
         this.pendingTimers = [];
-        this.levelDefinition = null;
-        this.blockerPersonalBest = 0;
-        this.blockerMoves = 0;
-        this.blockerDifficultyTier = 0;
-        this.blockerHardCandyChance = 0;
 
         this.modalEl = getRequiredElement('result-modal');
         this.modalTitle = getRequiredElement('result-title');
@@ -103,6 +82,7 @@ class Match3Game {
     private hud: Hud;
     private board: Board;
     private state: GameState;
+    private modeState: GameModeState;
     private swapMode: SwapMode;
     private generation: number;
     private pendingTimers: number[];
@@ -120,26 +100,19 @@ class Match3Game {
     private readonly minMultiplier = 0.5;
     private readonly maxMultiplier = 5;
     private readonly maxBombDropChance = 0.05; // 5%
-    private readonly blockerHardeningInterval = 6;
-    private readonly maxHardCandyChance = 0.55;
-    private levelDefinition: LevelDefinition | null;
     private boardAnimating: boolean;
     private progressListener: ((level: number) => void) | null = null;
     private blockerHighScoreListener: ((score: number) => void) | null = null;
-    private blockerPersonalBest: number;
-    private blockerMoves: number;
-    private blockerDifficultyTier: number;
-    private blockerHardCandyChance: number;
 
     startLevel(level: number): void {
         this.hud.closeOptions();
-        this.initLevel(level);
+        this.switchMode(new LevelModeState(level));
         this.createBoard();
     }
 
     startBlocker(bestScore: number): void {
         this.hud.closeOptions();
-        this.initBlocker(bestScore);
+        this.switchMode(new BlockerModeState(bestScore));
         this.createBoard();
     }
 
@@ -174,98 +147,31 @@ class Match3Game {
         this.hud.closeOptions();
     }
 
+    private switchMode(modeState: GameModeState): void {
+        if (this.modeState) {
+            this.modeState.exit(this);
+        }
+        this.modeState = modeState;
+        this.state = this.modeState.enter(this);
+    }
+
     private screenShake(): void {
         this.gameEl.classList.add('board--shake');
         setTimeout(() => this.gameEl.classList.remove('board--shake'), 350);
     }
 
-    private updateHud(): void {
-        this.hud.render(this.state);
-    }
-
-    private initLevel(levelNumber: number): void {
-        const definition = getLevelDefinition(levelNumber);
-        this.levelDefinition = definition;
-        this.state = {
-            mode: 'level',
-            selected: null,
-            score: 0,
-            bestScore: 0,
-            level: definition.id,
-            targetScore: definition.targetScore,
-            movesLeft: definition.moves,
-            goals: this.createGoals(definition.goals),
-            difficulty: definition.difficulty,
-            comboMultiplier: 1
-        };
-        this.blockerPersonalBest = 0;
-        this.blockerHardCandyChance = 0;
-    }
-
-    private initBlocker(bestScore: number): void {
-        const normalizedBest = Math.max(0, Math.floor(Number.isFinite(bestScore) ? bestScore : 0));
-        this.levelDefinition = null;
-        this.blockerPersonalBest = normalizedBest;
-        this.blockerMoves = 0;
-        this.blockerDifficultyTier = 0;
-        this.blockerHardCandyChance = 0.05;
-        this.state = {
-            mode: 'blocker',
-            selected: null,
-            score: 0,
-            bestScore: normalizedBest,
-            level: 1,
-            targetScore: this.computeBlockerTarget(normalizedBest, 0),
-            movesLeft: Number.POSITIVE_INFINITY,
-            goals: [],
-            difficulty: 'easy',
-            comboMultiplier: 1
-        };
-        this.hud.setStatus('Blocker-Modus gestartet. Überlebe so lange wie möglich.', '♾️');
-    }
-
-    private createGoals(levelGoals: LevelGoal[]): GoalProgress[] {
-        return levelGoals.map((goal) => ({
-            ...goal,
-            current: 0,
-            description: describeGoal(goal)
-        }));
-    }
-
-    private computeBlockerTarget(bestScore: number, currentScore: number): number {
-        return Math.max(500, bestScore, currentScore + 500);
-    }
-
-    private updateBlockerTargetScore(): void {
-        if (this.state.mode !== 'blocker') return;
-        this.state.targetScore = this.computeBlockerTarget(this.blockerPersonalBest, this.state.score);
-    }
-
-    private refreshBlockerDifficulty(): void {
-        this.blockerHardCandyChance = Math.min(
-            this.maxHardCandyChance,
-            0.05 + this.blockerDifficultyTier * 0.1
-        );
-        this.state.level = this.blockerDifficultyTier + 1;
-        this.state.difficulty = this.mapDifficultyForTier(this.blockerDifficultyTier);
-    }
-
-    private mapDifficultyForTier(tier: number): Difficulty {
-        if (tier >= 6) return 'nightmare';
-        if (tier >= 4) return 'expert';
-        if (tier >= 3) return 'hard';
-        if (tier >= 1) return 'normal';
-        return 'easy';
+    updateHud(state: GameState = this.state): void {
+        this.hud.render(state);
     }
 
     private createBoard(): void {
         this.generation++;
         this.clearPendingTimers();
         this.boardAnimating = true;
-        const boardConfig = this.getBoardConfig();
+        const boardConfig = this.modeState.getBoardConfig();
         this.board.create(boardConfig);
-        if (this.state.mode === 'blocker') {
-            this.ensurePlayableBoard(boardConfig);
+        if (this.modeState.onBoardCreated) {
+            this.modeState.onBoardCreated(this.state, this);
         }
         this.resetMoveTracking();
         this.renderMultiplierStatus(0, 0);
@@ -273,20 +179,7 @@ class Match3Game {
         this.animateBoardEntry();
     }
 
-    private getBoardConfig(): { blockedCells?: number[]; hardCandies?: number[] } {
-        if (this.state.mode === 'level') {
-            if (!this.levelDefinition) {
-                throw new Error('Missing level definition');
-            }
-            const boardConfig: { blockedCells?: number[]; hardCandies?: number[] } = {};
-            if (this.levelDefinition.missingCells) boardConfig.blockedCells = this.levelDefinition.missingCells;
-            if (this.levelDefinition.hardCandies) boardConfig.hardCandies = this.levelDefinition.hardCandies;
-            return boardConfig;
-        }
-        return {};
-    }
-
-    private ensurePlayableBoard(boardConfig: { blockedCells?: number[]; hardCandies?: number[] }): void {
+    ensurePlayableBoard(boardConfig: { blockedCells?: number[]; hardCandies?: number[] }): void {
         let attempts = 0;
         while (!this.hasAnyValidMove() && attempts < 5) {
             this.board.create(boardConfig);
@@ -297,7 +190,7 @@ class Match3Game {
     private handleCellClick(cell: HTMLDivElement): void {
         if (this.boardAnimating) return;
         if (this.moveActive) return;
-        if (this.state.mode === 'level' && this.state.movesLeft <= 0) return;
+        if (!this.modeState.canStartMove(this.state)) return;
 
         const booster = this.board.getCellBooster(cell);
         if (booster === BOOSTERS.BURST_LARGE) {
@@ -334,7 +227,7 @@ class Match3Game {
     private handleCellSwipe(cell: HTMLDivElement, direction: SwipeDirection): void {
         if (this.boardAnimating) return;
         if (this.moveActive) return;
-        if (this.state.mode === 'level' && this.state.movesLeft <= 0) return;
+        if (!this.modeState.canStartMove(this.state)) return;
         const neighbor = this.getNeighbor(cell, direction);
         if (!neighbor) return;
         if (this.state.selected) {
@@ -398,17 +291,7 @@ class Match3Game {
         }
 
         this.finalizeMoveScore();
-
-        if (this.state.mode === 'level') {
-            if (this.isLevelComplete()) {
-                this.endLevel(true);
-                return;
-            }
-            if (this.state.movesLeft <= 0) this.endLevel(false);
-            return;
-        }
-
-        this.handleBlockerBoardSettled();
+        this.modeState.handleBoardSettled(this.state, this);
     }
 
     private softenAdjacentHardCandies(matched: Set<number>): void {
@@ -441,9 +324,10 @@ class Match3Game {
         this.defer(() => {
             this.board.clearCell(cell);
             this.awardScore(this.baseCellPoints);
-            this.updateGoalsForDestroyedCell(color);
+            if (color) {
+                this.modeState.handleColorCleared(this.state, color, this);
+            }
             this.updateHud();
-            this.checkWinCondition();
         }, 300);
     }
 
@@ -461,12 +345,10 @@ class Match3Game {
         const index = Number(cell.dataset.index);
         const { row, col } = this.getRowCol(index);
         const booster = this.board.getCellBooster(cell);
-        this.updateGoalsForBooster(booster);
+        this.modeState.handleBoosterUsed(this.state, booster, this);
 
         if (consumesMove) {
-            if (this.state.mode === 'level') {
-                this.state.movesLeft--;
-            }
+            this.modeState.consumeMove(this.state);
             this.beginMove();
         }
 
@@ -476,7 +358,6 @@ class Match3Game {
             this.defer(() => this.dropCells(), 300);
         }
         this.updateHud();
-        this.checkWinCondition();
     }
 
     private executeBoosterEffect(booster: BoosterType, row: number, col: number): void {
@@ -544,8 +425,7 @@ class Match3Game {
     }
 
     private shouldSpawnHardCandy(): boolean {
-        if (this.state.mode !== 'blocker') return false;
-        return Math.random() < this.blockerHardCandyChance;
+        return this.modeState.shouldSpawnHardCandy(this.state);
     }
 
     private createFallingBomb(cell: HTMLDivElement): void {
@@ -589,22 +469,6 @@ class Match3Game {
         this.defer(() => this.checkMatches(), 200);
     }
 
-    private endLevel(didWin: boolean): void {
-        const completedLevel = this.state.level;
-        const rawNextLevel = didWin ? completedLevel + 1 : completedLevel;
-        const nextLevel = Math.min(rawNextLevel, LEVELS.length);
-        if (didWin) {
-            this.sounds.play('levelUp');
-            this.notifyProgress(nextLevel);
-        } else {
-            this.sounds.play('levelFail');
-        }
-        this.showResultModal(didWin ? 'win' : 'lose', completedLevel, nextLevel, () => {
-            this.initLevel(nextLevel);
-            this.createBoard();
-        });
-    }
-
     private areAdjacent(a: HTMLDivElement, b: HTMLDivElement): boolean {
         const { row: aRow, col: aCol } = this.getRowCol(Number(a.dataset.index));
         const { row: bRow, col: bCol } = this.getRowCol(Number(b.dataset.index));
@@ -646,9 +510,7 @@ class Match3Game {
                 return;
             }
         }
-        if (this.state.mode === 'level') {
-            this.state.movesLeft--;
-        }
+        this.modeState.consumeMove(this.state);
         this.beginMove();
         this.updateHud();
         this.defer(() => this.checkMatches(), 120);
@@ -673,6 +535,21 @@ class Match3Game {
         this.defer(() => cell.classList.remove('board__cell--shake'), 350);
     }
 
+    finishLevel(result: 'win' | 'lose', completedLevel: number): void {
+        const rawNextLevel = result === 'win' ? completedLevel + 1 : completedLevel;
+        const nextLevel = Math.min(rawNextLevel, LEVELS.length);
+        if (result === 'win') {
+            this.sounds.play('levelUp');
+            this.notifyProgress(nextLevel);
+        } else {
+            this.sounds.play('levelFail');
+        }
+        this.showResultModal(result, completedLevel, nextLevel, () => {
+            this.switchMode(new LevelModeState(nextLevel));
+            this.createBoard();
+        });
+    }
+
     private showResultModal(
         result: 'win' | 'lose',
         completedLevel: number,
@@ -695,49 +572,31 @@ class Match3Game {
         this.modalButton.focus();
     }
 
+    finishBlockerRun(finalScore: number, bestScore: number): void {
+        this.sounds.play('levelFail');
+        this.showBlockerResultModal(finalScore, bestScore);
+    }
+
+    private showBlockerResultModal(finalScore: number, bestScore: number): void {
+        this.modalCallback = () => {
+            this.switchMode(new BlockerModeState(bestScore));
+            this.createBoard();
+        };
+        const isNewBest = finalScore >= bestScore;
+        this.modalTitle.textContent = isNewBest ? 'Neuer Highscore!' : 'Keine Züge mehr!';
+        this.modalText.textContent =
+            'Punkte: ' + finalScore + '. Bester Lauf: ' + bestScore + '. Gleich noch einmal?';
+        this.modalButton.textContent = 'Neu starten';
+        this.modalEl.classList.add('modal--visible');
+        this.modalButton.focus();
+    }
+
     private hideResultModal(): void {
         if (!this.modalEl.classList.contains('modal--visible')) return;
         this.modalEl.classList.remove('modal--visible');
         const callback = this.modalCallback;
         this.modalCallback = null;
         if (callback) callback();
-    }
-
-    private checkWinCondition(): void {
-        if (this.state.mode !== 'level') return;
-        if (this.isLevelComplete()) {
-            this.endLevel(true);
-        }
-    }
-
-    private isLevelComplete(): boolean {
-        if (this.state.mode !== 'level') return false;
-        return this.state.score >= this.state.targetScore && this.areGoalsComplete();
-    }
-
-    private areGoalsComplete(): boolean {
-        return this.state.goals.every((goal) => goal.current >= goal.target);
-    }
-
-    private updateGoalsForDestroyedCell(color: string): void {
-        const colorKey = getColorKeyFromHex(color);
-        if (!colorKey) return;
-        this.state.goals = this.state.goals.map((goal) => {
-            if (goal.type === 'destroy-color' && goal.color === colorKey) {
-                return { ...goal, current: Math.min(goal.target, goal.current + 1) };
-            }
-            return goal;
-        });
-    }
-
-    private updateGoalsForBooster(booster: BoosterType): void {
-        if (booster === BOOSTERS.NONE) return;
-        this.state.goals = this.state.goals.map((goal) => {
-            if (goal.type === 'activate-booster' && goal.booster === booster) {
-                return { ...goal, current: Math.min(goal.target, goal.current + 1) };
-            }
-            return goal;
-        });
     }
 
     private awardScore(basePoints: number): void {
@@ -767,24 +626,8 @@ class Match3Game {
         this.showMoveEvaluation(this.currentMoveBaseScore);
         this.resetMoveTracking();
         this.updateHud();
-        if (this.state.mode === 'blocker') {
-            this.handleBlockerMoveComplete();
-        }
-    }
-
-    private handleBlockerMoveComplete(): void {
-        this.trackBlockerHighScore();
-        this.blockerMoves++;
-        if (this.blockerMoves % this.blockerHardeningInterval === 0) {
-            this.blockerDifficultyTier++;
-            const hardenCount = 1 + Math.floor(this.blockerDifficultyTier / 2);
-            this.hardenRandomCells(hardenCount);
-            this.refreshBlockerDifficulty();
-            this.hud.setStatus('Mehr harte Bonbons erscheinen!', '🧊');
-        }
-        this.updateBlockerTargetScore();
-        this.updateHud();
-        this.handleBlockerBoardSettled();
+        this.modeState.handleMoveResolved(this.state, this);
+        this.modeState.checkForCompletion(this.state, this);
     }
 
     private hardenRandomCells(amount: number): void {
@@ -806,49 +649,6 @@ class Match3Game {
             this.board.setBooster(cell, BOOSTERS.NONE);
             this.board.setHardCandy(cell, true);
         }
-    }
-
-    private handleBlockerBoardSettled(): void {
-        if (this.state.mode !== 'blocker') return;
-        if (this.modalEl.classList.contains('modal--visible')) return;
-        if (this.hasAnyValidMove()) return;
-        this.endBlockerRun();
-    }
-
-    private endBlockerRun(): void {
-        this.trackBlockerHighScore();
-        this.sounds.play('levelFail');
-        this.showBlockerResultModal(this.state.score, this.blockerPersonalBest);
-    }
-
-    private showBlockerResultModal(finalScore: number, bestScore: number): void {
-        this.modalCallback = () => {
-            this.initBlocker(this.blockerPersonalBest);
-            this.createBoard();
-        };
-        const isNewBest = finalScore >= bestScore;
-        this.modalTitle.textContent = isNewBest ? 'Neuer Highscore!' : 'Keine Züge mehr!';
-        this.modalText.textContent =
-            'Punkte: ' + finalScore + '. Bester Lauf: ' + bestScore + '. Gleich noch einmal?';
-        this.modalButton.textContent = 'Neu starten';
-        this.modalEl.classList.add('modal--visible');
-        this.modalButton.focus();
-    }
-
-    private notifyBlockerHighScore(score: number): void {
-        if (this.blockerHighScoreListener) {
-            this.blockerHighScoreListener(score);
-        }
-    }
-
-    private trackBlockerHighScore(): void {
-        if (this.state.mode !== 'blocker') return;
-        if (this.state.score <= this.blockerPersonalBest) return;
-        this.blockerPersonalBest = this.state.score;
-        this.state.bestScore = this.blockerPersonalBest;
-        this.updateBlockerTargetScore();
-        this.notifyBlockerHighScore(this.blockerPersonalBest);
-        this.hud.setStatus('Neuer Highscore!', '🏆');
     }
 
     private calculateMultiplierDelta(moveScore: number): number {
@@ -1113,7 +913,7 @@ class Match3Game {
         return Boolean(this.board.getCellColor(cell));
     }
 
-    private hasAnyValidMove(): boolean {
+    hasAnyValidMove(): boolean {
         const colors = this.getMatchableColorSnapshot();
         for (let i = 0; i < colors.length; i++) {
             if (!this.isSwappable(i)) continue;
@@ -1197,7 +997,33 @@ class Match3Game {
         };
     }
 
-    private notifyProgress(unlockedLevel: number): void {
+    getHud(): Hud {
+        return this.hud;
+    }
+
+    getBoard(): Board {
+        return this.board;
+    }
+
+    getSounds(): SoundManager {
+        return this.sounds;
+    }
+
+    hardenCells(amount: number): void {
+        this.hardenRandomCells(amount);
+    }
+
+    isModalVisible(): boolean {
+        return this.modalEl.classList.contains('modal--visible');
+    }
+
+    notifyBlockerHighScore(score: number): void {
+        if (this.blockerHighScoreListener) {
+            this.blockerHighScoreListener(score);
+        }
+    }
+
+    notifyProgress(unlockedLevel: number): void {
         if (this.progressListener) {
             this.progressListener(unlockedLevel);
         }
