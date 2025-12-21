@@ -7,8 +7,7 @@
 }
 
 .hud__row {
-    display: grid;
-    grid-template-columns: auto auto 1fr;
+    display: flex;
     gap: 0.5rem;
     align-items: stretch;
 }
@@ -263,14 +262,4 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-}
-
-@media (max-width: 720px) {
-    .hud__row {
-        grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-    }
-
-    .hud__row .hud__card--progress {
-        grid-column: 1 / -1;
-    }
 }

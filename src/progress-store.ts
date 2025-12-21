@@ -1,10 +1,10 @@
 type ProgressData = {
-    endlessHighScore: number;
+    blockerHighScore: number;
 };
 
 type StoredProgress = {
     highestLevel: number;
-    endlessHighScore: number;
+    blockerHighScore: number;
 };
 
 type ProgressResponse = {
@@ -15,7 +15,7 @@ type ProgressResponse = {
 class ProgressStore {
     private readonly endpoint = '/backend/progress.php';
     private readonly maxLevel = 50;
-    private readonly maxEndlessScore = 1000000000;
+    private readonly maxBlockerScore = 1000000000;
 
     async load(userId: string, localProgress?: StoredProgress): Promise<StoredProgress> {
         const normalizedUserId = this.requireUserId(userId);
@@ -42,7 +42,7 @@ class ProgressStore {
     async save(userId: string, progress: StoredProgress): Promise<StoredProgress> {
         const normalizedUserId = this.requireUserId(userId);
         const normalized = this.normalizeProgress(
-            { highestLevel: progress.highestLevel, data: { endlessHighScore: progress.endlessHighScore } },
+            { highestLevel: progress.highestLevel, data: { blockerHighScore: progress.blockerHighScore } },
             progress
         );
 
@@ -54,7 +54,7 @@ class ProgressStore {
             body: JSON.stringify({
                 userId: normalizedUserId,
                 highestLevel: normalized.highestLevel,
-                data: { endlessHighScore: normalized.endlessHighScore }
+                data: { blockerHighScore: normalized.blockerHighScore }
             })
         });
 
@@ -68,16 +68,16 @@ class ProgressStore {
 
     private normalizeProgress(payload?: ProgressResponse, fallback?: StoredProgress): StoredProgress {
         const highestLevel = this.normalizeLevel(payload?.highestLevel ?? fallback?.highestLevel);
-        const endlessHighScore = this.normalizeScore(
-            payload?.data?.endlessHighScore ?? fallback?.endlessHighScore
+        const blockerHighScore = this.normalizeScore(
+            payload?.data?.blockerHighScore ?? fallback?.blockerHighScore
         );
-        return { highestLevel, endlessHighScore };
+        return { highestLevel, blockerHighScore };
     }
 
     private normalizeScore(score: unknown): number {
         if (typeof score !== 'number' || !Number.isFinite(score)) return 0;
         const normalized = Math.floor(score);
-        return Math.max(0, Math.min(normalized, this.maxEndlessScore));
+        return Math.max(0, Math.min(normalized, this.maxBlockerScore));
     }
 
     private requireUserId(userId: string): string {

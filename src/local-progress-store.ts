@@ -4,10 +4,10 @@ class LocalProgressStore {
     private readonly progressKey = 'match3-progress';
     private readonly legacyLevelKey = 'match3-highest-level';
     private readonly maxLevel = 50;
-    private readonly maxEndlessScore = 1000000000;
+    private readonly maxBlockerScore = 1000000000;
     private readonly defaultProgress: StoredProgress = {
         highestLevel: 1,
-        endlessHighScore: 0
+        blockerHighScore: 0
     };
 
     load(): StoredProgress {
@@ -67,10 +67,10 @@ class LocalProgressStore {
 
     private normalizeProgress(progress?: Partial<StoredProgress>): StoredProgress {
         const highestLevel = this.normalizeLevel(progress?.highestLevel);
-        const endlessHighScore = this.normalizeScore(progress?.endlessHighScore);
+        const blockerHighScore = this.normalizeScore(progress?.blockerHighScore);
         return {
             highestLevel,
-            endlessHighScore
+            blockerHighScore
         };
     }
 
@@ -81,9 +81,9 @@ class LocalProgressStore {
     }
 
     private normalizeScore(score: unknown): number {
-        if (typeof score !== 'number' || !Number.isFinite(score)) return this.defaultProgress.endlessHighScore;
+        if (typeof score !== 'number' || !Number.isFinite(score)) return this.defaultProgress.blockerHighScore;
         const normalized = Math.floor(score);
-        return Math.max(0, Math.min(normalized, this.maxEndlessScore));
+        return Math.max(0, Math.min(normalized, this.maxBlockerScore));
     }
 }
 

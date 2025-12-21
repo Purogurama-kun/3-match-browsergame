@@ -68,10 +68,10 @@ class Match3Game {
         this.generation = 0;
         this.pendingTimers = [];
         this.levelDefinition = null;
-        this.endlessPersonalBest = 0;
-        this.endlessMoves = 0;
-        this.endlessDifficultyTier = 0;
-        this.endlessHardCandyChance = 0;
+        this.blockerPersonalBest = 0;
+        this.blockerMoves = 0;
+        this.blockerDifficultyTier = 0;
+        this.blockerHardCandyChance = 0;
 
         this.modalEl = getRequiredElement('result-modal');
         this.modalTitle = getRequiredElement('result-title');
@@ -120,16 +120,16 @@ class Match3Game {
     private readonly minMultiplier = 0.5;
     private readonly maxMultiplier = 5;
     private readonly maxBombDropChance = 0.05; // 5%
-    private readonly endlessHardeningInterval = 6;
+    private readonly blockerHardeningInterval = 6;
     private readonly maxHardCandyChance = 0.55;
     private levelDefinition: LevelDefinition | null;
     private boardAnimating: boolean;
     private progressListener: ((level: number) => void) | null = null;
-    private endlessHighScoreListener: ((score: number) => void) | null = null;
-    private endlessPersonalBest: number;
-    private endlessMoves: number;
-    private endlessDifficultyTier: number;
-    private endlessHardCandyChance: number;
+    private blockerHighScoreListener: ((score: number) => void) | null = null;
+    private blockerPersonalBest: number;
+    private blockerMoves: number;
+    private blockerDifficultyTier: number;
+    private blockerHardCandyChance: number;
 
     startLevel(level: number): void {
         this.hud.closeOptions();
@@ -137,9 +137,9 @@ class Match3Game {
         this.createBoard();
     }
 
-    startEndless(bestScore: number): void {
+    startBlocker(bestScore: number): void {
         this.hud.closeOptions();
-        this.initEndless(bestScore);
+        this.initBlocker(bestScore);
         this.createBoard();
     }
 
@@ -166,8 +166,8 @@ class Match3Game {
         this.progressListener = handler;
     }
 
-    onEndlessHighScore(handler: (score: number) => void): void {
-        this.endlessHighScoreListener = handler;
+    onBlockerHighScore(handler: (score: number) => void): void {
+        this.blockerHighScoreListener = handler;
     }
 
     closeOptions(): void {
@@ -198,30 +198,30 @@ class Match3Game {
             difficulty: definition.difficulty,
             comboMultiplier: 1
         };
-        this.endlessPersonalBest = 0;
-        this.endlessHardCandyChance = 0;
+        this.blockerPersonalBest = 0;
+        this.blockerHardCandyChance = 0;
     }
 
-    private initEndless(bestScore: number): void {
+    private initBlocker(bestScore: number): void {
         const normalizedBest = Math.max(0, Math.floor(Number.isFinite(bestScore) ? bestScore : 0));
         this.levelDefinition = null;
-        this.endlessPersonalBest = normalizedBest;
-        this.endlessMoves = 0;
-        this.endlessDifficultyTier = 0;
-        this.endlessHardCandyChance = 0.05;
+        this.blockerPersonalBest = normalizedBest;
+        this.blockerMoves = 0;
+        this.blockerDifficultyTier = 0;
+        this.blockerHardCandyChance = 0.05;
         this.state = {
-            mode: 'endless',
+            mode: 'blocker',
             selected: null,
             score: 0,
             bestScore: normalizedBest,
             level: 1,
-            targetScore: this.computeEndlessTarget(normalizedBest, 0),
+            targetScore: this.computeBlockerTarget(normalizedBest, 0),
             movesLeft: Number.POSITIVE_INFINITY,
             goals: [],
             difficulty: 'easy',
             comboMultiplier: 1
         };
-        this.hud.setStatus('Endlos-Modus gestartet. Überlebe so lange wie möglich.', '♾️');
+        this.hud.setStatus('Blocker-Modus gestartet. Überlebe so lange wie möglich.', '♾️');
     }
 
     private createGoals(levelGoals: LevelGoal[]): GoalProgress[] {
@@ -232,22 +232,22 @@ class Match3Game {
         }));
     }
 
-    private computeEndlessTarget(bestScore: number, currentScore: number): number {
+    private computeBlockerTarget(bestScore: number, currentScore: number): number {
         return Math.max(500, bestScore, currentScore + 500);
     }
 
-    private updateEndlessTargetScore(): void {
-        if (this.state.mode !== 'endless') return;
-        this.state.targetScore = this.computeEndlessTarget(this.endlessPersonalBest, this.state.score);
+    private updateBlockerTargetScore(): void {
+        if (this.state.mode !== 'blocker') return;
+        this.state.targetScore = this.computeBlockerTarget(this.blockerPersonalBest, this.state.score);
     }
 
-    private refreshEndlessDifficulty(): void {
-        this.endlessHardCandyChance = Math.min(
+    private refreshBlockerDifficulty(): void {
+        this.blockerHardCandyChance = Math.min(
             this.maxHardCandyChance,
-            0.05 + this.endlessDifficultyTier * 0.1
+            0.05 + this.blockerDifficultyTier * 0.1
         );
-        this.state.level = this.endlessDifficultyTier + 1;
-        this.state.difficulty = this.mapDifficultyForTier(this.endlessDifficultyTier);
+        this.state.level = this.blockerDifficultyTier + 1;
+        this.state.difficulty = this.mapDifficultyForTier(this.blockerDifficultyTier);
     }
 
     private mapDifficultyForTier(tier: number): Difficulty {
@@ -264,7 +264,7 @@ class Match3Game {
         this.boardAnimating = true;
         const boardConfig = this.getBoardConfig();
         this.board.create(boardConfig);
-        if (this.state.mode === 'endless') {
+        if (this.state.mode === 'blocker') {
             this.ensurePlayableBoard(boardConfig);
         }
         this.resetMoveTracking();
@@ -408,7 +408,7 @@ class Match3Game {
             return;
         }
 
-        this.handleEndlessBoardSettled();
+        this.handleBlockerBoardSettled();
     }
 
     private softenAdjacentHardCandies(matched: Set<number>): void {
@@ -544,8 +544,8 @@ class Match3Game {
     }
 
     private shouldSpawnHardCandy(): boolean {
-        if (this.state.mode !== 'endless') return false;
-        return Math.random() < this.endlessHardCandyChance;
+        if (this.state.mode !== 'blocker') return false;
+        return Math.random() < this.blockerHardCandyChance;
     }
 
     private createFallingBomb(cell: HTMLDivElement): void {
@@ -767,24 +767,24 @@ class Match3Game {
         this.showMoveEvaluation(this.currentMoveBaseScore);
         this.resetMoveTracking();
         this.updateHud();
-        if (this.state.mode === 'endless') {
-            this.handleEndlessMoveComplete();
+        if (this.state.mode === 'blocker') {
+            this.handleBlockerMoveComplete();
         }
     }
 
-    private handleEndlessMoveComplete(): void {
-        this.trackEndlessHighScore();
-        this.endlessMoves++;
-        if (this.endlessMoves % this.endlessHardeningInterval === 0) {
-            this.endlessDifficultyTier++;
-            const hardenCount = 1 + Math.floor(this.endlessDifficultyTier / 2);
+    private handleBlockerMoveComplete(): void {
+        this.trackBlockerHighScore();
+        this.blockerMoves++;
+        if (this.blockerMoves % this.blockerHardeningInterval === 0) {
+            this.blockerDifficultyTier++;
+            const hardenCount = 1 + Math.floor(this.blockerDifficultyTier / 2);
             this.hardenRandomCells(hardenCount);
-            this.refreshEndlessDifficulty();
+            this.refreshBlockerDifficulty();
             this.hud.setStatus('Mehr harte Bonbons erscheinen!', '🧊');
         }
-        this.updateEndlessTargetScore();
+        this.updateBlockerTargetScore();
         this.updateHud();
-        this.handleEndlessBoardSettled();
+        this.handleBlockerBoardSettled();
     }
 
     private hardenRandomCells(amount: number): void {
@@ -808,22 +808,22 @@ class Match3Game {
         }
     }
 
-    private handleEndlessBoardSettled(): void {
-        if (this.state.mode !== 'endless') return;
+    private handleBlockerBoardSettled(): void {
+        if (this.state.mode !== 'blocker') return;
         if (this.modalEl.classList.contains('modal--visible')) return;
         if (this.hasAnyValidMove()) return;
-        this.endEndlessRun();
+        this.endBlockerRun();
     }
 
-    private endEndlessRun(): void {
-        this.trackEndlessHighScore();
+    private endBlockerRun(): void {
+        this.trackBlockerHighScore();
         this.sounds.play('levelFail');
-        this.showEndlessResultModal(this.state.score, this.endlessPersonalBest);
+        this.showBlockerResultModal(this.state.score, this.blockerPersonalBest);
     }
 
-    private showEndlessResultModal(finalScore: number, bestScore: number): void {
+    private showBlockerResultModal(finalScore: number, bestScore: number): void {
         this.modalCallback = () => {
-            this.initEndless(this.endlessPersonalBest);
+            this.initBlocker(this.blockerPersonalBest);
             this.createBoard();
         };
         const isNewBest = finalScore >= bestScore;
@@ -835,19 +835,19 @@ class Match3Game {
         this.modalButton.focus();
     }
 
-    private notifyEndlessHighScore(score: number): void {
-        if (this.endlessHighScoreListener) {
-            this.endlessHighScoreListener(score);
+    private notifyBlockerHighScore(score: number): void {
+        if (this.blockerHighScoreListener) {
+            this.blockerHighScoreListener(score);
         }
     }
 
-    private trackEndlessHighScore(): void {
-        if (this.state.mode !== 'endless') return;
-        if (this.state.score <= this.endlessPersonalBest) return;
-        this.endlessPersonalBest = this.state.score;
-        this.state.bestScore = this.endlessPersonalBest;
-        this.updateEndlessTargetScore();
-        this.notifyEndlessHighScore(this.endlessPersonalBest);
+    private trackBlockerHighScore(): void {
+        if (this.state.mode !== 'blocker') return;
+        if (this.state.score <= this.blockerPersonalBest) return;
+        this.blockerPersonalBest = this.state.score;
+        this.state.bestScore = this.blockerPersonalBest;
+        this.updateBlockerTargetScore();
+        this.notifyBlockerHighScore(this.blockerPersonalBest);
         this.hud.setStatus('Neuer Highscore!', '🏆');
     }
 

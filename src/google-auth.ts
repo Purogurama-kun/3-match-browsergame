@@ -14,7 +14,7 @@ type GoogleAuthConfig = {
     loginButtonId: string;
     statusId: string;
     progressId: string;
-    endlessProgressId: string;
+    blockerProgressId: string;
     errorId: string;
     onLogin: (user: GoogleUser) => void;
 };
@@ -63,7 +63,7 @@ class GoogleAuth {
         this.loginContainer = this.getLoginContainer(config.loginButtonId);
         this.statusLabel = getRequiredElement(config.statusId);
         this.progressLabel = getRequiredElement(config.progressId);
-        this.endlessProgressLabel = getRequiredElement(config.endlessProgressId);
+        this.blockerProgressLabel = getRequiredElement(config.blockerProgressId);
         this.errorLabel = getRequiredElement(config.errorId);
         this.onLogin = config.onLogin;
         this.disableLogin();
@@ -75,14 +75,14 @@ class GoogleAuth {
     private loginContainer: HTMLElement;
     private statusLabel: HTMLElement;
     private progressLabel: HTMLElement;
-    private endlessProgressLabel: HTMLElement;
+    private blockerProgressLabel: HTMLElement;
     private errorLabel: HTMLElement;
     private onLogin: (user: GoogleUser) => void;
 
-    setProgress(progress: { level?: number; highestLevel?: number; endlessHighScore: number }): void {
+    setProgress(progress: { level?: number; highestLevel?: number; blockerHighScore: number }): void {
         const levelValue = Math.max(1, progress.level ?? progress.highestLevel ?? 1);
         this.setProgressLevel(levelValue);
-        this.setEndlessHighScore(progress.endlessHighScore);
+        this.setBlockerHighScore(progress.blockerHighScore);
     }
 
     setProgressLevel(level: number): void {
@@ -90,19 +90,19 @@ class GoogleAuth {
         this.progressLabel.textContent = 'Fortschritt: Level ' + normalized;
     }
 
-    setEndlessHighScore(score: number): void {
+    setBlockerHighScore(score: number): void {
         const normalized = Math.max(0, Math.floor(Number.isFinite(score) ? score : 0));
-        this.endlessProgressLabel.textContent = 'Endlos-Highscore: ' + normalized;
+        this.blockerProgressLabel.textContent = 'Blocker-Highscore: ' + normalized;
     }
 
     showProgressLoading(): void {
         this.progressLabel.textContent = 'Fortschritt wird geladen...';
-        this.endlessProgressLabel.textContent = 'Endlos-Highscore wird geladen...';
+        this.blockerProgressLabel.textContent = 'Blocker-Highscore wird geladen...';
     }
 
-    setLoggedOut(level: number = 1, endlessHighScore: number = 0): void {
+    setLoggedOut(level: number = 1, blockerHighScore: number = 0): void {
         this.statusLabel.textContent = 'Nicht angemeldet';
-        this.setProgress({ level, endlessHighScore });
+        this.setProgress({ level, blockerHighScore });
         this.enableLogin();
     }
 

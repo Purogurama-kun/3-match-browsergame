@@ -6,7 +6,7 @@ type SwapMode = 'free-swap' | 'require-match';
 
 type SwipeDirection = 'up' | 'down' | 'left' | 'right';
 
-type GameMode = 'level' | 'endless';
+type GameMode = 'level' | 'blocker';
 
 type GoalType = 'destroy-color' | 'activate-booster';
 

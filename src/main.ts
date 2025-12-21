@@ -9,15 +9,15 @@ class GameApp {
         this.body = document.body;
         this.mainMenu = getRequiredElement('main-menu');
         this.startLevelButton = this.getLevelButton();
-        this.startEndlessButton = this.getEndlessButton();
-        this.progress = { highestLevel: 1, endlessHighScore: 0 };
+        this.startBlockerButton = this.getBlockerButton();
+        this.progress = { highestLevel: 1, blockerHighScore: 0 };
         this.progressStore = new ProgressStore();
         this.localProgress = new LocalProgressStore();
         this.googleAuth = new GoogleAuth({
             loginButtonId: 'google-login',
             statusId: 'auth-status',
             progressId: 'auth-progress',
-            endlessProgressId: 'auth-progress-endless',
+            blockerProgressId: 'auth-progress-blocker',
             errorId: 'auth-error',
             onLogin: (user) => this.handleLogin(user)
         });
@@ -26,10 +26,10 @@ class GameApp {
         this.loadLocalProgress();
 
         this.startLevelButton.addEventListener('click', () => this.startLevelGame());
-        this.startEndlessButton.addEventListener('click', () => this.startEndlessGame());
+        this.startBlockerButton.addEventListener('click', () => this.startBlockerGame());
         this.game.onExitGameRequested(() => this.returnToMenu());
         this.game.onProgressChange((level) => this.saveProgress(level));
-        this.game.onEndlessHighScore((score) => this.saveEndlessHighScore(score));
+        this.game.onBlockerHighScore((score) => this.saveBlockerHighScore(score));
 
         this.showMainMenu();
     }
@@ -37,7 +37,7 @@ class GameApp {
     private body: HTMLElement;
     private mainMenu: HTMLElement;
     private startLevelButton: HTMLButtonElement;
-    private startEndlessButton: HTMLButtonElement;
+    private startBlockerButton: HTMLButtonElement;
     private googleAuth: GoogleAuth;
     private progressStore: ProgressStore;
     private localProgress: LocalProgressStore;
@@ -52,10 +52,10 @@ class GameApp {
         this.game.startLevel(this.progress.highestLevel);
     }
 
-    private startEndlessGame(): void {
+    private startBlockerGame(): void {
         if (this.isProgressLoading) return;
         this.hideMainMenu();
-        this.game.startEndless(this.progress.endlessHighScore);
+        this.game.startBlocker(this.progress.blockerHighScore);
     }
 
     private returnToMenu(): void {
@@ -79,7 +79,7 @@ class GameApp {
     private loadLocalProgress(): void {
         const stored = this.localProgress.load();
         this.progress = this.mergeProgress(this.progress, stored);
-        this.googleAuth.setLoggedOut(this.progress.highestLevel, this.progress.endlessHighScore);
+        this.googleAuth.setLoggedOut(this.progress.highestLevel, this.progress.blockerHighScore);
         this.updateStartButtonState();
     }
 
@@ -91,10 +91,10 @@ class GameApp {
         return element;
     }
 
-    private getEndlessButton(): HTMLButtonElement {
-        const element = getRequiredElement('start-endless');
+    private getBlockerButton(): HTMLButtonElement {
+        const element = getRequiredElement('start-blocker');
         if (!(element instanceof HTMLButtonElement)) {
-            throw new Error('Start endless button is not a button');
+            throw new Error('Start blocker button is not a button');
         }
         return element;
     }
@@ -140,7 +140,7 @@ class GameApp {
     private saveProgress(unlockedLevel: number): void {
         this.progress = this.mergeProgress(this.progress, {
             highestLevel: unlockedLevel,
-            endlessHighScore: this.progress.endlessHighScore
+            blockerHighScore: this.progress.blockerHighScore
         });
         this.googleAuth.setProgress(this.progress);
         this.updateStartButtonState();
@@ -149,11 +149,11 @@ class GameApp {
         void this.persistProgress(this.currentUser.id, this.progress);
     }
 
-    private saveEndlessHighScore(score: number): void {
-        if (score <= this.progress.endlessHighScore) return;
+    private saveBlockerHighScore(score: number): void {
+        if (score <= this.progress.blockerHighScore) return;
         this.progress = this.mergeProgress(this.progress, {
             highestLevel: this.progress.highestLevel,
-            endlessHighScore: score
+            blockerHighScore: score
         });
         this.googleAuth.setProgress(this.progress);
         this.progress = this.localProgress.save(this.progress);
@@ -186,12 +186,12 @@ class GameApp {
         const isAuthenticated = Boolean(this.currentUser);
         const isLoading = this.isProgressLoading;
         this.startLevelButton.disabled = isLoading;
-        this.startEndlessButton.disabled = isLoading;
+        this.startBlockerButton.disabled = isLoading;
         const labelLevel = Math.max(1, this.progress.highestLevel);
-        const endlessScore = Math.max(0, this.progress.endlessHighScore);
-        this.startEndlessButton.textContent = isLoading
-            ? 'Endlos Modus wird geladen...'
-            : 'Endlos Modus (Best: ' + endlessScore + ')';
+        const blockerScore = Math.max(0, this.progress.blockerHighScore);
+        this.startBlockerButton.textContent = isLoading
+            ? 'Blocker Modus wird geladen...'
+            : 'Blocker Modus (Best: ' + blockerScore + ')';
         if (!isAuthenticated) {
             this.startLevelButton.textContent = 'Level Modus (Gast)';
             return;
@@ -206,14 +206,14 @@ class GameApp {
     private mergeProgress(current: StoredProgress, incoming: StoredProgress): StoredProgress {
         return {
             highestLevel: Math.max(current.highestLevel, incoming.highestLevel),
-            endlessHighScore: Math.max(current.endlessHighScore, incoming.endlessHighScore)
+            blockerHighScore: Math.max(current.blockerHighScore, incoming.blockerHighScore)
         };
     }
 
     private shouldPersistMergedProgress(stored: StoredProgress, merged: StoredProgress): boolean {
         return (
             merged.highestLevel > stored.highestLevel ||
-            merged.endlessHighScore > stored.endlessHighScore
+            merged.blockerHighScore > stored.blockerHighScore
         );
     }
 }

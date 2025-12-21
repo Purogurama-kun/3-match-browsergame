@@ -234,12 +234,12 @@ function respond(int $status, array $payload): void
 
 function normalizeData(array $data, array $existing = []): array
 {
-    $currentScore = clampScore($existing['endlessHighScore'] ?? 0);
-    $submittedScore = clampScore($data['endlessHighScore'] ?? 0);
-    $endlessHighScore = max($currentScore, $submittedScore);
+    $currentScore = clampScore($existing['blockerHighScore'] ?? 0);
+    $submittedScore = clampScore($data['blockerHighScore'] ?? 0);
+    $blockerHighScore = max($currentScore, $submittedScore);
 
     return [
-        'endlessHighScore' => $endlessHighScore
+        'blockerHighScore' => $blockerHighScore
     ];
 }
 

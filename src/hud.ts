@@ -43,15 +43,16 @@ class Hud {
 
     render(state: GameState): void {
         this.score.textContent =
-            state.mode === 'endless'
-                ? state.score + ' Punkte (Bestwert: ' + state.bestScore + ')'
+            state.mode === 'blocker'
+                ? state.score + ' '
                 : state.score + '/' + state.targetScore;
         this.level.textContent = String(state.level);
-        this.moves.textContent = state.mode === 'endless' ? '∞' : String(state.movesLeft);
+        this.moves.textContent = state.mode === 'blocker' ? '∞' : String(state.movesLeft);
         this.applyDifficultyStyle(state.difficulty);
 
         this.updateProgress(state);
         this.renderGoals(state.goals, state.mode);
+        this.renderBlockerModeHighscore(state.bestScore);
     }
 
     getSwapMode(): SwapMode {
@@ -183,12 +184,12 @@ class Hud {
 
     private updateProgress(state: GameState): void {
         const clampedScore = Math.max(0, state.score);
-        const target = state.mode === 'endless'
+        const target = state.mode === 'blocker'
             ? Math.max(1, Math.max(state.targetScore, state.bestScore, clampedScore))
             : Math.max(1, state.targetScore);
         const ratio = Math.min(1, clampedScore / target);
         const ariaText =
-            state.mode === 'endless'
+            state.mode === 'blocker'
                 ? 'Punktestand ' + clampedScore + ' von ' + target + '. Bester Lauf: ' + state.bestScore
                 : 'Punktestand ' + clampedScore + ' von ' + target;
         this.scoreProgress.setAttribute('aria-valuenow', clampedScore.toString());
@@ -199,8 +200,7 @@ class Hud {
 
     private renderGoals(goals: GoalProgress[], mode: GameMode): void {
         this.goalsList.innerHTML = '';
-        if (mode === 'endless') {
-            this.renderEndlessHint();
+        if (mode === 'blocker') {
             return;
         }
         goals.forEach((goal) => {
@@ -271,12 +271,12 @@ class Hud {
         this.levelCard.setAttribute('aria-label', 'Level ' + this.level.textContent + ' – ' + label);
     }
 
-    private renderEndlessHint(): void {
+    private renderBlockerModeHighscore(highscore: number): void {
         const item = document.createElement('li');
         item.className = 'hud__goal hud__goal--hint';
         const label = document.createElement('span');
         label.className = 'hud__goal-label';
-        label.textContent = 'Halte so lange wie möglich durch. Harte Bonbons erscheinen im Verlauf.';
+        label.textContent = 'Highscore: ' + highscore;
         item.appendChild(label);
         this.goalsList.appendChild(item);
     }
