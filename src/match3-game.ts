@@ -8,6 +8,7 @@ import { LEVELS } from './levels.js';
 import { GameModeState, ModeContext } from './game-mode-state.js';
 import { LevelModeState } from './level-mode-state.js';
 import { BlockerModeState } from './blocker-mode-state.js';
+import { LeaderboardState, LeaderboardStateOptions } from './leaderboard-state.js';
 
 type MatchResult = {
     matched: Set<number>;
@@ -103,6 +104,7 @@ class Match3Game implements ModeContext {
     private boardAnimating: boolean;
     private progressListener: ((level: number) => void) | null = null;
     private blockerHighScoreListener: ((score: number) => void) | null = null;
+    private leaderboardState: LeaderboardState | null = null;
 
     startLevel(level: number): void {
         this.hud.closeOptions();
@@ -141,6 +143,16 @@ class Match3Game implements ModeContext {
 
     onBlockerHighScore(handler: (score: number) => void): void {
         this.blockerHighScoreListener = handler;
+    }
+
+    showLeaderboard(options: LeaderboardStateOptions): void {
+        this.stop();
+        if (this.leaderboardState) {
+            this.leaderboardState.update(options);
+        } else {
+            this.leaderboardState = new LeaderboardState(options);
+        }
+        this.switchMode(this.leaderboardState);
     }
 
     closeOptions(): void {

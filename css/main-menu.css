@@ -73,6 +73,17 @@
     filter: brightness(1.05);
 }
 
+.main-menu__button--ghost {
+    background: transparent;
+    color: #dfe5ff;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: none;
+}
+
+.main-menu__button--ghost:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
 .main-menu__button:disabled {
     opacity: 0.6;
     cursor: not-allowed;

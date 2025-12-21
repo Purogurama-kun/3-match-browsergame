@@ -10,6 +10,8 @@ class GameApp {
         this.mainMenu = getRequiredElement('main-menu');
         this.startLevelButton = this.getLevelButton();
         this.startBlockerButton = this.getBlockerButton();
+        this.startLeaderboardButton = this.getLeaderboardButton();
+        this.leaderboard = getRequiredElement('leaderboard');
         this.progress = { highestLevel: 1, blockerHighScore: 0 };
         this.progressStore = new ProgressStore();
         this.localProgress = new LocalProgressStore();
@@ -27,6 +29,7 @@ class GameApp {
 
         this.startLevelButton.addEventListener('click', () => this.startLevelGame());
         this.startBlockerButton.addEventListener('click', () => this.startBlockerGame());
+        this.startLeaderboardButton.addEventListener('click', () => this.showLeaderboard());
         this.game.onExitGameRequested(() => this.returnToMenu());
         this.game.onProgressChange((level) => this.saveProgress(level));
         this.game.onBlockerHighScore((score) => this.saveBlockerHighScore(score));
@@ -38,6 +41,8 @@ class GameApp {
     private mainMenu: HTMLElement;
     private startLevelButton: HTMLButtonElement;
     private startBlockerButton: HTMLButtonElement;
+    private startLeaderboardButton: HTMLButtonElement;
+    private leaderboard: HTMLElement;
     private googleAuth: GoogleAuth;
     private progressStore: ProgressStore;
     private localProgress: LocalProgressStore;
@@ -58,13 +63,28 @@ class GameApp {
         this.game.startBlocker(this.progress.blockerHighScore);
     }
 
+    private showLeaderboard(): void {
+        if (this.isProgressLoading) return;
+        this.hideMainMenu();
+        this.body.classList.add('match-app--leaderboard');
+        this.leaderboard.removeAttribute('hidden');
+        this.game.showLeaderboard({
+            currentPlayer: this.currentUser?.name ?? 'Gast',
+            highestLevel: this.progress.highestLevel,
+            blockerHighScore: this.progress.blockerHighScore,
+            onExit: () => this.returnToMenu()
+        });
+    }
+
     private returnToMenu(): void {
+        this.hideLeaderboard();
         this.game.stop();
         this.showMainMenu();
         this.startLevelButton.focus();
     }
 
     private showMainMenu(): void {
+        this.hideLeaderboard();
         this.body.classList.add('match-app--menu');
         this.mainMenu.removeAttribute('hidden');
         this.game.closeOptions();
@@ -74,6 +94,11 @@ class GameApp {
     private hideMainMenu(): void {
         this.body.classList.remove('match-app--menu');
         this.mainMenu.setAttribute('hidden', 'true');
+    }
+
+    private hideLeaderboard(): void {
+        this.body.classList.remove('match-app--leaderboard');
+        this.leaderboard.setAttribute('hidden', 'true');
     }
 
     private loadLocalProgress(): void {
@@ -95,6 +120,14 @@ class GameApp {
         const element = getRequiredElement('start-blocker');
         if (!(element instanceof HTMLButtonElement)) {
             throw new Error('Start blocker button is not a button');
+        }
+        return element;
+    }
+
+    private getLeaderboardButton(): HTMLButtonElement {
+        const element = getRequiredElement('open-leaderboard');
+        if (!(element instanceof HTMLButtonElement)) {
+            throw new Error('Leaderboard button is not a button');
         }
         return element;
     }
@@ -187,6 +220,7 @@ class GameApp {
         const isLoading = this.isProgressLoading;
         this.startLevelButton.disabled = isLoading;
         this.startBlockerButton.disabled = isLoading;
+        this.startLeaderboardButton.disabled = isLoading;
         const labelLevel = Math.max(1, this.progress.highestLevel);
         const blockerScore = Math.max(0, this.progress.blockerHighScore);
         this.startBlockerButton.textContent = isLoading

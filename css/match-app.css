@@ -33,6 +33,13 @@ body {
     display: none;
 }
 
+.match-app--leaderboard .main-menu,
+.match-app--leaderboard .hud,
+.match-app--leaderboard .board,
+.match-app--leaderboard .move-evaluation {
+    display: none;
+}
+
 @media (max-width: 780px) {
     .match-app {
         --cell-size: 2.7rem;
