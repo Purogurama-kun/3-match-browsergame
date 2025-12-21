@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/match-app.css" />
     <link rel="stylesheet" href="css/options-toggle.css" />
     <link rel="stylesheet" href="css/main-menu.css" />
+    <link rel="stylesheet" href="css/leaderboard.css" />
     <link rel="stylesheet" href="css/auth.css" />
     <link rel="stylesheet" href="css/hud.css" />
     <link rel="stylesheet" href="css/board.css" />
@@ -52,8 +53,44 @@
             <div class="main-menu__actions">
                 <button id="start-level" class="main-menu__button" type="button" disabled>Level Modus</button>
                 <button id="start-blocker" class="main-menu__button main-menu__button--secondary" type="button">Blocker Modus</button>
+                <button id="open-leaderboard" class="main-menu__button main-menu__button--ghost" type="button">
+                    Bestenliste
+                </button>
                 <p class="main-menu__note">Highscores werden wie dein Level-Fortschritt gespeichert. Optionen über das Menü oben rechts öffnen.</p>
             </div>
+        </div>
+    </div>
+    <div id="leaderboard" class="leaderboard" hidden>
+        <div class="leaderboard__card">
+            <div class="leaderboard__header">
+                <div class="leaderboard__titles">
+                    <div class="leaderboard__lead">Übersicht</div>
+                    <h2 class="leaderboard__title">Bestenliste</h2>
+                    <p id="leaderboard-subtitle" class="leaderboard__subtitle">
+                        Vergleiche Level-Fortschritt und Blocker-Highscores
+                    </p>
+                </div>
+                <button id="leaderboard-back" class="leaderboard__action" type="button">Zurück zum Menü</button>
+            </div>
+            <div class="leaderboard__controls" role="group" aria-label="Bestenlisten-Filter">
+                <div class="leaderboard__control-group">
+                    <button id="leaderboard-mode-level" class="leaderboard__chip leaderboard__chip--active" type="button">
+                        Level-Modus
+                    </button>
+                    <button id="leaderboard-mode-blocker" class="leaderboard__chip leaderboard__chip--secondary" type="button">
+                        Blocker-Modus
+                    </button>
+                </div>
+                <div class="leaderboard__control-group">
+                    <button id="leaderboard-scope-global" class="leaderboard__chip leaderboard__chip--active" type="button">
+                        Global
+                    </button>
+                    <button id="leaderboard-scope-personal" class="leaderboard__chip leaderboard__chip--secondary" type="button">
+                        Persönlich
+                    </button>
+                </div>
+            </div>
+            <ul id="leaderboard-list" class="leaderboard__list"></ul>
         </div>
     </div>
     <div id="hud" class="hud">
