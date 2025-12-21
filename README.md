@@ -28,13 +28,19 @@ This project uses ES modules and TypeScript, so you need to build it and run a l
 npm init -y
 npm install --save-dev typescript
 npm install --save-dev jsdoc
-tsc -w
+npm run build
 php -c backend/php.ini -S 0.0.0.0:5500 -t .
 ```
 
 Then open `http://localhost:5500` in your browser.
 
 The PHP server exposes `backend/progress.php`, which persists user progress to `backend/progress.sqlite`. The database file is created automatically on first write.
+
+### NPM run commands
+
+- `npm run build` ➔ `tsc`
+- `npm run watch` ➔ `tsc -w`
+- `npm run docs` ➔ `jsdoc -c jsdoc.json`
 
 ## Setup php
 
