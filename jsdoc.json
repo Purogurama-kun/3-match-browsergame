@@ -4,7 +4,7 @@
     "includePattern": ".+\\.(ts|js)$"
   },
   "opts": {
-    "destination": "docs",
+    "destination": "docs/jsdoc",
     "recurse": true,
     "readme": "README.md"
   },

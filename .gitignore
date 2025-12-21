@@ -1,3 +1,4 @@
 dist/
 backend/progress.sqlite*
 node_modules/
+docs/jsdoc/
