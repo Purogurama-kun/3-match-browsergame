@@ -39,6 +39,24 @@ const TACTICAL_POWERUP_USES = 1;
 type BoosterType = typeof BOOSTERS[keyof typeof BOOSTERS];
 type ColorKey = keyof typeof COLOR_DEFINITIONS;
 type TacticalPowerup = keyof typeof TACTICAL_POWERUPS;
+type CandyShape = 'triangle' | 'hexagon' | 'pentagon' | 'round' | 'diamond' | 'square';
+
+const COLOR_SHAPE_CLASS: Record<ColorKey, CandyShape> = {
+    red: 'triangle',
+    amber: 'hexagon',
+    blue: 'pentagon',
+    purple: 'round',
+    green: 'diamond'
+};
+
+const SHAPE_CLASS_NAMES: string[] = [
+    'board__cell--shape-triangle',
+    'board__cell--shape-hexagon',
+    'board__cell--shape-pentagon',
+    'board__cell--shape-round',
+    'board__cell--shape-diamond',
+    'board__cell--shape-square'
+];
 
 function createFreshPowerupInventory(): Record<TacticalPowerup, number> {
     const inventory = {} as Record<TacticalPowerup, number>;
@@ -85,5 +103,8 @@ export {
     getColorKeyFromHex,
     TACTICAL_POWERUPS,
     TacticalPowerup,
+    CandyShape,
+    COLOR_SHAPE_CLASS,
+    SHAPE_CLASS_NAMES,
     createFreshPowerupInventory
 };

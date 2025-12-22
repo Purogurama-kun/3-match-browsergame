@@ -2,7 +2,15 @@ import { Hud } from './hud.js';
 import { getRequiredElement } from './dom.js';
 import { Board, CellState } from './board.js';
 import { SwipeDirection } from './types.js';
-import { GRID_SIZE, BOOSTERS, BoosterType } from './constants.js';
+import {
+    GRID_SIZE,
+    BOOSTERS,
+    BoosterType,
+    getColorKeyFromHex,
+    COLOR_SHAPE_CLASS,
+    SHAPE_CLASS_NAMES
+} from './constants.js';
+import type { ColorKey } from './constants.js';
 
 type ModalOptions = {
     title: string;
@@ -30,6 +38,7 @@ class Renderer {
     private touchStartX: number | null = null;
     private touchStartY: number | null = null;
     private readonly swipeThreshold = 18;
+    private cellShapesEnabled = true;
 
     constructor(hud: Hud) {
         this.hud = hud;
@@ -60,6 +69,10 @@ class Renderer {
 
     getGameElement(): HTMLElement {
         return this.gameEl;
+    }
+
+    setCellShapesEnabled(enabled: boolean): void {
+        this.cellShapesEnabled = enabled;
     }
 
     renderBoard(
@@ -241,6 +254,9 @@ class Renderer {
         cell.dataset.blocked = state.blocked ? 'true' : 'false';
         cell.dataset.hard = state.hard ? 'true' : 'false';
         cell.dataset.generator = state.generator ? 'true' : 'false';
+        this.clearShapeClasses(cell);
+        const colorKey = state.color ? getColorKeyFromHex(state.color) : null;
+        cell.dataset.colorKey = colorKey ?? '';
         cell.textContent = '';
         cell.style.removeProperty('--cell-color');
         if (state.blocked) {
@@ -249,6 +265,9 @@ class Renderer {
         }
         if (state.color) {
             cell.style.setProperty('--cell-color', state.color);
+        }
+        if (!state.generator && this.cellShapesEnabled) {
+            this.applyShapeForColor(cell, colorKey);
         }
         if (state.generator) {
             cell.classList.add('board__cell--generator');
@@ -259,6 +278,17 @@ class Renderer {
             cell.classList.add('board__cell--hard');
         }
         this.applyBoosterVisual(cell, state.booster);
+    }
+
+    private applyShapeForColor(cell: HTMLDivElement, colorKey: ColorKey | null): void {
+        if (!colorKey) return;
+        const shape = COLOR_SHAPE_CLASS[colorKey];
+        if (!shape) return;
+        cell.classList.add(`board__cell--shape-${shape}`);
+    }
+
+    private clearShapeClasses(cell: HTMLDivElement): void {
+        SHAPE_CLASS_NAMES.forEach((className) => cell.classList.remove(className));
     }
 
     private applyBoosterVisual(cell: HTMLDivElement, booster: BoosterType): void {

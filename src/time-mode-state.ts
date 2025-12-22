@@ -51,6 +51,8 @@ class TimeModeState implements GameModeState {
             survivalTime: 0,
             timeCapacity: this.startingTime,
             powerups: createFreshPowerupInventory()
+            ,
+            cellShapeMode: 'square'
         };
         this.state = state;
         this.startTimer(context);

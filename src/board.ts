@@ -11,7 +11,6 @@ type CellState = {
 class Board {
     private cellStates: CellState[] = [];
     private blockedIndices: Set<number> = new Set();
-    private readonly blockerGeneratorColor = '#1f2937';
 
     create(config?: { blockedCells?: number[]; hardCandies?: number[]; blockerGenerators?: number[] }): void {
         this.blockedIndices = new Set(config?.blockedCells ?? []);
@@ -30,8 +29,6 @@ class Board {
             };
             if (blocked) {
                 state.color = '';
-            } else if (isGenerator) {
-                state.color = this.blockerGeneratorColor;
             } else {
                 state.color = this.pickColorForIndex(i);
             }
@@ -93,11 +90,6 @@ class Board {
         state.generator = isGenerator;
         state.hard = isHard;
         state.booster = BOOSTERS.NONE;
-        if (isGenerator) {
-            if (!state.color) {
-                state.color = this.blockerGeneratorColor;
-            }
-        }
     }
 
     softenCandy(index: number): void {

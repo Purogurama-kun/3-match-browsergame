@@ -1,6 +1,13 @@
-import { BOOSTERS, TACTICAL_POWERUPS, TacticalPowerup, getColorHex } from './constants.js';
+import {
+    BOOSTERS,
+    TACTICAL_POWERUPS,
+    TacticalPowerup,
+    getColorHex,
+    COLOR_SHAPE_CLASS
+} from './constants.js';
 import {
     ActivatableBoosterType,
+    CellShapeMode,
     Difficulty,
     GameMode,
     GameState,
@@ -31,6 +38,7 @@ class Hud {
         this.optionsClose = this.getOptionsClose();
         this.optionsModal = this.getOptionsModal();
         this.audioToggle = this.getAudioToggle();
+        this.cellShapeSelect = this.getCellShapeSelect();
         this.difficultyLabel = this.getDifficultyLabel();
         this.exitButton = this.getExitButton();
         this.setAudioToggleState(true);
@@ -54,6 +62,8 @@ class Hud {
     private audioToggle: HTMLButtonElement;
     private difficultyLabel: HTMLElement;
     private exitButton: HTMLButtonElement;
+    private cellShapeSelect: HTMLSelectElement;
+    private cellShapeMode: CellShapeMode = 'square';
     private tacticalToolbar: HTMLElement;
     private powerupButtons: Record<TacticalPowerup, HTMLButtonElement>;
     private powerupCountNodes: Record<TacticalPowerup, HTMLElement>;
@@ -89,6 +99,12 @@ class Hud {
     onSwapModeChange(handler: (mode: SwapMode) => void): void {
         this.swapModeSelect.addEventListener('change', () => {
             handler(this.getSwapMode());
+        });
+    }
+
+    onCellShapeModeChange(handler: (mode: CellShapeMode) => void): void {
+        this.cellShapeSelect.addEventListener('change', () => {
+            handler(this.cellShapeSelect.value as CellShapeMode);
         });
     }
 
@@ -133,6 +149,11 @@ class Hud {
         this.setAudioToggleState(enabled);
     }
 
+    setCellShapeMode(mode: CellShapeMode): void {
+        this.cellShapeMode = mode;
+        this.cellShapeSelect.value = mode;
+    }
+
     setPowerupToolbarBlocked(blocked: boolean): void {
         if (this.toolbarBlocked === blocked) return;
         this.toolbarBlocked = blocked;
@@ -172,6 +193,14 @@ class Hud {
         const element = getRequiredElement('swap-mode');
         if (!(element instanceof HTMLSelectElement)) {
             throw new Error('Swap mode element is not a select');
+        }
+        return element;
+    }
+
+    private getCellShapeSelect(): HTMLSelectElement {
+        const element = getRequiredElement('cell-shape-mode');
+        if (!(element instanceof HTMLSelectElement)) {
+            throw new Error('Cell shape mode element is not a select');
         }
         return element;
     }
@@ -373,6 +402,13 @@ class Hud {
             chip.className = 'hud__goal-chip hud__goal-chip--color';
             chip.style.setProperty('--goal-color', getColorHex(goal.color));
             chip.setAttribute('aria-hidden', 'true');
+            const shapeKey =
+                this.cellShapeMode === 'shaped'
+                    ? COLOR_SHAPE_CLASS[goal.color]
+                    : 'square';
+            if (shapeKey) {
+                chip.classList.add('board__cell--shape-' + shapeKey);
+            }
             return chip;
         }
         const chip = document.createElement('span');

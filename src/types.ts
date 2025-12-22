@@ -77,7 +77,10 @@ type GameState = {
     survivalTime?: number;
     timeCapacity?: number;
     powerups: PowerupInventory;
+    cellShapeMode: CellShapeMode;
 };
+
+type CellShapeMode = 'square' | 'shaped';
 
 export {
     GameState,
@@ -96,5 +99,6 @@ export {
     LeaderboardScope,
     LeaderboardEntry,
     LeaderboardIdentity,
-    PowerupInventory
+    PowerupInventory,
+    CellShapeMode
 };

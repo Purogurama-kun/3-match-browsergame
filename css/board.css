@@ -95,6 +95,30 @@
     filter: saturate(1.05);
 }
 
+.board__cell--shape-triangle {
+    clip-path: polygon(50% 5%, 95% 80%, 5% 80%);
+    border-radius: 24px;
+}
+
+.board__cell--shape-hexagon {
+    clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
+    border-radius: 24px;
+}
+
+.board__cell--shape-square {
+    border-radius: 12px;
+}
+
+.board__cell--shape-round {
+    clip-path: circle(50% at 50% 50%);
+    border-radius: 50%;
+}
+
+.board__cell--shape-diamond {
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    border-radius: 24px;
+}
+
 .board__cell--generator {
     background:
         linear-gradient(140deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.6)),

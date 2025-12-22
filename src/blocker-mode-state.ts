@@ -34,6 +34,8 @@ class BlockerModeState implements GameModeState {
             difficulty: 'easy',
             comboMultiplier: 1,
             powerups: createFreshPowerupInventory()
+            ,
+            cellShapeMode: 'square'
         };
         context.getHud().setStatus('Blocker-Modus gestartet. Überlebe so lange wie möglich.', '♾️');
         return state;

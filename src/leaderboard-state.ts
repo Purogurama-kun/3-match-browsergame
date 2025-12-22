@@ -76,6 +76,8 @@ class LeaderboardState implements GameModeState {
             difficulty: 'easy',
             comboMultiplier: 1,
             powerups: createFreshPowerupInventory()
+            ,
+            cellShapeMode: 'square'
         };
     }
 

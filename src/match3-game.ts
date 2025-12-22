@@ -10,7 +10,7 @@ import {
 import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
 import { Board } from './board.js';
-import { GameState, SwapMode, SwipeDirection } from './types.js';
+import { CellShapeMode, GameState, SwapMode, SwipeDirection } from './types.js';
 import { Renderer } from './renderer.js';
 import { LEVELS } from './levels.js';
 import { GameModeState, ModeContext, BoardConfig } from './game-mode-state.js';
@@ -51,10 +51,14 @@ class Match3Game implements ModeContext {
                 this.hud.setAudioEnabled(active);
             }
         });
+        this.hud.onCellShapeModeChange((mode) => this.updateCellShapeMode(mode));
         this.hud.initOptionsMenu();
         this.hud.setAudioEnabled(this.sounds.isEnabled());
+        this.renderer.setCellShapesEnabled(true);
+        this.hud.setCellShapeMode(this.cellShapeMode);
         this.modeState = new LevelModeState(1);
         this.state = this.modeState.enter(this);
+        this.updateCellShapeMode(this.state.cellShapeMode);
 
         this.generation = 0;
         this.pendingTimers = [];
@@ -82,6 +86,7 @@ class Match3Game implements ModeContext {
     private readonly maxMultiplier = 5;
     private readonly maxBombDropChance = 0.05; // 5%
     private boardAnimating: boolean;
+    private cellShapeMode: CellShapeMode = 'square';
     private pendingPowerup: TacticalPowerup | null = null;
     private pendingPowerupSelections: number[] = [];
     private powerupInProgress = false;
@@ -160,10 +165,24 @@ class Match3Game implements ModeContext {
         }
         this.modeState = modeState;
         this.state = this.modeState.enter(this);
+        this.updateCellShapeMode(this.cellShapeMode);
     }
 
     updateHud(state: GameState = this.state): void {
         this.hud.render(state);
+    }
+
+    private updateCellShapeMode(mode: CellShapeMode): void {
+        this.cellShapeMode = mode;
+        if (this.state) {
+            this.state.cellShapeMode = mode;
+        }
+        this.renderer.setCellShapesEnabled(mode === 'shaped');
+        this.hud.setCellShapeMode(mode);
+        if (this.board.getCells().length > 0) {
+            this.renderer.refreshBoard(this.board);
+        }
+        this.updateHud();
     }
 
     private syncPowerupToolbarLock(): void {
@@ -386,6 +405,7 @@ class Match3Game implements ModeContext {
                 if (!this.board.isHardCandy(neighbor)) return;
                 this.board.softenCandy(neighbor);
                 softened.add(neighbor);
+                this.renderer.updateCell(neighbor, this.board.getCellState(neighbor));
             });
         });
     }
@@ -486,7 +506,15 @@ class Match3Game implements ModeContext {
 
     private destroyCells(indices: Iterable<number>): void {
         const unique = new Set(indices);
-        unique.forEach((idx) => this.destroyCell(idx));
+        unique.forEach((idx) => this.destroyCellAndMaybeFinishGenerator(idx));
+    }
+
+    private destroyCellAndMaybeFinishGenerator(index: number): void {
+        const generatorWasHard = this.board.isBlockerGenerator(index) && this.board.isHardCandy(index);
+        this.destroyCell(index);
+        if (generatorWasHard && this.board.isBlockerGenerator(index)) {
+            this.destroyCell(index);
+        }
     }
 
     private consumePowerup(type: TacticalPowerup): boolean {
@@ -537,7 +565,7 @@ class Match3Game implements ModeContext {
         }
         this.sounds.play('radiusBomb');
         this.renderer.screenShake();
-        affected.forEach((index) => this.destroyCell(index));
+        affected.forEach((index) => this.destroyCellAndMaybeFinishGenerator(index));
         this.defer(() => {
             this.dropCells();
             this.releasePowerupLock();
@@ -581,7 +609,7 @@ class Match3Game implements ModeContext {
                 }
             }
         }
-        affected.forEach((idx) => this.destroyCell(idx));
+        affected.forEach((idx) => this.destroyCellAndMaybeFinishGenerator(idx));
     }
 
     private shouldSpawnBombFromDrop(): boolean {
