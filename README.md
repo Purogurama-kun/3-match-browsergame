@@ -99,11 +99,28 @@ The client ID is the public identifier of the app in Google’s login system. Cl
 
 ## ChatGPT Codex Token Saving
 
-Here is a overview freom ChatGPT about their token costs: https://help.openai.com/en/articles/11481834-chatgpt-rate-card-business-enterpriseedu .
-
 Use `npm run codex` to be token efficient -e.g.:
 - `npm run codex -- "Fix null handling in src/auth/session.ts"`
 - `sed -n '40,80p' src/auth/session.ts | npm run codex -- "Fix null handling in src/auth/session.ts"` (with context)
+
+### Token costs
+
+#### Codex Credit Costs
+
+| Task Type     | Unit          | GPT-5.2 & GPT-5.2-Codex | GPT-5.1-Codex-mini |
+|--------------|---------------|-------------------------|--------------------|
+| Local Tasks  | 1 message     | ~5 credits              | ~1 credit          |
+| Cloud Tasks  | 1 message     | ~25 credits             | Not available      |
+| Code Review  | 1 pull request| ~25 credits             | Not available      |
+
+Here is a overview freom ChatGPT about their token costs: https://help.openai.com/en/articles/11481834-chatgpt-rate-card-business-enterpriseedu .
+
+##### Key takeaway
+> **Cloud tasks and PR reviews are ~5× more expensive than local tasks.**  
+> **GPT-5.1-Codex-mini is the cheapest possible Codex mode.**
+
+### One-line summary
+**GPT-5.1-Codex-mini + diff-only = cheapest possible Codex workflow.** (codex-mini means local and no PR)
 
 ### Token-Efficient Configuration
 
