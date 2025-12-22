@@ -46,6 +46,7 @@ The PHP server exposes `backend/progress.php`, which persists user progress to `
 - `npm run build` ➔ `tsc`
 - `npm run watch` ➔ `tsc -w`
 - `npm run docs` ➔ `jsdoc -c jsdoc.json`
+- `npm run codex` ➔ `codex --model gpt-5.1-codex-mini --local --diff-only --no-explain --no-review` (is very token cheap)
 
 ## Setup php
 
@@ -98,6 +99,12 @@ The client ID is the public identifier of the app in Google’s login system. Cl
 
 ## ChatGPT Codex Token Saving
 
+Here is a overview freom ChatGPT about their token costs: https://help.openai.com/en/articles/11481834-chatgpt-rate-card-business-enterpriseedu .
+
+Use `npm run codex` to be token efficient -e.g.:
+- `npm run codex -- "Fix null handling in src/auth/session.ts"`
+- `sed -n '40,80p' src/auth/session.ts | npm run codex -- "Fix null handling in src/auth/session.ts"` (with context)
+
 ### Token-Efficient Configuration
 
 | Measure                                      | Description                                               | Typical Token Savings |
@@ -123,7 +130,7 @@ The client ID is the public identifier of the app in Google’s login system. Cl
 | **Diff only**                                | Return only code changes, not full files                  | **30–70%**            |
 | **Explicitly define new classes**            | Avoids pattern mining (e.g. “Implement TimeMode”)         | **10–25%**            |
 | **English prompts**                          | More efficient tokenization                               | **5–15%**             |
-| **Batch prompts instead of single prompts**  | One shared context for multiple tasks                      | **15–35%**            |
+| **Batch prompts instead of single prompts**  | One shared context for multiple tasks                     | **15–35%**            |
 | **Provide context manually**                 | Prevents automatic repository scanning                    | **30–60%**            |
 | **Explicit file list**                       | Disables repository-wide search                           | **20–50%**            |
 | **Line-range selection**                     | Send only relevant code lines                             | **30–70%**            |
