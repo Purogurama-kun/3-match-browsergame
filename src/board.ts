@@ -1,272 +1,139 @@
 import { GRID_SIZE, BOOSTERS, BoosterType, COLORS, randomColor } from './constants.js';
-import { SwipeDirection } from './types.js';
+
+type CellState = {
+    color: string;
+    booster: BoosterType;
+    hard: boolean;
+    blocked: boolean;
+    generator: boolean;
+};
 
 class Board {
-    constructor(
-        gameEl: HTMLElement,
-        onCellClick: (cell: HTMLDivElement) => void,
-        onCellSwipe: (cell: HTMLDivElement, direction: SwipeDirection) => void
-    ) {
-        this.gameEl = gameEl;
-        this.onCellClick = onCellClick;
-        this.onCellSwipe = onCellSwipe;
-        this.cells = [];
-        this.touchStartX = null;
-        this.touchStartY = null;
-        this.touchStartCell = null;
-        this.swipeThreshold = 18;
-        this.blockedIndices = new Set();
-        this.blockerGeneratorColor = '#1f2937';
-    }
-
-    private gameEl: HTMLElement;
-    private onCellClick: (cell: HTMLDivElement) => void;
-    private onCellSwipe: (cell: HTMLDivElement, direction: SwipeDirection) => void;
-    private cells: HTMLDivElement[];
-    private touchStartX: number | null;
-    private touchStartY: number | null;
-    private touchStartCell: HTMLDivElement | null;
-    private swipeThreshold: number;
-    private blockedIndices: Set<number>;
-    private blockerGeneratorColor: string;
+    private cellStates: CellState[] = [];
+    private blockedIndices: Set<number> = new Set();
+    private readonly blockerGeneratorColor = '#1f2937';
 
     create(config?: { blockedCells?: number[]; hardCandies?: number[]; blockerGenerators?: number[] }): void {
         this.blockedIndices = new Set(config?.blockedCells ?? []);
         const hardCandies = new Set(config?.hardCandies ?? []);
         const blockerGenerators = new Set(config?.blockerGenerators ?? []);
-        this.cells = [];
-        this.gameEl.innerHTML = '';
+        this.cellStates = [];
         for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
-            const cell = document.createElement('div');
-            cell.className = 'board__cell';
-            cell.dataset.index = String(i);
-            cell.dataset.booster = BOOSTERS.NONE;
-            cell.dataset.blocked = this.blockedIndices.has(i) ? 'true' : 'false';
-            cell.dataset.hard = 'false';
-            cell.dataset.generator = 'false';
-            if (this.isBlockedCell(cell)) {
-                cell.classList.add('board__cell--void');
-                this.gameEl.appendChild(cell);
-                this.cells.push(cell);
-                continue;
-            }
-            this.applyColor(cell, this.pickColorForIndex(i));
+            const blocked = this.blockedIndices.has(i);
             const isGenerator = blockerGenerators.has(i);
-            if (isGenerator) {
-                this.setBlockerGenerator(cell, true);
+            const state: CellState = {
+                color: '',
+                booster: BOOSTERS.NONE,
+                hard: hardCandies.has(i) || isGenerator,
+                blocked,
+                generator: isGenerator
+            };
+            if (blocked) {
+                state.color = '';
+            } else if (isGenerator) {
+                state.color = this.blockerGeneratorColor;
+            } else {
+                state.color = this.pickColorForIndex(i);
             }
-            this.setHardCandy(cell, isGenerator || hardCandies.has(i));
-            cell.dataset.booster = BOOSTERS.NONE;
-            cell.addEventListener('click', () => this.onCellClick(cell));
-            cell.addEventListener('touchstart', (event) => this.handleTouchStart(event, cell), { passive: false });
-            cell.addEventListener('touchmove', (event) => this.handleTouchMove(event), { passive: false });
-            cell.addEventListener('touchend', (event) => this.handleTouchEnd(event), { passive: false });
-            cell.addEventListener('touchcancel', () => this.resetTouchState());
-            this.gameEl.appendChild(cell);
-            this.cells.push(cell);
+            this.cellStates.push(state);
         }
     }
 
     clear(): void {
-        this.cells = [];
+        this.cellStates = [];
         this.blockedIndices.clear();
-        this.gameEl.innerHTML = '';
     }
 
-    getCell(index: number): HTMLDivElement {
-        const cell = this.cells[index];
-        if (!cell) {
-            throw new Error('Missing cell at index: ' + index);
+    getCellState(index: number): CellState {
+        const state = this.cellStates[index];
+        if (!state) {
+            throw new Error('Missing cell state at index: ' + index);
         }
-        return cell;
+        return state;
     }
 
-    getCellColor(cell: HTMLDivElement): string {
-        return cell.dataset.color ?? '';
+    getCellColor(index: number): string {
+        return this.getCellState(index).color;
     }
 
-    getCellBooster(cell: HTMLDivElement): BoosterType {
-        return (cell.dataset.booster as BoosterType) ?? BOOSTERS.NONE;
+    setCellColor(index: number, color: string): void {
+        this.getCellState(index).color = color;
+    }
+
+    getCellBooster(index: number): BoosterType {
+        return this.getCellState(index).booster;
+    }
+
+    setBooster(index: number, type: BoosterType): void {
+        this.getCellState(index).booster = type;
     }
 
     isBlockedIndex(index: number): boolean {
         return this.blockedIndices.has(index);
     }
 
-    isBlockedCell(cell: HTMLDivElement): boolean {
-        return cell.dataset.blocked === 'true';
+    isBlockedCell(index: number): boolean {
+        return this.isBlockedIndex(index);
     }
 
-    isHardCandy(cell: HTMLDivElement): boolean {
-        return cell.dataset.hard === 'true';
+    isHardCandy(index: number): boolean {
+        return this.getCellState(index).hard;
     }
 
-    isBlockerGenerator(cell: HTMLDivElement): boolean {
-        return cell.dataset.generator === 'true';
+    setHardCandy(index: number, isHard: boolean): void {
+        this.getCellState(index).hard = isHard;
+    }
+
+    isBlockerGenerator(index: number): boolean {
+        return this.getCellState(index).generator;
+    }
+
+    setBlockerGenerator(index: number, isGenerator: boolean, isHard: boolean = true): void {
+        const state = this.getCellState(index);
+        state.generator = isGenerator;
+        state.hard = isHard;
+        state.booster = BOOSTERS.NONE;
+        if (isGenerator) {
+            if (!state.color) {
+                state.color = this.blockerGeneratorColor;
+            }
+        }
+    }
+
+    softenCandy(index: number): void {
+        this.setHardCandy(index, false);
+    }
+
+    clearCell(index: number): void {
+        const state = this.getCellState(index);
+        if (state.blocked) return;
+        state.color = '';
+        state.booster = BOOSTERS.NONE;
+        state.hard = false;
+        state.generator = false;
+    }
+
+    swapCells(a: number, b: number): void {
+        const stateA = this.getCellState(a);
+        const stateB = this.getCellState(b);
+        if (stateA.blocked || stateB.blocked) return;
+        const temp: CellState = { ...stateA };
+        this.cellStates[a] = { ...stateB };
+        this.cellStates[b] = { ...temp };
     }
 
     getBlockerGeneratorIndices(): number[] {
         const indices: number[] = [];
-        for (const cell of this.cells) {
-            if (!this.isBlockerGenerator(cell)) continue;
-            indices.push(Number(cell.dataset.index));
+        for (let i = 0; i < this.cellStates.length; i++) {
+            if (this.isBlockerGenerator(i)) {
+                indices.push(i);
+            }
         }
         return indices;
     }
 
-    setCellColor(cell: HTMLDivElement, color: string): void {
-        this.applyColor(cell, color);
-    }
-
-    setBooster(cell: HTMLDivElement, type: BoosterType): void {
-        cell.dataset.booster = type;
-        this.updateBoosterVisual(cell);
-    }
-
-    setHardCandy(cell: HTMLDivElement, isHard: boolean): void {
-        cell.dataset.hard = isHard ? 'true' : 'false';
-        cell.classList.toggle('board__cell--hard', isHard);
-    }
-
-    setBlockerGenerator(cell: HTMLDivElement, isGenerator: boolean, isHard: boolean = true): void {
-        cell.dataset.generator = isGenerator ? 'true' : 'false';
-        cell.classList.toggle('board__cell--generator', isGenerator);
-        cell.classList.remove('board__cell--generator-hit');
-        if (isGenerator) {
-            if (!this.getCellColor(cell)) {
-                this.setCellColor(cell, this.blockerGeneratorColor);
-            }
-            this.setBooster(cell, BOOSTERS.NONE);
-            this.setHardCandy(cell, isHard);
-            cell.textContent = '⛓️';
-        } else {
-            cell.textContent = '';
-        }
-    }
-
-    markBlockerGeneratorHit(cell: HTMLDivElement): void {
-        if (!this.isBlockerGenerator(cell)) return;
-        cell.classList.add('board__cell--generator-hit');
-        cell.addEventListener('animationend', () => cell.classList.remove('board__cell--generator-hit'), { once: true });
-    }
-
-    softenCandy(cell: HTMLDivElement): void {
-        this.setHardCandy(cell, false);
-    }
-
-    clearCell(cell: HTMLDivElement): void {
-        cell.classList.remove('board__cell--explode');
-        this.setBlockerGenerator(cell, false, false);
-        this.setCellColor(cell, '');
-        this.setBooster(cell, BOOSTERS.NONE);
-        cell.textContent = '';
-        cell.style.removeProperty('color');
-        this.setHardCandy(cell, false);
-    }
-
-    updateBoosterVisual(cell: HTMLDivElement): void {
-        cell.classList.remove(
-            'board__cell--bomb-line',
-            'board__cell--bomb-radius',
-            'board__cell--bomb-small',
-            'board__cell--bomb-medium',
-            'board__cell--bomb-large',
-            'board__cell--bomb-ultimate'
-        );
-        cell.style.color = '#0b0f1d';
-        cell.textContent = '';
-        if (cell.dataset.booster === BOOSTERS.LINE) {
-            cell.classList.add('board__cell--bomb-line');
-            cell.textContent = '💣';
-        }
-        if (cell.dataset.booster === BOOSTERS.BURST_SMALL) {
-            cell.classList.add('board__cell--bomb-small');
-            cell.textContent = '🧨';
-        }
-        if (cell.dataset.booster === BOOSTERS.BURST_MEDIUM) {
-            cell.classList.add('board__cell--bomb-medium');
-            cell.textContent = '💥';
-        }
-        if (cell.dataset.booster === BOOSTERS.BURST_LARGE) {
-            cell.classList.add('board__cell--bomb-large', 'board__cell--bomb-ultimate');
-            cell.style.color = '#f8fafc';
-            cell.textContent = '☢️';
-        }
-    }
-
-    swapCells(a: HTMLDivElement, b: HTMLDivElement): void {
-        const colorA = this.getCellColor(a);
-        this.setCellColor(a, this.getCellColor(b));
-        this.setCellColor(b, colorA);
-        const isHardA = this.isHardCandy(a);
-        const isHardB = this.isHardCandy(b);
-        this.setHardCandy(a, isHardB);
-        this.setHardCandy(b, isHardA);
-        const isGeneratorA = this.isBlockerGenerator(a);
-        const isGeneratorB = this.isBlockerGenerator(b);
-        this.setBlockerGenerator(a, isGeneratorB, isHardB);
-        this.setBlockerGenerator(b, isGeneratorA, isHardA);
-        [a.dataset.booster, b.dataset.booster] = [b.dataset.booster, a.dataset.booster];
-        this.updateBoosterVisual(a);
-        this.updateBoosterVisual(b);
-    }
-
-    private handleTouchStart(event: TouchEvent, cell: HTMLDivElement): void {
-        if (event.touches.length !== 1) return;
-        const touch = event.touches[0];
-        if (!touch) return;
-        this.touchStartX = touch.clientX;
-        this.touchStartY = touch.clientY;
-        this.touchStartCell = cell;
-    }
-
-    private handleTouchMove(event: TouchEvent): void {
-        if (this.touchStartX === null || this.touchStartY === null) return;
-        if (event.touches.length !== 1) return;
-        const touch = event.touches[0];
-        if (!touch) return;
-        /*const deltaX = Math.abs(touch.clientX - this.touchStartX);
-        const deltaY = Math.abs(touch.clientY - this.touchStartY);
-        if (Math.max(deltaX, deltaY) > 4) {
-            event.preventDefault();
-        }*/
-        event.preventDefault();
-    }
-
-    private handleTouchEnd(event: TouchEvent): void {
-        if (!this.touchStartCell || this.touchStartX === null || this.touchStartY === null) {
-            this.resetTouchState();
-            return;
-        }
-        if (event.changedTouches.length === 0) {
-            this.resetTouchState();
-            return;
-        }
-        const touch = event.changedTouches[0];
-        if (!touch) {
-            this.resetTouchState();
-            return;
-        }
-        const deltaX = touch.clientX - this.touchStartX;
-        const deltaY = touch.clientY - this.touchStartY;
-        const absX = Math.abs(deltaX);
-        const absY = Math.abs(deltaY);
-        const maxDelta = Math.max(absX, absY);
-        if (maxDelta < this.swipeThreshold) {
-            this.resetTouchState();
-            return;
-        }
-        event.preventDefault();
-        const direction: SwipeDirection =
-            absX > absY ? (deltaX > 0 ? 'right' : 'left') : deltaY > 0 ? 'down' : 'up';
-        this.onCellSwipe(this.touchStartCell, direction);
-        this.resetTouchState();
-    }
-
-    private resetTouchState(): void {
-        this.touchStartCell = null;
-        this.touchStartX = null;
-        this.touchStartY = null;
+    getCells(): CellState[] {
+        return this.cellStates;
     }
 
     private pickColorForIndex(index: number): string {
@@ -296,46 +163,11 @@ class Board {
     }
 
     private getExistingColor(index: number): string | null {
-        const cell = this.cells[index];
-        if (!cell) return null;
-        if (this.isBlockedCell(cell)) return null;
-        if (this.isBlockerGenerator(cell)) return null;
-        return this.getCellColor(cell);
-    }
-
-    private applyColor(cell: HTMLDivElement, color: string): void {
-        cell.dataset.color = color;
-        if (color) {
-            cell.style.setProperty('--cell-color', color);
-        } else {
-            cell.style.removeProperty('--cell-color');
-        }
-    }
-
-    playSpawnAnimation(): number {
-        const baseDuration = 550;
-        let longestDelay = 0;
-
-        this.cells.forEach((cell) => {
-            if (this.isBlockedCell(cell)) return;
-            const index = Number(cell.dataset.index);
-            const { row, col } = this.getRowCol(index);
-            const delay = row * 70 + col * 12;
-            longestDelay = Math.max(longestDelay, delay);
-            cell.classList.remove('board__cell--spawn');
-            cell.style.animationDelay = delay + 'ms';
-            cell.classList.add('board__cell--spawn');
-            cell.addEventListener(
-                'animationend',
-                () => {
-                    cell.classList.remove('board__cell--spawn');
-                    cell.style.removeProperty('animation-delay');
-                },
-                { once: true }
-            );
-        });
-
-        return baseDuration + longestDelay;
+        const state = this.cellStates[index];
+        if (!state) return null;
+        if (state.blocked) return null;
+        if (state.generator) return null;
+        return state.color || null;
     }
 
     private getRowCol(index: number): { row: number; col: number } {
@@ -346,4 +178,4 @@ class Board {
     }
 }
 
-export { Board };
+export { Board, CellState };

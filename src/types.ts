@@ -62,7 +62,7 @@ type LevelDefinition = {
 
 type GameState = {
     mode: GameMode;
-    selected: HTMLDivElement | null;
+    selected: number | null;
     score: number;
     bestScore: number;
     level: number;

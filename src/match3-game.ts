@@ -3,7 +3,7 @@ import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
 import { Board } from './board.js';
 import { GameState, SwapMode, SwipeDirection } from './types.js';
-import { getRequiredElement } from './dom.js';
+import { Renderer } from './renderer.js';
 import { LEVELS } from './levels.js';
 import { GameModeState, ModeContext, BoardConfig } from './game-mode-state.js';
 import { LevelModeState } from './level-mode-state.js';
@@ -28,14 +28,10 @@ type MatchAccumulator = {
 
 class Match3Game implements ModeContext {
     constructor() {
-        this.gameEl = getRequiredElement('game');
         this.sounds = new SoundManager();
         this.hud = new Hud();
-        this.board = new Board(
-            this.gameEl,
-            (cell) => this.handleCellClick(cell),
-            (cell, direction) => this.handleCellSwipe(cell, direction)
-        );
+        this.renderer = new Renderer(this.hud);
+        this.board = new Board();
         this.swapMode = this.hud.getSwapMode();
         this.hud.onSwapModeChange((mode) => {
             this.swapMode = mode;
@@ -53,51 +49,24 @@ class Match3Game implements ModeContext {
 
         this.generation = 0;
         this.pendingTimers = [];
-
-        this.modalEl = getRequiredElement('result-modal');
-        this.modalTitle = getRequiredElement('result-title');
-        this.modalText = getRequiredElement('result-text');
-        this.modalButton = getRequiredElement('result-button');
-        this.modalCallback = null;
         this.moveActive = false;
         this.currentMoveScore = 0;
         this.currentMoveBaseScore = 0;
-        this.moveEvaluationEl = getRequiredElement('move-evaluation');
-        this.moveEvaluationTimer = null;
-
-        this.modalButton.addEventListener('click', () => this.hideResultModal());
-        this.modalEl.addEventListener('click', (event) => {
-            if (event.target === this.modalEl) {
-                this.hideResultModal();
-            }
-        });
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && this.modalEl.classList.contains('modal--visible')) {
-                this.hideResultModal();
-            }
-        });
         this.boardAnimating = false;
     }
 
-    private gameEl: HTMLElement;
     private sounds: SoundManager;
     private hud: Hud;
+    private readonly renderer: Renderer;
     private board: Board;
     private state: GameState;
     private modeState: GameModeState;
     private swapMode: SwapMode;
     private generation: number;
     private pendingTimers: number[];
-    private modalEl: HTMLElement;
-    private modalTitle: HTMLElement;
-    private modalText: HTMLElement;
-    private modalButton: HTMLButtonElement;
-    private modalCallback: (() => void) | null;
     private moveActive: boolean;
     private currentMoveScore: number;
     private currentMoveBaseScore: number;
-    private moveEvaluationEl: HTMLElement;
-    private moveEvaluationTimer: number | null;
     private readonly baseCellPoints = 10;
     private readonly minMultiplier = 0.5;
     private readonly maxMultiplier = 5;
@@ -137,13 +106,8 @@ class Match3Game implements ModeContext {
         this.clearPendingTimers();
         this.board.clear();
         this.resetMoveTracking();
-        this.moveEvaluationEl.classList.remove('move-evaluation--visible');
-        if (this.moveEvaluationTimer !== null) {
-            clearTimeout(this.moveEvaluationTimer);
-            this.moveEvaluationTimer = null;
-        }
-        this.modalEl.classList.remove('modal--visible');
-        this.modalCallback = null;
+        this.renderer.resetMoveEvaluation();
+        this.renderer.hideModal(false);
         this.hud.resetStatus();
     }
 
@@ -185,11 +149,6 @@ class Match3Game implements ModeContext {
         this.state = this.modeState.enter(this);
     }
 
-    private screenShake(): void {
-        this.gameEl.classList.add('board--shake');
-        setTimeout(() => this.gameEl.classList.remove('board--shake'), 350);
-    }
-
     updateHud(state: GameState = this.state): void {
         this.hud.render(state);
     }
@@ -200,12 +159,17 @@ class Match3Game implements ModeContext {
         this.boardAnimating = true;
         const boardConfig = this.modeState.getBoardConfig();
         this.board.create(boardConfig);
+        this.renderer.renderBoard(
+            this.board,
+            (index) => this.handleCellClick(index),
+            (index, direction) => this.handleCellSwipe(index, direction)
+        );
         this.generatorMoveCounter = 0;
         if (this.modeState.onBoardCreated) {
             this.modeState.onBoardCreated(this.state, this);
         }
         this.resetMoveTracking();
-        this.renderMultiplierStatus(0, 0);
+        this.renderer.renderMultiplierStatus(this.state.comboMultiplier, 0, 0);
         this.updateHud();
         this.animateBoardEntry();
     }
@@ -218,54 +182,54 @@ class Match3Game implements ModeContext {
         }
     }
 
-    private handleCellClick(cell: HTMLDivElement): void {
+    private handleCellClick(index: number): void {
         if (this.boardAnimating) return;
         if (this.moveActive) return;
         if (!this.modeState.canStartMove(this.state)) return;
 
-        const booster = this.board.getCellBooster(cell);
+        const booster = this.board.getCellBooster(index);
         if (booster === BOOSTERS.BURST_LARGE) {
-            this.activateBooster(cell, true);
+            this.activateBooster(index, true);
             return;
         }
 
-        if (!this.state.selected) {
-            this.state.selected = cell;
-            cell.classList.add('board__cell--selected');
+        if (this.state.selected === null) {
+            this.state.selected = index;
+            this.renderer.selectCell(index);
             return;
         }
 
-        if (cell === this.state.selected) {
-            this.state.selected.classList.remove('board__cell--selected');
+        if (index === this.state.selected) {
+            this.renderer.clearSelection();
             this.state.selected = null;
             return;
         }
 
-        if (!this.areAdjacent(this.state.selected, cell)) {
+        if (this.state.selected !== null && !this.areAdjacent(this.state.selected, index)) {
             this.showInvalidMove(this.state.selected);
-            this.state.selected.classList.remove('board__cell--selected');
-            this.state.selected = cell;
-            cell.classList.add('board__cell--selected');
+            this.renderer.clearSelection();
+            this.state.selected = index;
+            this.renderer.selectCell(index);
             return;
         }
 
         const firstSelected = this.state.selected;
-        this.state.selected.classList.remove('board__cell--selected');
+        this.renderer.clearSelection();
         this.state.selected = null;
-        this.trySwap(firstSelected, cell);
+        this.trySwap(firstSelected, index);
     }
 
-    private handleCellSwipe(cell: HTMLDivElement, direction: SwipeDirection): void {
+    private handleCellSwipe(index: number, direction: SwipeDirection): void {
         if (this.boardAnimating) return;
         if (this.moveActive) return;
         if (!this.modeState.canStartMove(this.state)) return;
-        const neighbor = this.getNeighbor(cell, direction);
+        const neighbor = this.getNeighbor(index, direction);
         if (!neighbor) return;
         if (this.state.selected) {
-            this.state.selected.classList.remove('board__cell--selected');
+            this.renderer.clearSelection();
             this.state.selected = null;
         }
-        this.trySwap(cell, neighbor);
+        this.trySwap(index, neighbor);
     }
 
     private findMatches(): MatchResult {
@@ -304,12 +268,11 @@ class Match3Game implements ModeContext {
             } else {
                 this.sounds.play('match');
             }
-            this.screenShake();
+            this.renderer.screenShake();
             matched.forEach((idx) => {
-                const cell = this.board.getCell(idx);
-                const booster = this.board.getCellBooster(cell);
+                const booster = this.board.getCellBooster(idx);
                 if (booster !== BOOSTERS.NONE) {
-                    this.activateBooster(cell, false);
+                    this.activateBooster(idx, false);
                     return;
                 }
                 this.destroyCell(idx);
@@ -333,56 +296,56 @@ class Match3Game implements ModeContext {
             this.getAdjacentIndices(row, col).forEach((neighbor) => {
                 if (softened.has(neighbor)) return;
                 if (this.board.isBlockedIndex(neighbor)) return;
-                const cell = this.board.getCell(neighbor);
-                if (!this.board.isHardCandy(cell)) return;
-                this.board.softenCandy(cell);
+                if (!this.board.isHardCandy(neighbor)) return;
+                this.board.softenCandy(neighbor);
                 softened.add(neighbor);
             });
         });
     }
 
     private destroyCell(index: number): void {
-        const cell = this.board.getCell(index);
         if (this.board.isBlockedIndex(index)) return;
-        const isGenerator = this.board.isBlockerGenerator(cell);
-        if (this.board.isHardCandy(cell)) {
+        const isGenerator = this.board.isBlockerGenerator(index);
+        if (this.board.isHardCandy(index)) {
             if (isGenerator) {
-                this.board.markBlockerGeneratorHit(cell);
+                this.renderer.animateGeneratorHit(index);
             }
-            this.board.softenCandy(cell);
+            this.board.softenCandy(index);
+            this.renderer.updateCell(index, this.board.getCellState(index));
             return;
         }
-        const booster = this.board.getCellBooster(cell);
-        const color = this.board.getCellColor(cell);
-        if ((!color && booster === BOOSTERS.NONE) || cell.classList.contains('board__cell--explode')) return;
+        const booster = this.board.getCellBooster(index);
+        const color = this.board.getCellColor(index);
+        if ((!color && booster === BOOSTERS.NONE) || this.renderer.isCellExploding(index)) return;
         if (isGenerator) {
-            this.board.markBlockerGeneratorHit(cell);
+            this.renderer.animateGeneratorHit(index);
         }
-        cell.classList.add('board__cell--explode');
+        this.renderer.markCellExploding(index);
         this.defer(() => {
-            this.board.clearCell(cell);
+            this.renderer.clearCellExplosion(index);
+            this.board.clearCell(index);
             this.awardScore(this.baseCellPoints);
             if (color) {
                 this.modeState.handleColorCleared(this.state, color, this);
             }
             this.updateHud();
+            this.renderer.updateCell(index, this.board.getCellState(index));
         }, 300);
     }
 
     private createBooster(index: number, type: BoosterType): void {
-        const cell = this.board.getCell(index);
         if (type === BOOSTERS.BURST_LARGE) {
-            this.board.setCellColor(cell, BLACK_BOMB_COLOR);
+            this.board.setCellColor(index, BLACK_BOMB_COLOR);
         } else {
-            this.board.setCellColor(cell, randomColor());
+            this.board.setCellColor(index, randomColor());
         }
-        this.board.setBooster(cell, type);
+        this.board.setBooster(index, type);
+        this.renderer.updateCell(index, this.board.getCellState(index));
     }
 
-    private activateBooster(cell: HTMLDivElement, consumesMove: boolean): void {
-        const index = Number(cell.dataset.index);
+    private activateBooster(index: number, consumesMove: boolean): void {
         const { row, col } = this.getRowCol(index);
-        const booster = this.board.getCellBooster(cell);
+        const booster = this.board.getCellBooster(index);
         this.modeState.handleBoosterUsed(this.state, booster, this);
 
         if (consumesMove) {
@@ -466,63 +429,60 @@ class Match3Game implements ModeContext {
         return this.modeState.shouldSpawnHardCandy(this.state);
     }
 
-    private createFallingBomb(cell: HTMLDivElement): void {
-        this.board.setCellColor(cell, randomColor());
-        this.board.setBooster(cell, BOOSTERS.BURST_SMALL);
+    private createFallingBomb(index: number): void {
+        this.board.setCellColor(index, randomColor());
+        this.board.setBooster(index, BOOSTERS.BURST_SMALL);
+        this.renderer.updateCell(index, this.board.getCellState(index));
     }
 
     private dropCells(): void {
         for (let c = 0; c < GRID_SIZE; c++) {
             for (let r = GRID_SIZE - 1; r >= 0; r--) {
-                const i = r * GRID_SIZE + c;
-                if (this.board.isBlockedIndex(i)) continue;
-                const cell = this.board.getCell(i);
-                if (!this.board.getCellColor(cell)) {
-                    for (let k = r - 1; k >= 0; k--) {
-                        const sourceIndex = k * GRID_SIZE + c;
-                        if (this.board.isBlockedIndex(sourceIndex)) continue;
-                        const above = this.board.getCell(sourceIndex);
-                        const sourceColor = this.board.getCellColor(above);
-                        if (!sourceColor) continue;
-                        const sourceIsHard = this.board.isHardCandy(above);
-                        const sourceIsGenerator = this.board.isBlockerGenerator(above);
-                        this.board.setBlockerGenerator(cell, sourceIsGenerator, sourceIsHard);
-                        if (!sourceIsGenerator) {
-                            this.board.setCellColor(cell, sourceColor);
-                            this.board.setBooster(cell, this.board.getCellBooster(above));
-                        } else {
-                            this.board.setCellColor(cell, this.board.getCellColor(above));
-                            this.board.setBooster(cell, BOOSTERS.NONE);
-                        }
-                        this.board.setHardCandy(cell, sourceIsHard);
-                        this.board.clearCell(above);
-                        break;
-                    }
-                    if (!this.board.getCellColor(cell)) {
-                        const spawnHardCandy = this.shouldSpawnHardCandy();
-                        if (this.shouldSpawnBombFromDrop()) {
-                            this.createFallingBomb(cell);
-                            this.board.setHardCandy(cell, false);
-                        } else {
-                            this.board.setCellColor(cell, randomColor());
-                            this.board.setBooster(cell, BOOSTERS.NONE);
-                            this.board.setHardCandy(cell, spawnHardCandy);
-                        }
+                const targetIndex = r * GRID_SIZE + c;
+                if (this.board.isBlockedIndex(targetIndex)) continue;
+                if (this.board.getCellColor(targetIndex)) continue;
+                for (let k = r - 1; k >= 0; k--) {
+                    const sourceIndex = k * GRID_SIZE + c;
+                    if (this.board.isBlockedIndex(sourceIndex)) continue;
+                    const sourceColor = this.board.getCellColor(sourceIndex);
+                    if (!sourceColor) continue;
+                    const sourceIsHard = this.board.isHardCandy(sourceIndex);
+                    const sourceIsGenerator = this.board.isBlockerGenerator(sourceIndex);
+                    this.board.setBlockerGenerator(targetIndex, sourceIsGenerator, sourceIsHard);
+                    this.board.setCellColor(targetIndex, sourceColor);
+                    this.board.setBooster(
+                        targetIndex,
+                        sourceIsGenerator ? BOOSTERS.NONE : this.board.getCellBooster(sourceIndex)
+                    );
+                    this.board.setHardCandy(targetIndex, sourceIsHard);
+                    this.board.clearCell(sourceIndex);
+                    break;
+                }
+                if (!this.board.getCellColor(targetIndex)) {
+                    const spawnHardCandy = this.shouldSpawnHardCandy();
+                    if (this.shouldSpawnBombFromDrop()) {
+                        this.createFallingBomb(targetIndex);
+                        this.board.setHardCandy(targetIndex, false);
+                    } else {
+                        this.board.setCellColor(targetIndex, randomColor());
+                        this.board.setBooster(targetIndex, BOOSTERS.NONE);
+                        this.board.setHardCandy(targetIndex, spawnHardCandy);
                     }
                 }
             }
         }
+        this.renderer.refreshBoard(this.board);
         this.defer(() => this.checkMatches(), 200);
     }
 
-    private areAdjacent(a: HTMLDivElement, b: HTMLDivElement): boolean {
-        const { row: aRow, col: aCol } = this.getRowCol(Number(a.dataset.index));
-        const { row: bRow, col: bCol } = this.getRowCol(Number(b.dataset.index));
+    private areAdjacent(aIndex: number, bIndex: number): boolean {
+        const { row: aRow, col: aCol } = this.getRowCol(aIndex);
+        const { row: bRow, col: bCol } = this.getRowCol(bIndex);
         return Math.abs(aRow - bRow) + Math.abs(aCol - bCol) === 1;
     }
 
-    private getNeighbor(cell: HTMLDivElement, direction: SwipeDirection): HTMLDivElement | null {
-        const { row, col } = this.getRowCol(Number(cell.dataset.index));
+    private getNeighbor(index: number, direction: SwipeDirection): number | null {
+        const { row, col } = this.getRowCol(index);
         let targetRow = row;
         let targetCol = col;
         if (direction === 'up') targetRow--;
@@ -532,29 +492,33 @@ class Match3Game implements ModeContext {
         if (targetRow < 0 || targetRow >= GRID_SIZE || targetCol < 0 || targetCol >= GRID_SIZE) return null;
         const targetIndex = targetRow * GRID_SIZE + targetCol;
         if (this.board.isBlockedIndex(targetIndex)) return null;
-        return this.board.getCell(targetIndex);
+        return targetIndex;
     }
 
-    private trySwap(first: HTMLDivElement, second: HTMLDivElement): void {
+    private trySwap(firstIndex: number, secondIndex: number): void {
         const firstIsLocked =
-            this.board.isBlockedCell(first) || this.board.isHardCandy(first) || this.board.isBlockerGenerator(first);
+            this.board.isBlockedCell(firstIndex) || this.board.isHardCandy(firstIndex) || this.board.isBlockerGenerator(firstIndex);
         const secondIsLocked =
-            this.board.isBlockedCell(second) || this.board.isHardCandy(second) || this.board.isBlockerGenerator(second);
+            this.board.isBlockedCell(secondIndex) ||
+            this.board.isHardCandy(secondIndex) ||
+            this.board.isBlockerGenerator(secondIndex);
         if (firstIsLocked || secondIsLocked) {
-            this.showInvalidMove(firstIsLocked ? first : second);
+            this.showInvalidMove(firstIsLocked ? firstIndex : secondIndex);
             return;
         }
-        if (!this.areAdjacent(first, second)) {
-            this.showInvalidMove(second);
+        if (!this.areAdjacent(firstIndex, secondIndex)) {
+            this.showInvalidMove(secondIndex);
             return;
         }
-        this.board.swapCells(first, second);
+        this.board.swapCells(firstIndex, secondIndex);
+        this.renderer.refreshBoard(this.board);
         if (this.swapMode === 'require-match') {
             const { matched } = this.findMatches();
             if (matched.size === 0) {
-                this.board.swapCells(first, second);
+                this.board.swapCells(firstIndex, secondIndex);
+                this.renderer.refreshBoard(this.board);
                 this.resetMoveTracking();
-                this.showInvalidMove(second);
+                this.showInvalidMove(secondIndex);
                 return;
             }
         }
@@ -578,9 +542,9 @@ class Match3Game implements ModeContext {
         this.pendingTimers = [];
     }
 
-    private showInvalidMove(cell: HTMLDivElement): void {
-        cell.classList.add('board__cell--shake');
-        this.defer(() => cell.classList.remove('board__cell--shake'), 350);
+    private showInvalidMove(index: number): void {
+        this.renderer.showInvalidMove(index);
+        this.defer(() => this.renderer.clearInvalidMove(index), 350);
     }
 
     finishLevel(result: 'win' | 'lose', completedLevel: number): void {
@@ -592,79 +556,61 @@ class Match3Game implements ModeContext {
         } else {
             this.sounds.play('levelFail');
         }
-        this.showResultModal(result, completedLevel, nextLevel, () => {
-            this.switchMode(new LevelModeState(nextLevel));
-            this.createBoard();
+        const title = result === 'win' ? 'Level ' + completedLevel + ' geschafft!' : 'Level verloren!';
+        const hasMoreLevels = nextLevel > completedLevel;
+        const text =
+            result === 'win'
+                ? hasMoreLevels
+                    ? 'Weiter geht es mit Level ' + nextLevel + '.'
+                    : 'Du hast alle ' +
+                      LEVELS.length +
+                      ' Level gemeistert. Spiele das Finale weiter für Highscores.'
+                : 'Versuche es direkt noch einmal.';
+        this.renderer.showModal({
+            title,
+            text,
+            buttonText: 'Weiter',
+            onClose: () => {
+                this.switchMode(new LevelModeState(nextLevel));
+                this.createBoard();
+            }
         });
-    }
-
-    private showResultModal(
-        result: 'win' | 'lose',
-        completedLevel: number,
-        nextLevel: number,
-        onClose: () => void
-    ): void {
-        this.modalCallback = onClose;
-        this.modalButton.textContent = 'Weiter';
-        if (result === 'win') {
-            this.modalTitle.textContent = 'Level ' + completedLevel + ' geschafft!';
-            const hasMoreLevels = nextLevel > completedLevel;
-            this.modalText.textContent = hasMoreLevels
-                ? 'Weiter geht es mit Level ' + nextLevel + '.'
-                : 'Du hast alle ' + LEVELS.length + ' Level gemeistert. Spiele das Finale weiter für Highscores.';
-        } else {
-            this.modalTitle.textContent = 'Level verloren!';
-            this.modalText.textContent = 'Versuche es direkt noch einmal.';
-        }
-        this.modalEl.classList.add('modal--visible');
-        this.modalButton.focus();
     }
 
     finishBlockerRun(finalScore: number, bestScore: number): void {
         this.sounds.play('levelFail');
-        this.showBlockerResultModal(finalScore, bestScore);
-    }
-
-    private showBlockerResultModal(finalScore: number, bestScore: number): void {
-        this.modalCallback = () => {
-            this.switchMode(new BlockerModeState(bestScore));
-            this.createBoard();
-        };
         const isNewBest = finalScore >= bestScore;
-        this.modalTitle.textContent = isNewBest ? 'Neuer Highscore!' : 'Keine Züge mehr!';
-        this.modalText.textContent =
+        const title = isNewBest ? 'Neuer Highscore!' : 'Keine Züge mehr!';
+        const text =
             'Punkte: ' + finalScore + '. Bester Lauf: ' + bestScore + '. Gleich noch einmal?';
-        this.modalButton.textContent = 'Neu starten';
-        this.modalEl.classList.add('modal--visible');
-        this.modalButton.focus();
+        this.renderer.showModal({
+            title,
+            text,
+            buttonText: 'Neu starten',
+            onClose: () => {
+                this.switchMode(new BlockerModeState(bestScore));
+                this.createBoard();
+            }
+        });
     }
 
     finishTimeRun(finalTime: number, bestTime: number): void {
         this.sounds.play('levelFail');
-        this.showTimeResultModal(finalTime, bestTime);
-    }
-
-    private showTimeResultModal(finalTime: number, bestTime: number): void {
-        this.modalCallback = () => {
-            this.switchMode(new TimeModeState(bestTime));
-            this.createBoard();
-        };
         const isNewBest = finalTime >= bestTime;
         const finalLabel = this.formatTime(Math.max(0, finalTime));
         const bestLabel = this.formatTime(Math.max(0, bestTime));
-        this.modalTitle.textContent = isNewBest ? 'Neue Bestzeit!' : 'Zeit abgelaufen!';
-        this.modalText.textContent = 'Überlebt: ' + finalLabel + '. Bestzeit: ' + bestLabel + '. Noch einmal?';
-        this.modalButton.textContent = 'Neu starten';
-        this.modalEl.classList.add('modal--visible');
-        this.modalButton.focus();
-    }
-
-    private hideResultModal(): void {
-        if (!this.modalEl.classList.contains('modal--visible')) return;
-        this.modalEl.classList.remove('modal--visible');
-        const callback = this.modalCallback;
-        this.modalCallback = null;
-        if (callback) callback();
+        const title = isNewBest ? 'Neue Bestzeit!' : 'Zeit abgelaufen!';
+        const text =
+            'Überlebt: ' + finalLabel + '. Bestzeit: ' + bestLabel + '. Noch einmal?';
+        this.renderer.showModal({
+            title,
+            text,
+            buttonText: 'Neu starten',
+            onClose: () => {
+                this.switchMode(new TimeModeState(bestTime));
+                this.createBoard();
+            }
+        });
     }
 
     private awardScore(basePoints: number): void {
@@ -693,7 +639,7 @@ class Match3Game implements ModeContext {
         if (!this.moveActive) return;
         const delta = this.calculateMultiplierDelta(this.currentMoveScore);
         this.state.comboMultiplier = this.clampMultiplier(this.state.comboMultiplier + delta);
-        this.renderMultiplierStatus(delta, this.currentMoveScore);
+        this.renderer.renderMultiplierStatus(this.state.comboMultiplier, delta, this.currentMoveScore);
         this.showMoveEvaluation(this.currentMoveBaseScore);
         this.resetMoveTracking();
         this.generatorMoveCounter++;
@@ -708,10 +654,9 @@ class Match3Game implements ModeContext {
         const candidates: number[] = [];
         for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
             if (this.board.isBlockedIndex(i)) continue;
-            const cell = this.board.getCell(i);
-            if (this.board.isBlockerGenerator(cell)) continue;
-            if (this.board.isHardCandy(cell)) continue;
-            if (!this.board.getCellColor(cell)) continue;
+            if (this.board.isBlockerGenerator(i)) continue;
+            if (this.board.isHardCandy(i)) continue;
+            if (!this.board.getCellColor(i)) continue;
             candidates.push(i);
         }
         for (let n = 0; n < amount; n++) {
@@ -719,9 +664,8 @@ class Match3Game implements ModeContext {
             const pick = Math.floor(Math.random() * candidates.length);
             const index = candidates.splice(pick, 1)[0];
             if (index === undefined) break;
-            const cell = this.board.getCell(index);
-            this.board.setBooster(cell, BOOSTERS.NONE);
-            this.board.setHardCandy(cell, true);
+            this.board.setBooster(index, BOOSTERS.NONE);
+            this.board.setHardCandy(index, true);
         }
     }
 
@@ -756,17 +700,16 @@ class Match3Game implements ModeContext {
 
     private isValidGeneratorTarget(index: number): boolean {
         if (this.board.isBlockedIndex(index)) return false;
-        const cell = this.board.getCell(index);
-        if (this.board.isBlockerGenerator(cell)) return false;
-        if (this.board.isHardCandy(cell)) return false;
-        if (!this.board.getCellColor(cell)) return false;
+        if (this.board.isBlockerGenerator(index)) return false;
+        if (this.board.isHardCandy(index)) return false;
+        if (!this.board.getCellColor(index)) return false;
         return true;
     }
 
     private hardenCell(index: number): void {
-        const cell = this.board.getCell(index);
-        this.board.setBooster(cell, BOOSTERS.NONE);
-        this.board.setHardCandy(cell, true);
+        this.board.setBooster(index, BOOSTERS.NONE);
+        this.board.setHardCandy(index, true);
+        this.renderer.updateCell(index, this.board.getCellState(index));
     }
 
     private getManhattanDistance(row: number, col: number, index: number): number {
@@ -788,43 +731,10 @@ class Match3Game implements ModeContext {
         return Math.min(this.maxMultiplier, Math.max(this.minMultiplier, rounded));
     }
 
-    private renderMultiplierStatus(delta: number, moveScore: number): void {
-        const icon = delta > 0 ? '⬆️' : delta < 0 ? '⬇️' : '✨';
-        const formattedMultiplier = 'x' + this.state.comboMultiplier.toFixed(2);
-        const scorePart = moveScore > 0 ? ' · +' + moveScore + ' Punkte' : '';
-        const prefix = delta > 0 ? 'Starker Zug!' : delta < 0 ? 'Tempo verloren!' : 'Multiplikator';
-        this.hud.setStatus(prefix + ' ' + formattedMultiplier + scorePart, icon);
-    }
-
     private showMoveEvaluation(baseMoveScore: number): void {
         const message = this.getMoveEvaluationMessage(baseMoveScore);
         if (!message) return;
-        if (this.moveEvaluationTimer !== null) {
-            clearTimeout(this.moveEvaluationTimer);
-            this.moveEvaluationTimer = null;
-        }
-        this.moveEvaluationEl.textContent = message;
-        this.moveEvaluationEl.classList.add('move-evaluation--visible');
-        if (this.sounds.isEnabled()) {
-            this.speech(message);
-        }
-        this.moveEvaluationTimer = window.setTimeout(() => {
-            this.moveEvaluationEl.classList.remove('move-evaluation--visible');
-            this.moveEvaluationTimer = null;
-        }, 2000);
-    }
-
-    private speech(message: string)
-    {
-        const utterance = new SpeechSynthesisUtterance(message); // message.replace(' ', '… ')
-        utterance.onerror = (e) => { console.error("speech error", e); };
-        utterance.lang = 'en-US';
-        utterance.rate = 1.08;
-        utterance.pitch = 1.05;
-        utterance.volume = 1.0;
-        window.speechSynthesis.cancel(); // stop previous speech otherwise they can queue.
-        //console.log(speechSynthesis.getVoices()); // for `utterance.voice = ...`
-        speechSynthesis.speak(utterance);
+        this.renderer.showMoveEvaluation(message, this.sounds.isEnabled());
     }
 
     private getMoveEvaluationMessage(baseMoveScore: number): string {
@@ -990,11 +900,10 @@ class Match3Game implements ModeContext {
 
     private getMatchableColor(index: number): string {
         if (this.board.isBlockedIndex(index)) return '';
-        const cell = this.board.getCell(index);
-        if (this.board.isHardCandy(cell)) return '';
-        const booster = this.board.getCellBooster(cell);
+        if (this.board.isHardCandy(index)) return '';
+        const booster = this.board.getCellBooster(index);
         if (booster === BOOSTERS.BURST_LARGE) return '';
-        return this.board.getCellColor(cell);
+        return this.board.getCellColor(index);
     }
 
     private getColorAt(row: number, col: number): string {
@@ -1031,9 +940,8 @@ class Match3Game implements ModeContext {
 
     private isSwappable(index: number): boolean {
         if (this.board.isBlockedIndex(index)) return false;
-        const cell = this.board.getCell(index);
-        if (this.board.isHardCandy(cell)) return false;
-        return Boolean(this.board.getCellColor(cell));
+        if (this.board.isHardCandy(index)) return false;
+        return Boolean(this.board.getCellColor(index));
     }
 
     hasAnyValidMove(): boolean {
@@ -1107,7 +1015,7 @@ class Match3Game implements ModeContext {
     }
 
     private animateBoardEntry(): void {
-        const duration = this.board.playSpawnAnimation();
+        const duration = this.renderer.playSpawnAnimation();
         this.defer(() => {
             this.boardAnimating = false;
         }, duration);
@@ -1144,7 +1052,7 @@ class Match3Game implements ModeContext {
     }
 
     isModalVisible(): boolean {
-        return this.modalEl.classList.contains('modal--visible');
+        return this.renderer.isModalVisible();
     }
 
     notifyBlockerHighScore(score: number): void {
