@@ -1,5 +1,13 @@
-import { BOOSTERS, getColorHex } from './constants.js';
-import { ActivatableBoosterType, Difficulty, GameMode, GameState, GoalProgress, SwapMode } from './types.js';
+import { BOOSTERS, TACTICAL_POWERUPS, TacticalPowerup, getColorHex } from './constants.js';
+import {
+    ActivatableBoosterType,
+    Difficulty,
+    GameMode,
+    GameState,
+    GoalProgress,
+    PowerupInventory,
+    SwapMode
+} from './types.js';
 import { getRequiredElement } from './dom.js';
 
 class Hud {
@@ -14,6 +22,10 @@ class Hud {
         this.statusText = getRequiredElement('status-text');
         this.statusIcon = getRequiredElement('status-icon');
         this.goalsList = this.getGoalsListElement();
+        this.tacticalToolbar = this.getTacticalToolbar();
+        this.powerupButtons = {} as Record<TacticalPowerup, HTMLButtonElement>;
+        this.powerupCountNodes = {} as Record<TacticalPowerup, HTMLElement>;
+        this.initPowerupButtons();
         this.swapModeSelect = this.getSwapModeElement();
         this.optionsToggle = this.getOptionsToggle();
         this.optionsClose = this.getOptionsClose();
@@ -42,6 +54,12 @@ class Hud {
     private audioToggle: HTMLButtonElement;
     private difficultyLabel: HTMLElement;
     private exitButton: HTMLButtonElement;
+    private tacticalToolbar: HTMLElement;
+    private powerupButtons: Record<TacticalPowerup, HTMLButtonElement>;
+    private powerupCountNodes: Record<TacticalPowerup, HTMLElement>;
+    private powerupHandler: ((type: TacticalPowerup) => void) | null = null;
+    private toolbarBlocked = false;
+    private lastPowerupInventory: PowerupInventory | null = null;
 
     render(state: GameState): void {
         const isTimeMode = state.mode === 'time';
@@ -61,6 +79,7 @@ class Hud {
 
         this.updateProgress(state);
         this.renderGoals(state.goals, state.mode, state);
+        this.updatePowerupButtons(state.powerups);
     }
 
     getSwapMode(): SwapMode {
@@ -71,6 +90,10 @@ class Hud {
         this.swapModeSelect.addEventListener('change', () => {
             handler(this.getSwapMode());
         });
+    }
+
+    onTacticalPowerup(handler: (type: TacticalPowerup) => void): void {
+        this.powerupHandler = handler;
     }
 
     onAudioToggle(handler: (enabled: boolean) => void): void {
@@ -108,6 +131,21 @@ class Hud {
 
     setAudioEnabled(enabled: boolean): void {
         this.setAudioToggleState(enabled);
+    }
+
+    setPowerupToolbarBlocked(blocked: boolean): void {
+        if (this.toolbarBlocked === blocked) return;
+        this.toolbarBlocked = blocked;
+        if (this.lastPowerupInventory) {
+            this.updatePowerupButtons(this.lastPowerupInventory);
+            return;
+        }
+        const powerupTypes = Object.keys(TACTICAL_POWERUPS) as TacticalPowerup[];
+        powerupTypes.forEach((type) => {
+            const button = this.powerupButtons[type];
+            button.disabled = blocked;
+            button.classList.toggle('tactical-toolbar__button--blocked', blocked);
+        });
     }
 
     setStatus(text: string, icon: string): void {
@@ -172,6 +210,47 @@ class Hud {
             throw new Error('Goals list element is not a list');
         }
         return element;
+    }
+
+    private getTacticalToolbar(): HTMLElement {
+        return getRequiredElement('tactical-toolbar');
+    }
+
+    private initPowerupButtons(): void {
+        this.tacticalToolbar.innerHTML = '';
+        const entries = Object.entries(TACTICAL_POWERUPS) as [TacticalPowerup, typeof TACTICAL_POWERUPS[TacticalPowerup]][];
+        entries.forEach(([type, meta]) => {
+            const button = document.createElement('button');
+            button.className = 'tactical-toolbar__button';
+            button.type = 'button';
+            button.dataset.powerup = type;
+            button.setAttribute('aria-label', meta.description);
+
+            const metaContainer = document.createElement('span');
+            metaContainer.className = 'tactical-toolbar__meta';
+
+            const icon = document.createElement('span');
+            icon.className = 'tactical-toolbar__icon';
+            icon.textContent = meta.icon;
+
+            const label = document.createElement('span');
+            label.className = 'tactical-toolbar__label';
+            label.textContent = meta.label;
+            metaContainer.appendChild(icon);
+            metaContainer.appendChild(label);
+
+            const count = document.createElement('span');
+            count.className = 'tactical-toolbar__count';
+            count.textContent = '0';
+
+            button.appendChild(metaContainer);
+            button.appendChild(count);
+            button.addEventListener('click', () => this.powerupHandler?.(type));
+
+            this.powerupButtons[type] = button;
+            this.powerupCountNodes[type] = count;
+            this.tacticalToolbar.appendChild(button);
+        });
     }
 
     private getLevelCard(): HTMLElement {
@@ -250,6 +329,20 @@ class Hud {
             item.appendChild(counter);
             item.appendChild(label);
             this.goalsList.appendChild(item);
+        });
+    }
+
+    private updatePowerupButtons(powerups: PowerupInventory): void {
+        this.lastPowerupInventory = powerups;
+        const powerupTypes = Object.keys(TACTICAL_POWERUPS) as TacticalPowerup[];
+        powerupTypes.forEach((type) => {
+            const button = this.powerupButtons[type];
+            const countNode = this.powerupCountNodes[type];
+            const remaining = Math.max(0, powerups[type] ?? 0);
+            countNode.textContent = String(remaining);
+            const blockedState = this.toolbarBlocked || remaining <= 0;
+            button.disabled = blockedState;
+            button.classList.toggle('tactical-toolbar__button--blocked', this.toolbarBlocked);
         });
     }
 

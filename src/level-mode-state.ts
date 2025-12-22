@@ -1,4 +1,9 @@
-import { BoosterType, GRID_SIZE, getColorKeyFromHex } from './constants.js';
+import {
+    BoosterType,
+    GRID_SIZE,
+    getColorKeyFromHex,
+    createFreshPowerupInventory
+} from './constants.js';
 import { BoardConfig, GameModeState, ModeContext } from './game-mode-state.js';
 import { LevelDefinition, GameState, LevelGoal, GoalProgress } from './types.js';
 import { describeGoal, getLevelDefinition } from './levels.js';
@@ -25,7 +30,8 @@ class LevelModeState implements GameModeState {
             movesLeft: this.levelDefinition.moves,
             goals: this.createGoals(this.levelDefinition.goals),
             difficulty: this.levelDefinition.difficulty,
-            comboMultiplier: 1
+            comboMultiplier: 1,
+            powerups: createFreshPowerupInventory()
         };
     }
 

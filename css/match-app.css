@@ -29,14 +29,16 @@ body {
 
 .match-app--menu .hud,
 .match-app--menu .board,
-.match-app--menu .move-evaluation {
+.match-app--menu .move-evaluation,
+.match-app--menu .tactical-toolbar {
     display: none;
 }
 
 .match-app--leaderboard .main-menu,
 .match-app--leaderboard .hud,
 .match-app--leaderboard .board,
-.match-app--leaderboard .move-evaluation {
+.match-app--leaderboard .move-evaluation,
+.match-app--leaderboard .tactical-toolbar {
     display: none;
 }
 

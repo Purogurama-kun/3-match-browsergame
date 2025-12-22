@@ -1,4 +1,4 @@
-import { BoosterType, GRID_SIZE } from './constants.js';
+import { BoosterType, GRID_SIZE, createFreshPowerupInventory } from './constants.js';
 import { BoardConfig, GameModeState, ModeContext } from './game-mode-state.js';
 import { GameState } from './types.js';
 
@@ -32,7 +32,8 @@ class BlockerModeState implements GameModeState {
             movesLeft: Number.POSITIVE_INFINITY,
             goals: [],
             difficulty: 'easy',
-            comboMultiplier: 1
+            comboMultiplier: 1,
+            powerups: createFreshPowerupInventory()
         };
         context.getHud().setStatus('Blocker-Modus gestartet. Überlebe so lange wie möglich.', '♾️');
         return state;

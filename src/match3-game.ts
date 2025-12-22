@@ -1,4 +1,12 @@
-import { GRID_SIZE, BOOSTERS, BLACK_BOMB_COLOR, BoosterType, randomColor } from './constants.js';
+import {
+    GRID_SIZE,
+    BOOSTERS,
+    BLACK_BOMB_COLOR,
+    BoosterType,
+    randomColor,
+    TACTICAL_POWERUPS,
+    TacticalPowerup
+} from './constants.js';
 import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
 import { Board } from './board.js';
@@ -36,6 +44,7 @@ class Match3Game implements ModeContext {
         this.hud.onSwapModeChange((mode) => {
             this.swapMode = mode;
         });
+        this.hud.onTacticalPowerup((type) => this.handleTacticalPowerup(type));
         this.hud.onAudioToggle((enabled) => {
             const active = this.sounds.setEnabled(enabled);
             if (active !== enabled) {
@@ -53,6 +62,7 @@ class Match3Game implements ModeContext {
         this.currentMoveScore = 0;
         this.currentMoveBaseScore = 0;
         this.boardAnimating = false;
+        this.syncPowerupToolbarLock();
     }
 
     private sounds: SoundManager;
@@ -72,6 +82,7 @@ class Match3Game implements ModeContext {
     private readonly maxMultiplier = 5;
     private readonly maxBombDropChance = 0.05; // 5%
     private boardAnimating: boolean;
+    private powerupInProgress = false;
     private progressListener: ((level: number) => void) | null = null;
     private blockerHighScoreListener: ((score: number) => void) | null = null;
     private timeBestListener: ((time: number) => void) | null = null;
@@ -153,10 +164,15 @@ class Match3Game implements ModeContext {
         this.hud.render(state);
     }
 
+    private syncPowerupToolbarLock(): void {
+        this.hud.setPowerupToolbarBlocked(this.boardAnimating || this.moveActive || this.powerupInProgress);
+    }
+
     private createBoard(): void {
         this.generation++;
         this.clearPendingTimers();
         this.boardAnimating = true;
+        this.syncPowerupToolbarLock();
         const boardConfig = this.modeState.getBoardConfig();
         this.board.create(boardConfig);
         this.renderer.renderBoard(
@@ -232,6 +248,28 @@ class Match3Game implements ModeContext {
         this.trySwap(index, neighbor);
     }
 
+    private handleTacticalPowerup(type: TacticalPowerup): void {
+        if (this.boardAnimating || this.moveActive || this.powerupInProgress) return;
+        if (!this.modeState.canStartMove(this.state)) return;
+        if (!this.consumePowerup(type)) return;
+        const meta = TACTICAL_POWERUPS[type];
+        if (!meta) return;
+        this.powerupInProgress = true;
+        this.syncPowerupToolbarLock();
+        const icon: string = meta.icon ?? '✨';
+        this.hud.setStatus(meta.label + ' aktiviert!', icon);
+        this.renderer.clearSelection();
+        this.state.selected = null;
+        if (type === 'shuffle') {
+            this.applyShufflePowerup();
+        } else if (type === 'row') {
+            this.applyRowClearPowerup();
+        } else if (type === 'bomb') {
+            this.applyBombPowerup();
+        }
+        this.updateHud();
+    }
+
     private findMatches(): MatchResult {
         const accumulator = this.createMatchAccumulator();
 
@@ -285,6 +323,10 @@ class Match3Game implements ModeContext {
         }
 
         this.finalizeMoveScore();
+        if (this.powerupInProgress) {
+            this.powerupInProgress = false;
+            this.syncPowerupToolbarLock();
+        }
         this.modeState.handleBoardSettled(this.state, this);
     }
 
@@ -400,6 +442,88 @@ class Match3Game implements ModeContext {
     private destroyCells(indices: Iterable<number>): void {
         const unique = new Set(indices);
         unique.forEach((idx) => this.destroyCell(idx));
+    }
+
+    private consumePowerup(type: TacticalPowerup): boolean {
+        const remaining = this.state.powerups[type] ?? 0;
+        if (remaining <= 0) return false;
+        this.state.powerups[type] = remaining - 1;
+        return true;
+    }
+
+    private applyShufflePowerup(): void {
+        const candidateIndices: number[] = [];
+        const colors: string[] = [];
+        for (let index = 0; index < GRID_SIZE * GRID_SIZE; index++) {
+            if (this.board.isBlockedIndex(index)) continue;
+            if (this.board.isBlockerGenerator(index)) continue;
+            const color = this.board.getCellColor(index);
+            if (!color) continue;
+            candidateIndices.push(index);
+            colors.push(color);
+        }
+        if (colors.length === 0) {
+            this.powerupInProgress = false;
+            this.syncPowerupToolbarLock();
+            return;
+        }
+        this.shuffleArray(colors);
+        candidateIndices.forEach((index, idx) => {
+            const color = colors[idx];
+            if (!color) return;
+            this.board.setCellColor(index, color);
+        });
+        this.renderer.refreshBoard(this.board);
+        this.defer(() => this.checkMatches(), 150);
+    }
+
+    private applyRowClearPowerup(): void {
+        const { row } = this.resolvePowerupTarget();
+        this.sounds.play('lineBomb');
+        this.renderer.screenShake();
+        this.getRowIndices(row).forEach((index) => this.destroyCell(index));
+        this.defer(() => this.dropCells(), 320);
+    }
+
+    private applyBombPowerup(): void {
+        const { row, col } = this.resolvePowerupTarget();
+        const affected: number[] = [];
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                const targetRow = row + dx;
+                const targetCol = col + dy;
+                if (targetRow < 0 || targetRow >= GRID_SIZE || targetCol < 0 || targetCol >= GRID_SIZE) continue;
+                affected.push(targetRow * GRID_SIZE + targetCol);
+            }
+        }
+        this.sounds.play('radiusBomb');
+        this.renderer.screenShake();
+        affected.forEach((index) => this.destroyCell(index));
+        this.defer(() => this.dropCells(), 320);
+    }
+
+    private resolvePowerupTarget(): { row: number; col: number } {
+        if (this.state.selected !== null) {
+            const target = this.getRowCol(this.state.selected);
+            this.renderer.clearSelection();
+            this.state.selected = null;
+            return target;
+        }
+        const center = Math.floor(GRID_SIZE / 2);
+        return { row: center, col: center };
+    }
+
+    private shuffleArray<T>(items: T[]): void {
+        for (let i = items.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const temp = items[i];
+            const candidate = items[j];
+            if (temp === undefined || candidate === undefined) {
+                continue;
+            }
+            items[i] = candidate;
+            items[j] = temp;
+        }
     }
 
     private destroyCircularArea(row: number, col: number, radius: number): void {
@@ -627,12 +751,14 @@ class Match3Game implements ModeContext {
         this.moveActive = true;
         this.currentMoveScore = 0;
         this.currentMoveBaseScore = 0;
+        this.syncPowerupToolbarLock();
     }
 
     private resetMoveTracking(): void {
         this.moveActive = false;
         this.currentMoveScore = 0;
         this.currentMoveBaseScore = 0;
+        this.syncPowerupToolbarLock();
     }
 
     private finalizeMoveScore(): void {
@@ -1018,6 +1144,7 @@ class Match3Game implements ModeContext {
         const duration = this.renderer.playSpawnAnimation();
         this.defer(() => {
             this.boardAnimating = false;
+            this.syncPowerupToolbarLock();
         }, duration);
     }
 

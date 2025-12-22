@@ -146,6 +146,70 @@
     animation: shake 0.35s ease-in-out;
 }
 
+.tactical-toolbar {
+    width: min(44rem, 100%);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0.65rem;
+    margin-top: 0.75rem;
+}
+
+.tactical-toolbar__button {
+    border-radius: 12px;
+    border: 1px solid #2f3654;
+    background: #111624;
+    color: #f8fafc;
+    padding: 0.9rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    font-size: 1rem;
+    font-weight: 600;
+    box-shadow:
+        0 6px 18px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    text-align: left;
+}
+
+.tactical-toolbar__button:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 10px 22px rgba(0, 0, 0, 0.4);
+}
+
+.tactical-toolbar__button:disabled,
+.tactical-toolbar__button--blocked {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.tactical-toolbar__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.tactical-toolbar__icon {
+    font-size: 1.35rem;
+}
+
+.tactical-toolbar__label {
+    font-size: 0.95rem;
+    color: #e5e7ff;
+}
+
+.tactical-toolbar__count {
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: #a5b4fc;
+    min-width: 2rem;
+    text-align: right;
+}
+
 @keyframes cell-drop {
     0% { opacity: 0; transform: translateY(-140%) scale(0.95); }
     70% { opacity: 1; transform: translateY(10%) scale(1.02); }

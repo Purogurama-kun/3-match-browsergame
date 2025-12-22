@@ -1,4 +1,4 @@
-import { BoosterType, ColorKey } from './constants.js';
+import { BoosterType, ColorKey, TacticalPowerup } from './constants.js';
 
 type Difficulty = 'easy' | 'normal' | 'hard' | 'expert' | 'nightmare';
 
@@ -60,6 +60,8 @@ type LevelDefinition = {
     blockerGenerators?: number[];
 };
 
+type PowerupInventory = Record<TacticalPowerup, number>;
+
 type GameState = {
     mode: GameMode;
     selected: number | null;
@@ -74,6 +76,7 @@ type GameState = {
     timeRemaining?: number;
     survivalTime?: number;
     timeCapacity?: number;
+    powerups: PowerupInventory;
 };
 
 export {
@@ -92,5 +95,6 @@ export {
     LeaderboardMode,
     LeaderboardScope,
     LeaderboardEntry,
-    LeaderboardIdentity
+    LeaderboardIdentity,
+    PowerupInventory
 };

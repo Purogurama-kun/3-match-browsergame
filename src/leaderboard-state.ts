@@ -1,4 +1,4 @@
-import { BoosterType } from './constants.js';
+import { BoosterType, createFreshPowerupInventory } from './constants.js';
 import { BoardConfig, GameModeState, ModeContext } from './game-mode-state.js';
 import {
     GameMode,
@@ -74,7 +74,8 @@ class LeaderboardState implements GameModeState {
             movesLeft: 0,
             goals: [],
             difficulty: 'easy',
-            comboMultiplier: 1
+            comboMultiplier: 1,
+            powerups: createFreshPowerupInventory()
         };
     }
 

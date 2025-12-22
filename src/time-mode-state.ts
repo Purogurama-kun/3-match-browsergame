@@ -1,4 +1,10 @@
-import { BOOSTERS, BoosterType, ColorKey, getColorKeyFromHex } from './constants.js';
+import {
+    BOOSTERS,
+    BoosterType,
+    ColorKey,
+    getColorKeyFromHex,
+    createFreshPowerupInventory
+} from './constants.js';
 import { BoardConfig, GameModeState, ModeContext } from './game-mode-state.js';
 import { GoalProgress, GameState, LevelGoal } from './types.js';
 import { describeGoal } from './levels.js';
@@ -43,7 +49,8 @@ class TimeModeState implements GameModeState {
             comboMultiplier: 1,
             timeRemaining: this.startingTime,
             survivalTime: 0,
-            timeCapacity: this.startingTime
+            timeCapacity: this.startingTime,
+            powerups: createFreshPowerupInventory()
         };
         this.state = state;
         this.startTimer(context);

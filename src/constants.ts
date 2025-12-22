@@ -16,8 +16,37 @@ const BOOSTERS = {
 } as const;
 const BLACK_BOMB_COLOR = '#0b0d11';
 
+const TACTICAL_POWERUPS = {
+    shuffle: {
+        icon: '🔀',
+        label: 'Mischen',
+        description: 'Alle Bonbons neu anordnen'
+    },
+    row: {
+        icon: '🧹',
+        label: 'Reihe',
+        description: 'Eine Reihe vollständig löschen'
+    },
+    bomb: {
+        icon: '💣',
+        label: '3x3-Bombe',
+        description: 'Sprengt ein 3×3-Feld'
+    }
+} as const;
+
+const TACTICAL_POWERUP_USES = 1;
+
 type BoosterType = typeof BOOSTERS[keyof typeof BOOSTERS];
 type ColorKey = keyof typeof COLOR_DEFINITIONS;
+type TacticalPowerup = keyof typeof TACTICAL_POWERUPS;
+
+function createFreshPowerupInventory(): Record<TacticalPowerup, number> {
+    const inventory = {} as Record<TacticalPowerup, number>;
+    (Object.keys(TACTICAL_POWERUPS) as TacticalPowerup[]).forEach((key) => {
+        inventory[key] = TACTICAL_POWERUP_USES;
+    });
+    return inventory;
+}
 
 function randomColor(): string {
     const index = Math.floor(Math.random() * COLORS.length);
@@ -53,5 +82,8 @@ export {
     BoosterType,
     ColorKey,
     getColorHex,
-    getColorKeyFromHex
+    getColorKeyFromHex,
+    TACTICAL_POWERUPS,
+    TacticalPowerup,
+    createFreshPowerupInventory
 };
