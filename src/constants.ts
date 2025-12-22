@@ -22,15 +22,15 @@ const TACTICAL_POWERUPS = {
         label: 'Mischen',
         description: 'Alle Bonbons neu anordnen'
     },
-    row: {
-        icon: '🧹',
-        label: 'Reihe',
-        description: 'Eine Reihe vollständig löschen'
+    switch: {
+        icon: '🔁',
+        label: 'Switch',
+        description: 'Tausche zwei benachbarte Felder ohne Match'
     },
     bomb: {
         icon: '💣',
-        label: '3x3-Bombe',
-        description: 'Sprengt ein 3×3-Feld'
+        label: 'Bombe',
+        description: 'Sprengt ein 4×4-Feld deiner Wahl'
     }
 } as const;
 

@@ -147,9 +147,8 @@
 }
 
 .tactical-toolbar {
-    width: min(44rem, 100%);
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    display: flex;
+    justify-content: center;
     gap: 0.65rem;
     margin-top: 0.75rem;
 }
