@@ -3,6 +3,8 @@ import { getRequiredElement } from './dom.js';
 import { GoogleAuth, GoogleUser } from './google-auth.js';
 import { ProgressStore, StoredProgress } from './progress-store.js';
 import { LocalProgressStore } from './local-progress-store.js';
+import { onLocaleChange, setLocale, t } from './i18n.js';
+import type { Locale } from './i18n.js';
 import type { LeaderboardIdentity, LeaderboardMode } from './types.js';
 
 class GameApp {
@@ -27,6 +29,8 @@ class GameApp {
             onLogin: (user) => this.handleLogin(user)
         });
         this.game = new Match3Game();
+        this.game.onLanguageChange((locale) => setLocale(locale));
+        onLocaleChange((locale) => this.handleLocaleChange(locale));
 
         this.loadLocalProgress();
 
@@ -91,6 +95,12 @@ class GameApp {
         this.game.stop();
         this.showMainMenu();
         this.startLevelButton.focus();
+    }
+
+    private handleLocaleChange(locale: Locale): void {
+        this.updateStartButtonState();
+        this.googleAuth.applyLocale();
+        this.game.handleLocaleChange(locale);
     }
 
     private showMainMenu(): void {
@@ -187,9 +197,7 @@ class GameApp {
             console.error('Failed to load progress', error);
             if (this.isCurrentUser(userId)) {
                 this.progress = localProgress;
-                this.googleAuth.showError(
-                    'Fortschritt konnte nicht geladen werden. Standard-Level 1 wird verwendet.'
-                );
+                this.googleAuth.showError(t('auth.error.progressLoad'));
                 this.googleAuth.setProgress(this.progress);
             }
         } finally {
@@ -253,9 +261,7 @@ class GameApp {
         } catch (error) {
             console.error('Failed to save progress', error);
             if (this.isCurrentUser(userId)) {
-                this.googleAuth.showError(
-                    'Fortschritt konnte nicht gespeichert werden. Bitte Verbindung prüfen.'
-                );
+                this.googleAuth.showError(t('auth.error.progressSave'));
             }
         }
     }
@@ -275,20 +281,20 @@ class GameApp {
         const blockerScore = Math.max(0, this.progress.blockerHighScore);
         const timeBest = Math.max(0, this.progress.timeSurvival);
         this.startTimeButton.textContent = isLoading
-            ? 'Zeit Modus wird geladen...'
-            : 'Zeit Modus (Best: ' + this.formatTime(timeBest) + ')';
+            ? t('mainMenu.start.timeLoading')
+            : t('mainMenu.start.timeBest', { time: this.formatTime(timeBest) });
         this.startBlockerButton.textContent = isLoading
-            ? 'Blocker Modus wird geladen...'
-            : 'Blocker Modus (Best: ' + blockerScore + ')';
+            ? t('mainMenu.start.blockerLoading')
+            : t('mainMenu.start.blockerBest', { score: blockerScore });
         if (!isAuthenticated) {
-            this.startLevelButton.textContent = 'Level Modus (Gast)';
+            this.startLevelButton.textContent = t('mainMenu.start.levelGuest');
             return;
         }
         if (isLoading) {
-            this.startLevelButton.textContent = 'Fortschritt wird geladen...';
+            this.startLevelButton.textContent = t('mainMenu.start.progressLoading');
             return;
         }
-        this.startLevelButton.textContent = 'Level Modus (Start bei Level ' + labelLevel + ')';
+        this.startLevelButton.textContent = t('mainMenu.start.levelAt', { level: labelLevel });
     }
 
     private mergeProgress(current: StoredProgress, incoming: StoredProgress): StoredProgress {
@@ -315,4 +321,5 @@ class GameApp {
     }
 }
 
+setLocale('en');
 new GameApp();

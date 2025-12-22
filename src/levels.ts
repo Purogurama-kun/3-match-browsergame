@@ -1,5 +1,12 @@
-import { GRID_SIZE, BOOSTERS, ColorKey, getColorHex } from './constants.js';
-import { ActivateBoosterGoal, DestroyColorGoal, Difficulty, LevelDefinition, LevelGoal } from './types.js';
+import { GRID_SIZE, BOOSTERS, ColorKey } from './constants.js';
+import {
+    ActivateBoosterGoal,
+    DestroyColorGoal,
+    Difficulty,
+    LevelDefinition,
+    LevelGoal
+} from './types.js';
+import { t } from './i18n.js';
 
 const indexAt = (row: number, col: number): number => row * GRID_SIZE + col;
 
@@ -688,43 +695,37 @@ function getLevelDefinition(levelNumber: number): LevelDefinition {
     };
 }
 
+const COLOR_NAME_KEYS: Record<ColorKey, 'color.red' | 'color.amber' | 'color.blue' | 'color.purple' | 'color.green'> = {
+    red: 'color.red',
+    amber: 'color.amber',
+    blue: 'color.blue',
+    purple: 'color.purple',
+    green: 'color.green'
+};
+
+const BOOSTER_LABEL_KEYS: Record<
+    ActivateBoosterGoal['booster'],
+    'booster.LINE' | 'booster.BURST_SMALL' | 'booster.BURST_MEDIUM' | 'booster.BURST_LARGE'
+> = {
+    [BOOSTERS.LINE]: 'booster.LINE',
+    [BOOSTERS.BURST_SMALL]: 'booster.BURST_SMALL',
+    [BOOSTERS.BURST_MEDIUM]: 'booster.BURST_MEDIUM',
+    [BOOSTERS.BURST_LARGE]: 'booster.BURST_LARGE'
+};
+
 function describeGoal(goal: LevelGoal): string {
     if (goal.type === 'destroy-color') {
-        return 'Zerstöre ' + goal.target + ' ' + formatColorName(goal.color) + ' Steine';
+        const colorKey = COLOR_NAME_KEYS[goal.color];
+        if (!colorKey) {
+            throw new Error('Missing color name for: ' + goal.color);
+        }
+        return t('goal.destroyColor', { target: goal.target, color: t(colorKey) });
     }
-    return 'Aktiviere ' + goal.target + ' ' + formatBoosterName(goal.booster);
-}
-
-function formatColorName(color: ColorKey): string {
-    getColorHex(color);
-    const nameMap: Record<ColorKey, string> = {
-        red: 'rote',
-        amber: 'gelbe',
-        blue: 'blaue',
-        purple: 'violette',
-        green: 'grüne'
-    };
-    const name = nameMap[color];
-    if (!name) {
-        throw new Error('Missing color name for: ' + color);
+    const boosterKey = BOOSTER_LABEL_KEYS[goal.booster];
+    if (!boosterKey) {
+        throw new Error('Missing booster label for: ' + goal.booster);
     }
-    return name;
-}
-
-function formatBoosterName(booster: ActivateBoosterGoal['booster']): string {
-    if (booster === BOOSTERS.LINE) {
-        return 'Linienbomben';
-    }
-    if (booster === BOOSTERS.BURST_SMALL) {
-        return 'kleine Bomben';
-    }
-    if (booster === BOOSTERS.BURST_MEDIUM) {
-        return 'mittlere Bomben';
-    }
-    if (booster === BOOSTERS.BURST_LARGE) {
-        return 'große Bomben';
-    }
-    throw new Error('Missing booster label for: ' + booster);
+    return t('goal.activateBooster', { target: goal.target, booster: t(boosterKey) });
 }
 
 export { LEVELS, getLevelDefinition, describeGoal };

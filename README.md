@@ -12,9 +12,10 @@ Small Match-3 browser game with boosters, goals, and sound feedback, written in 
 - Harte Bonbons, die erst durch angrenzende Matches oder Bombenexplosionen weich werden und danach matchbar sind.
 - Blocker-Modus mit zunehmender Härte, Highscore-Speicherung und automatischer Niederlage, sobald keine gültigen Züge mehr existieren.
 - Zeit-Modus mit Echtzeit-Timer, Geschwindigkeits-Anstieg, Zeitboni durch Matches und Ziele sowie persistenter Bestzeit.
-- Free-swap or require-match swap modes, plus swipe and click controls.
+- Require-match swap mode, plus swipe and click controls.
 - Combo multiplier scoring with HUD feedback.
 - Sound effects, optional audio toggle, and screen shake on impactful actions.
+- English and German UI text with a language selector in the options menu.
 - 5% chance of bombs falling from above on max multiplier (0% chnace on x0 multiplier)
 
 ## Known errors

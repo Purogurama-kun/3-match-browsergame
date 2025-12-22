@@ -10,14 +10,15 @@ import {
 import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
 import { Board } from './board.js';
-import { CellShapeMode, GameState, SwapMode, SwipeDirection } from './types.js';
+import { CellShapeMode, GameState, SwipeDirection } from './types.js';
 import { Renderer } from './renderer.js';
-import { LEVELS } from './levels.js';
+import { describeGoal, LEVELS } from './levels.js';
 import { GameModeState, ModeContext, BoardConfig } from './game-mode-state.js';
 import { LevelModeState } from './level-mode-state.js';
 import { BlockerModeState } from './blocker-mode-state.js';
 import { LeaderboardState, LeaderboardStateOptions } from './leaderboard-state.js';
 import { TimeModeState } from './time-mode-state.js';
+import { t, Locale } from './i18n.js';
 
 type MatchResult = {
     matched: Set<number>;
@@ -40,10 +41,6 @@ class Match3Game implements ModeContext {
         this.hud = new Hud();
         this.renderer = new Renderer(this.hud);
         this.board = new Board();
-        this.swapMode = this.hud.getSwapMode();
-        this.hud.onSwapModeChange((mode) => {
-            this.swapMode = mode;
-        });
         this.hud.onTacticalPowerup((type) => this.handleTacticalPowerup(type));
         this.hud.onAudioToggle((enabled) => {
             const active = this.sounds.setEnabled(enabled);
@@ -58,6 +55,7 @@ class Match3Game implements ModeContext {
         this.hud.setCellShapeMode(this.cellShapeMode);
         this.modeState = new LevelModeState(1);
         this.state = this.modeState.enter(this);
+        this.refreshGoalDescriptions();
         this.updateCellShapeMode(this.state.cellShapeMode);
 
         this.generation = 0;
@@ -75,7 +73,6 @@ class Match3Game implements ModeContext {
     private board: Board;
     private state: GameState;
     private modeState: GameModeState;
-    private swapMode: SwapMode;
     private generation: number;
     private pendingTimers: number[];
     private moveActive: boolean;
@@ -133,6 +130,10 @@ class Match3Game implements ModeContext {
         this.hud.onExitGame(handler);
     }
 
+    onLanguageChange(handler: (locale: Locale) => void): void {
+        this.hud.onLanguageChange(handler);
+    }
+
     onProgressChange(handler: (highestUnlockedLevel: number) => void): void {
         this.progressListener = handler;
     }
@@ -165,11 +166,28 @@ class Match3Game implements ModeContext {
         }
         this.modeState = modeState;
         this.state = this.modeState.enter(this);
+        this.refreshGoalDescriptions();
         this.updateCellShapeMode(this.cellShapeMode);
     }
 
     updateHud(state: GameState = this.state): void {
         this.hud.render(state);
+    }
+
+    handleLocaleChange(locale: Locale): void {
+        this.hud.setLanguage(locale);
+        this.hud.applyLocale();
+        this.refreshGoalDescriptions();
+        this.updateHud();
+        this.hud.resetStatus();
+    }
+
+    private refreshGoalDescriptions(): void {
+        if (!this.state) return;
+        this.state.goals = this.state.goals.map((goal) => ({
+            ...goal,
+            description: describeGoal(goal)
+        }));
     }
 
     private updateCellShapeMode(mode: CellShapeMode): void {
@@ -295,12 +313,12 @@ class Match3Game implements ModeContext {
             if (selection.length === 0) {
                 this.pendingPowerupSelections = [index];
                 this.renderer.selectCell(index);
-                this.hud.setStatus('Wähle ein angrenzendes Feld', TACTICAL_POWERUPS.switch.icon);
+                this.hud.setStatus(t('hud.status.chooseAdjacent'), TACTICAL_POWERUPS.switch.icon);
                 return;
             }
             const first = selection[0]!;
             if (!this.areAdjacent(first, index)) {
-                this.hud.setStatus('Ziel muss angrenzend sein', '⚠️');
+                this.hud.setStatus(t('hud.status.targetAdjacent'), '⚠️');
                 this.pendingPowerupSelections = [];
                 this.renderer.clearSelection();
                 return;
@@ -322,14 +340,15 @@ class Match3Game implements ModeContext {
         this.syncPowerupToolbarLock();
         this.renderer.clearSelection();
         this.state.selected = null;
+        const localizedLabel = t(meta.labelKey);
         if (type === 'shuffle') {
-            this.hud.setStatus(meta.label + ' aktiviert!', meta.icon ?? '✨');
+            this.hud.setStatus(t('hud.status.powerupActivated', { powerup: localizedLabel }), meta.icon ?? '✨');
             this.pendingPowerup = null;
             this.applyShufflePowerup();
         } else {
             this.pendingPowerup = type;
             this.pendingPowerupSelections = [];
-            this.hud.setStatus('Wähle Ziel für ' + meta.label, meta.icon ?? '✨');
+            this.hud.setStatus(t('hud.status.chooseTarget', { powerup: localizedLabel }), meta.icon ?? '✨');
         }
         this.updateHud();
     }
@@ -557,7 +576,10 @@ class Match3Game implements ModeContext {
         const startCol = Math.min(Math.max(col - 1, 0), GRID_SIZE - 4);
         const affected: number[] = [];
         this.pendingPowerupSelections = [];
-        this.hud.setStatus(TACTICAL_POWERUPS.bomb.label + ' entfesselt!', TACTICAL_POWERUPS.bomb.icon);
+        this.hud.setStatus(
+            t('hud.status.powerupUnleashed', { powerup: t(TACTICAL_POWERUPS.bomb.labelKey) }),
+            TACTICAL_POWERUPS.bomb.icon
+        );
         for (let r = startRow; r < startRow + 4; r++) {
             for (let c = startCol; c < startCol + 4; c++) {
                 affected.push(r * GRID_SIZE + c);
@@ -575,7 +597,7 @@ class Match3Game implements ModeContext {
     private executeSwitchPowerup(firstIndex: number, secondIndex: number): void {
         this.board.swapCells(firstIndex, secondIndex);
         this.renderer.refreshBoard(this.board);
-        this.hud.setStatus('Switch ausgeführt!', TACTICAL_POWERUPS.switch.icon);
+        this.hud.setStatus(t('hud.status.switchExecuted'), TACTICAL_POWERUPS.switch.icon);
         this.defer(() => {
             this.checkMatches();
             this.releasePowerupLock();
@@ -705,15 +727,13 @@ class Match3Game implements ModeContext {
         }
         this.board.swapCells(firstIndex, secondIndex);
         this.renderer.refreshBoard(this.board);
-        if (this.swapMode === 'require-match') {
-            const { matched } = this.findMatches();
-            if (matched.size === 0) {
-                this.board.swapCells(firstIndex, secondIndex);
-                this.renderer.refreshBoard(this.board);
-                this.resetMoveTracking();
-                this.showInvalidMove(secondIndex);
-                return;
-            }
+        const { matched } = this.findMatches();
+        if (matched.size === 0) {
+            this.board.swapCells(firstIndex, secondIndex);
+            this.renderer.refreshBoard(this.board);
+            this.resetMoveTracking();
+            this.showInvalidMove(secondIndex);
+            return;
         }
         this.modeState.consumeMove(this.state);
         this.beginMove();
@@ -749,20 +769,21 @@ class Match3Game implements ModeContext {
         } else {
             this.sounds.play('levelFail');
         }
-        const title = result === 'win' ? 'Level ' + completedLevel + ' geschafft!' : 'Level verloren!';
+        const title =
+            result === 'win'
+                ? t('result.level.winTitle', { level: completedLevel })
+                : t('result.level.loseTitle');
         const hasMoreLevels = nextLevel > completedLevel;
         const text =
             result === 'win'
                 ? hasMoreLevels
-                    ? 'Weiter geht es mit Level ' + nextLevel + '.'
-                    : 'Du hast alle ' +
-                      LEVELS.length +
-                      ' Level gemeistert. Spiele das Finale weiter für Highscores.'
-                : 'Versuche es direkt noch einmal.';
+                    ? t('result.level.winNext', { level: nextLevel })
+                    : t('result.level.winAll', { count: LEVELS.length })
+                : t('result.level.loseText');
         this.renderer.showModal({
             title,
             text,
-            buttonText: 'Weiter',
+            buttonText: t('button.continue'),
             onClose: () => {
                 this.switchMode(new LevelModeState(nextLevel));
                 this.createBoard();
@@ -773,13 +794,12 @@ class Match3Game implements ModeContext {
     finishBlockerRun(finalScore: number, bestScore: number): void {
         this.sounds.play('levelFail');
         const isNewBest = finalScore >= bestScore;
-        const title = isNewBest ? 'Neuer Highscore!' : 'Keine Züge mehr!';
-        const text =
-            'Punkte: ' + finalScore + '. Bester Lauf: ' + bestScore + '. Gleich noch einmal?';
+        const title = isNewBest ? t('result.blocker.newHighscore') : t('result.blocker.gameOver');
+        const text = t('result.blocker.text', { score: finalScore, best: bestScore });
         this.renderer.showModal({
             title,
             text,
-            buttonText: 'Neu starten',
+            buttonText: t('button.restart'),
             onClose: () => {
                 this.switchMode(new BlockerModeState(bestScore));
                 this.createBoard();
@@ -792,13 +812,12 @@ class Match3Game implements ModeContext {
         const isNewBest = finalTime >= bestTime;
         const finalLabel = this.formatTime(Math.max(0, finalTime));
         const bestLabel = this.formatTime(Math.max(0, bestTime));
-        const title = isNewBest ? 'Neue Bestzeit!' : 'Zeit abgelaufen!';
-        const text =
-            'Überlebt: ' + finalLabel + '. Bestzeit: ' + bestLabel + '. Noch einmal?';
+        const title = isNewBest ? t('result.time.newBest') : t('result.time.timeUp');
+        const text = t('result.time.text', { survived: finalLabel, best: bestLabel });
         this.renderer.showModal({
             title,
             text,
-            buttonText: 'Neu starten',
+            buttonText: t('button.restart'),
             onClose: () => {
                 this.switchMode(new TimeModeState(bestTime));
                 this.createBoard();

@@ -8,6 +8,7 @@ import {
 import { BoardConfig, GameModeState, ModeContext } from './game-mode-state.js';
 import { GoalProgress, GameState, LevelGoal } from './types.js';
 import { describeGoal } from './levels.js';
+import { t } from './i18n.js';
 
 class TimeModeState implements GameModeState {
     readonly id = 'time';
@@ -56,7 +57,7 @@ class TimeModeState implements GameModeState {
         };
         this.state = state;
         this.startTimer(context);
-        context.getHud().setStatus('Überlebe so lange wie möglich. Zeit gibt es für Matches und Ziele.', '⏳');
+        context.getHud().setStatus(t('time.status.started'), '⏳');
         return state;
     }
 
@@ -196,7 +197,10 @@ class TimeModeState implements GameModeState {
         this.addTime(state, this.goalBonusSeconds);
         const nextGoal = this.createGoal();
         state.goals = state.goals.map((goal, idx) => (idx === index ? nextGoal : goal));
-        context.getHud().setStatus('Ziel geschafft! +' + this.goalBonusSeconds.toFixed(0) + 's', '⏱️');
+        context.getHud().setStatus(
+            t('time.status.goalComplete', { seconds: this.goalBonusSeconds.toFixed(0) }),
+            '⏱️'
+        );
         context.updateHud(state);
     }
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1"> <!-- important for mobile devices to get the scaling right! -->
@@ -28,26 +28,33 @@
 
     <div id="main-menu" class="main-menu" role="dialog" aria-labelledby="main-menu-title">
         <div class="main-menu__card">
-            <div class="main-menu__lead">Willkommen zu</div>
+            <div class="main-menu__lead" data-i18n-key="mainMenu.lead">Welcome to</div>
             <h1 id="main-menu-title" class="main-menu__title">Explosive Candy</h1>
-            <p class="main-menu__text">
-                Kombiniere farbige Süßigkeiten, löse Explosionen aus und knacke die Levelziele. Starte im
-                Level Modus, sichere dir im Blocker Modus einen neuen Highscore oder teste den neuen Zeit
-                Modus mit stetig schneller werdender Uhr.
+            <p class="main-menu__text" data-i18n-key="mainMenu.description">
+                Combine colorful candies, trigger explosions, and beat the level targets. Jump into Level Mode, chase a
+                new high score in Blocker Mode, or test the speeding-up Time Mode.
             </p>
             <div class="auth">
                 <div class="auth__summary">
-                    <div class="auth__label">Google Login</div>
-                    <div id="auth-status" class="auth__status">Nicht angemeldet</div>
-                    <div id="auth-progress" class="auth__progress">Fortschritt: Level 1</div>
-                    <div id="auth-progress-blocker" class="auth__progress">Blocker-Modus-Highscore: 0</div>
-                    <div id="auth-progress-time" class="auth__progress">Zeit-Modus-Bestzeit: 00:00</div>
+                    <div class="auth__label" data-i18n-key="auth.label">Google Login</div>
+                    <div id="auth-status" class="auth__status" data-i18n-key="auth.status.notSignedIn">Not signed in</div>
+                    <div id="auth-progress" class="auth__progress" data-i18n-key="auth.progress.level">
+                        Progress: Level 1
+                    </div>
+                    <div id="auth-progress-blocker" class="auth__progress" data-i18n-key="auth.progress.blocker">
+                        Blocker high score: 0
+                    </div>
+                    <div id="auth-progress-time" class="auth__progress" data-i18n-key="auth.progress.time">
+                        Time mode best: 00:00
+                    </div>
                 </div>
                 <div class="auth__actions">
                     <div id="google-login" class="auth__button">
-                        <span class="auth__button-text">Mit Google anmelden</span>
+                        <span class="auth__button-text" data-i18n-key="auth.loginButton">Sign in with Google</span>
                     </div>
-                    <p class="auth__hint">Vor Spielstart bitte anmelden, damit der Fortschritt deinem Konto zugeordnet wird.</p>
+                    <p class="auth__hint" data-i18n-key="auth.hint">
+                        Sign in before playing so your progress is tied to your account.
+                    </p>
                     <p id="auth-error" class="auth__error" hidden></p>
                 </div>
             </div>
@@ -55,10 +62,17 @@
                 <button id="start-level" class="main-menu__button" type="button" disabled>Level Modus</button>
                 <button id="start-blocker" class="main-menu__button main-menu__button--secondary" type="button">Blocker Modus</button>
                 <button id="start-time" class="main-menu__button main-menu__button--secondary" type="button">Zeit Modus</button>
-                <button id="open-leaderboard" class="main-menu__button main-menu__button--ghost" type="button">
-                    Bestenliste
-                </button>
-                <p class="main-menu__note">Highscores werden wie dein Level-Fortschritt gespeichert. Optionen über das Menü oben rechts öffnen.</p>
+                    <button
+                        id="open-leaderboard"
+                        class="main-menu__button main-menu__button--ghost"
+                        type="button"
+                        data-i18n-key="button.leaderboard"
+                    >
+                        Leaderboard
+                    </button>
+                <p class="main-menu__note" data-i18n-key="mainMenu.note">
+                    High scores are stored along with your level progress. Open the options menu via the top-right button.
+                </p>
             </div>
         </div>
     </div>
@@ -66,24 +80,24 @@
         <div class="leaderboard__card">
             <div class="leaderboard__header">
                 <div class="leaderboard__titles">
-                    <div class="leaderboard__lead">Übersicht</div>
-                    <h2 class="leaderboard__title">Bestenliste</h2>
-                    <p id="leaderboard-subtitle" class="leaderboard__subtitle">
-                        Vergleiche Level-Fortschritt, Blocker-Highscores und Zeit-Bestzeiten
-                    </p>
+                    <div class="leaderboard__lead" data-i18n-key="leaderboard.lead">Overview</div>
+                    <h2 class="leaderboard__title" data-i18n-key="leaderboard.title">Leaderboard</h2>
+                    <p id="leaderboard-subtitle" class="leaderboard__subtitle">Compare level progress, blocker high scores, and time bests.</p>
                 </div>
-                <button id="leaderboard-back" class="leaderboard__action" type="button">Zurück zum Menü</button>
+                <button id="leaderboard-back" class="leaderboard__action" type="button" data-i18n-key="leaderboard.back">
+                    Back to menu
+                </button>
             </div>
             <div class="leaderboard__controls" role="group" aria-label="Bestenlisten-Filter">
                 <div class="leaderboard__control-group">
                     <button id="leaderboard-mode-level" class="leaderboard__chip leaderboard__chip--active" type="button">
-                        Level-Modus
+                        Level Mode
                     </button>
                     <button id="leaderboard-mode-blocker" class="leaderboard__chip leaderboard__chip--secondary" type="button">
-                        Blocker-Modus
+                        Blocker Mode
                     </button>
                     <button id="leaderboard-mode-time" class="leaderboard__chip leaderboard__chip--secondary" type="button">
-                        Zeit-Modus
+                        Time Mode
                     </button>
                 </div>
                 <div class="leaderboard__control-group">
@@ -91,7 +105,7 @@
                         Global
                     </button>
                     <button id="leaderboard-scope-personal" class="leaderboard__chip leaderboard__chip--secondary" type="button">
-                        Persönlich
+                        Personal
                     </button>
                 </div>
             </div>
@@ -107,7 +121,7 @@
             </div>
 
             <div class="hud__card hud__card--stat">
-                <div id="moves-label" class="hud__label">Züge</div>
+                <div id="moves-label" class="hud__label" data-i18n-key="hud.label.moves">Moves</div>
                 <div id="moves" class="hud__value">20</div>
             </div>
 
@@ -118,7 +132,7 @@
         </div>
 
         <div class="hud__card hud__card--goals">
-            <div class="hud__label">Ziele</div>
+            <div class="hud__label" data-i18n-key="hud.label.goals">Goals</div>
 
             <div class="hud__progress">
                 <div id="score-progress" class="hud__progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0">
@@ -149,36 +163,36 @@
 
     <div id="options-modal" class="options-modal" hidden>
         <div class="options-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="options-modal-title">
-            <div class="options-modal__header">
-                <h2 id="options-modal-title" class="options-modal__title">Optionen</h2>
+                <div class="options-modal__header">
+                    <h2 id="options-modal-title" class="options-modal__title" data-i18n-key="options.title">Options</h2>
                 <button id="options-close" class="options-modal__close" type="button" aria-label="Menü schließen">
                     <span class="options-modal__close-icon" aria-hidden="true">×</span>
                 </button>
             </div>
             <div class="options-modal__body">
                 <div class="options-modal__group">
-                    <label class="options-modal__label" for="swap-mode">Tausch-Regel</label>
-                    <select id="swap-mode" class="options-modal__select">
-                        <option value="require-match" selected>Nur mit Match</option>
-                        <option value="free-swap">Jeder Tausch</option>
+                    <label class="options-modal__label" for="language-select" data-i18n-key="options.language.label">Language</label>
+                    <select id="language-select" class="options-modal__select">
+                        <option value="en" data-i18n-key="options.language.english" selected>English</option>
+                        <option value="de" data-i18n-key="options.language.german">Deutsch</option>
                     </select>
                 </div>
                 <div class="options-modal__group">
-                    <label class="options-modal__label" for="cell-shape-mode">Zellformen</label>
+                    <label class="options-modal__label" for="cell-shape-mode" data-i18n-key="options.cellShape.label">Cell shapes</label>
                     <select id="cell-shape-mode" class="options-modal__select">
-                        <option value="square" selected>Alle Quadrate</option>
-                        <option value="shaped">Farb-spezifische Formen</option>
+                        <option value="square" selected data-i18n-key="options.cellShape.square">All squares</option>
+                        <option value="shaped" data-i18n-key="options.cellShape.shaped">Color-specific shapes</option>
                     </select>
                 </div>
                 <div class="options-modal__group">
-                    <span class="options-modal__label">Audio</span>
+                    <span class="options-modal__label" data-i18n-key="options.audio.label">Audio</span>
                     <button id="audio-toggle" class="options-modal__action" type="button" aria-pressed="true">
-                        Audio an
+                        Audio on
                     </button>
                 </div>
                 <div class="options-modal__group">
-                    <button id="exit-game" class="options-modal__action options-modal__action--danger" type="button">
-                        Spiel beenden
+                    <button id="exit-game" class="options-modal__action options-modal__action--danger" type="button" data-i18n-key="options.exit">
+                        Exit game
                     </button>
                 </div>
             </div>

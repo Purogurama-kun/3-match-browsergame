@@ -19,18 +19,18 @@ const BLACK_BOMB_COLOR = '#0b0d11';
 const TACTICAL_POWERUPS = {
     shuffle: {
         icon: '🔀',
-        label: 'Mischen',
-        description: 'Alle Bonbons neu anordnen'
+        labelKey: 'powerup.shuffle.label',
+        descriptionKey: 'powerup.shuffle.description'
     },
     switch: {
         icon: '🔁',
-        label: 'Switch',
-        description: 'Tausche zwei benachbarte Felder ohne Match'
+        labelKey: 'powerup.switch.label',
+        descriptionKey: 'powerup.switch.description'
     },
     bomb: {
         icon: '💣',
-        label: 'Bombe',
-        description: 'Sprengt ein 4×4-Feld deiner Wahl'
+        labelKey: 'powerup.bomb.label',
+        descriptionKey: 'powerup.bomb.description'
     }
 } as const;
 

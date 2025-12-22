@@ -1,6 +1,7 @@
 import { BoosterType, GRID_SIZE, createFreshPowerupInventory } from './constants.js';
 import { BoardConfig, GameModeState, ModeContext } from './game-mode-state.js';
 import { GameState } from './types.js';
+import { t } from './i18n.js';
 
 class BlockerModeState implements GameModeState {
     readonly id = 'blocker';
@@ -37,7 +38,7 @@ class BlockerModeState implements GameModeState {
             ,
             cellShapeMode: 'square'
         };
-        context.getHud().setStatus('Blocker-Modus gestartet. Überlebe so lange wie möglich.', '♾️');
+        context.getHud().setStatus(t('blocker.status.started'), '♾️');
         return state;
     }
 
@@ -61,7 +62,7 @@ class BlockerModeState implements GameModeState {
             const hardenCount = 1 + Math.floor(this.difficultyTier / 2);
             context.hardenCells(hardenCount);
             this.refreshDifficulty(state);
-            context.getHud().setStatus('Mehr harte Bonbons erscheinen!', '🧊');
+            context.getHud().setStatus(t('blocker.status.moreHardCandy'), '🧊');
         }
         this.updateBlockerTargetScore(state);
         context.updateHud(state);
@@ -126,7 +127,7 @@ class BlockerModeState implements GameModeState {
         state.bestScore = this.personalBest;
         this.updateBlockerTargetScore(state);
         context.notifyBlockerHighScore(this.personalBest);
-        context.getHud().setStatus('Neuer Highscore!', '🏆');
+        context.getHud().setStatus(t('blocker.status.newHighscore'), '🏆');
     }
 
     private getStartingGenerators(): number[] {

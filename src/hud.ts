@@ -12,10 +12,11 @@ import {
     GameMode,
     GameState,
     GoalProgress,
-    PowerupInventory,
-    SwapMode
+    PowerupInventory
 } from './types.js';
 import { getRequiredElement } from './dom.js';
+import { describeGoal } from './levels.js';
+import { t, Locale } from './i18n.js';
 
 class Hud {
     constructor() {
@@ -33,15 +34,16 @@ class Hud {
         this.powerupButtons = {} as Record<TacticalPowerup, HTMLButtonElement>;
         this.powerupCountNodes = {} as Record<TacticalPowerup, HTMLElement>;
         this.initPowerupButtons();
-        this.swapModeSelect = this.getSwapModeElement();
         this.optionsToggle = this.getOptionsToggle();
         this.optionsClose = this.getOptionsClose();
         this.optionsModal = this.getOptionsModal();
         this.audioToggle = this.getAudioToggle();
         this.cellShapeSelect = this.getCellShapeSelect();
+        this.languageSelect = this.getLanguageSelect();
         this.difficultyLabel = this.getDifficultyLabel();
         this.exitButton = this.getExitButton();
         this.setAudioToggleState(true);
+        this.setLanguage('en');
         this.hideOptionsModal();
     }
 
@@ -55,7 +57,6 @@ class Hud {
     private statusText: HTMLElement;
     private statusIcon: HTMLElement;
     private goalsList: HTMLUListElement;
-    private swapModeSelect: HTMLSelectElement;
     private optionsToggle: HTMLButtonElement;
     private optionsClose: HTMLButtonElement;
     private optionsModal: HTMLElement;
@@ -63,6 +64,8 @@ class Hud {
     private difficultyLabel: HTMLElement;
     private exitButton: HTMLButtonElement;
     private cellShapeSelect: HTMLSelectElement;
+    private languageSelect: HTMLSelectElement;
+    private audioEnabled = true;
     private cellShapeMode: CellShapeMode = 'square';
     private tacticalToolbar: HTMLElement;
     private powerupButtons: Record<TacticalPowerup, HTMLButtonElement>;
@@ -79,7 +82,7 @@ class Hud {
                 ? state.score + ' '
                 : state.score + '/' + state.targetScore;
         this.level.textContent = String(state.level);
-        this.movesLabel.textContent = isTimeMode ? 'Zeit' : 'Züge';
+        this.movesLabel.textContent = isTimeMode ? t('hud.label.time') : t('hud.label.moves');
         this.moves.textContent = isTimeMode
             ? this.formatTime(state.timeRemaining ?? 0)
             : state.mode === 'blocker'
@@ -92,20 +95,20 @@ class Hud {
         this.updatePowerupButtons(state.powerups);
     }
 
-    getSwapMode(): SwapMode {
-        return this.swapModeSelect.value as SwapMode;
-    }
-
-    onSwapModeChange(handler: (mode: SwapMode) => void): void {
-        this.swapModeSelect.addEventListener('change', () => {
-            handler(this.getSwapMode());
-        });
-    }
-
     onCellShapeModeChange(handler: (mode: CellShapeMode) => void): void {
         this.cellShapeSelect.addEventListener('change', () => {
             handler(this.cellShapeSelect.value as CellShapeMode);
         });
+    }
+
+    onLanguageChange(handler: (locale: Locale) => void): void {
+        this.languageSelect.addEventListener('change', () => {
+            handler(this.languageSelect.value as Locale);
+        });
+    }
+
+    setLanguage(locale: Locale): void {
+        this.languageSelect.value = locale;
     }
 
     onTacticalPowerup(handler: (type: TacticalPowerup) => void): void {
@@ -149,6 +152,11 @@ class Hud {
         this.setAudioToggleState(enabled);
     }
 
+    applyLocale(): void {
+        this.setAudioToggleState(this.audioEnabled);
+        this.refreshPowerupButtons();
+    }
+
     setCellShapeMode(mode: CellShapeMode): void {
         this.cellShapeMode = mode;
         this.cellShapeSelect.value = mode;
@@ -186,21 +194,21 @@ class Hud {
     }
 
     resetStatus(): void {
-        this.setStatus('Bereit für Kombos!', '✨');
-    }
-
-    private getSwapModeElement(): HTMLSelectElement {
-        const element = getRequiredElement('swap-mode');
-        if (!(element instanceof HTMLSelectElement)) {
-            throw new Error('Swap mode element is not a select');
-        }
-        return element;
+        this.setStatus(t('hud.status.ready'), '✨');
     }
 
     private getCellShapeSelect(): HTMLSelectElement {
         const element = getRequiredElement('cell-shape-mode');
         if (!(element instanceof HTMLSelectElement)) {
             throw new Error('Cell shape mode element is not a select');
+        }
+        return element;
+    }
+
+    private getLanguageSelect(): HTMLSelectElement {
+        const element = getRequiredElement('language-select');
+        if (!(element instanceof HTMLSelectElement)) {
+            throw new Error('Language select is not a select');
         }
         return element;
     }
@@ -253,7 +261,7 @@ class Hud {
             button.className = 'tactical-toolbar__button';
             button.type = 'button';
             button.dataset.powerup = type;
-            button.setAttribute('aria-label', meta.description);
+            button.setAttribute('aria-label', t(meta.descriptionKey));
 
             const metaContainer = document.createElement('span');
             metaContainer.className = 'tactical-toolbar__meta';
@@ -264,8 +272,9 @@ class Hud {
 
             const label = document.createElement('span');
             label.className = 'tactical-toolbar__label';
-            label.textContent = meta.label;
+            const labelText = t(meta.labelKey);
             metaContainer.appendChild(icon);
+            label.textContent = labelText;
             metaContainer.appendChild(label);
 
             const count = document.createElement('span');
@@ -280,6 +289,13 @@ class Hud {
             this.powerupCountNodes[type] = count;
             this.tacticalToolbar.appendChild(button);
         });
+    }
+
+    private refreshPowerupButtons(): void {
+        this.initPowerupButtons();
+        if (this.lastPowerupInventory) {
+            this.updatePowerupButtons(this.lastPowerupInventory);
+        }
     }
 
     private getLevelCard(): HTMLElement {
@@ -307,7 +323,10 @@ class Hud {
             const remaining = Math.max(0, state.timeRemaining ?? 0);
             const capacity = Math.max(1, state.timeCapacity ?? remaining, remaining);
             const ratio = Math.min(1, capacity === 0 ? 0 : remaining / capacity);
-            const ariaText = 'Verbleibende Zeit ' + this.formatTime(remaining) + ' von ' + this.formatTime(capacity);
+            const ariaText = t('hud.aria.remainingTime', {
+                current: this.formatTime(remaining),
+                capacity: this.formatTime(capacity)
+            });
             this.scoreProgress.setAttribute('aria-valuenow', remaining.toFixed(1));
             this.scoreProgress.setAttribute('aria-valuemax', capacity.toFixed(1));
             this.scoreProgress.setAttribute('aria-valuetext', ariaText);
@@ -322,8 +341,15 @@ class Hud {
         const ratio = Math.min(1, clampedScore / target);
         const ariaText =
             state.mode === 'blocker'
-                ? 'Punktestand ' + clampedScore + ' von ' + target + '. Bester Lauf: ' + state.bestScore
-                : 'Punktestand ' + clampedScore + ' von ' + target;
+                ? t('hud.aria.scoreBlocker', {
+                      score: clampedScore,
+                      target,
+                      best: state.bestScore
+                  })
+                : t('hud.aria.scoreNormal', {
+                      score: clampedScore,
+                      target
+                  });
         this.scoreProgress.setAttribute('aria-valuenow', clampedScore.toString());
         this.scoreProgress.setAttribute('aria-valuemax', target.toString());
         this.scoreProgress.setAttribute('aria-valuetext', ariaText);
@@ -351,9 +377,11 @@ class Hud {
 
             const label = document.createElement('span');
             label.className = 'hud__goal-label';
-            label.textContent = goal.description;
+            const description = describeGoal(goal);
+            goal.description = description;
+            label.textContent = description;
 
-            item.setAttribute('aria-label', goal.description + ' verbleibend: ' + remaining);
+            item.setAttribute('aria-label', t('hud.goal.remaining', { description, remaining }));
             item.appendChild(visual);
             item.appendChild(counter);
             item.appendChild(label);
@@ -392,8 +420,9 @@ class Hud {
     }
 
     private setAudioToggleState(enabled: boolean): void {
+        this.audioEnabled = enabled;
         this.audioToggle.setAttribute('aria-pressed', String(enabled));
-        this.audioToggle.textContent = enabled ? 'Audio an' : 'Audio aus';
+        this.audioToggle.textContent = enabled ? t('hud.audio.on') : t('hud.audio.off');
     }
 
     private createGoalVisual(goal: GoalProgress): HTMLElement {
@@ -433,7 +462,7 @@ class Hud {
         item.className = 'hud__goal hud__goal--hint';
         const label = document.createElement('span');
         label.className = 'hud__goal-label';
-        label.textContent = 'Highscore: ' + highscore;
+        label.textContent = t('hud.blockerHighscore', { score: highscore });
         item.appendChild(label);
         this.goalsList.appendChild(item);
     }
@@ -445,7 +474,7 @@ class Hud {
         label.className = 'hud__goal-label';
         const survived = this.formatTime(state.survivalTime ?? 0);
         const best = this.formatTime(state.bestScore ?? 0);
-        label.textContent = 'Überlebt: ' + survived + ' · Bestzeit: ' + best;
+        label.textContent = t('hud.timeModeHint', { survived, best });
         item.appendChild(label);
         this.goalsList.appendChild(item);
     }

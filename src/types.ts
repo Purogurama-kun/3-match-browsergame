@@ -2,8 +2,6 @@ import { BoosterType, ColorKey, TacticalPowerup } from './constants.js';
 
 type Difficulty = 'easy' | 'normal' | 'hard' | 'expert' | 'nightmare';
 
-type SwapMode = 'free-swap' | 'require-match';
-
 type SwipeDirection = 'up' | 'down' | 'left' | 'right';
 
 type GameMode = 'level' | 'blocker' | 'time' | 'leaderboard';
@@ -84,7 +82,6 @@ type CellShapeMode = 'square' | 'shaped';
 
 export {
     GameState,
-    SwapMode,
     SwipeDirection,
     GoalType,
     ActivatableBoosterType,

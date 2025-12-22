@@ -10,6 +10,7 @@ import {
 } from './types.js';
 import { getRequiredElement } from './dom.js';
 import { LeaderboardStore } from './leaderboard-store.js';
+import { t, onLocaleChange } from './i18n.js';
 
 type LeaderboardStateOptions = {
     onExit: () => void;
@@ -57,6 +58,7 @@ class LeaderboardState implements GameModeState {
         this.identity = options.identity ?? null;
         this.onExit = options.onExit;
         this.attachHandlers();
+        onLocaleChange(() => this.render());
     }
 
     enter(_context: ModeContext): GameState {
@@ -158,7 +160,7 @@ class LeaderboardState implements GameModeState {
 
     private loadCurrent(): void {
         if (this.currentScope === 'personal' && !this.identity) {
-            this.error = 'Bitte anmelden, um persönliche Ergebnisse zu sehen.';
+            this.error = t('leaderboard.loginRequired');
             this.isLoading = false;
             this.dataset[this.currentMode][this.currentScope] = [];
             this.render();
@@ -180,7 +182,7 @@ class LeaderboardState implements GameModeState {
         } catch (error) {
             console.error('Failed to load leaderboard', error);
             if (requestId !== this.requestId) return;
-            this.error = 'Bestenliste konnte nicht geladen werden.';
+            this.error = t('leaderboard.error.loadFailed');
             this.dataset[mode][scope] = [];
         } finally {
             if (requestId !== this.requestId) return;
@@ -213,7 +215,7 @@ class LeaderboardState implements GameModeState {
         const entries = this.dataset[this.currentMode][this.currentScope];
         this.updateSubtitle(entries.length);
         if (this.isLoading) {
-            this.renderMessage('Bestenliste wird geladen...');
+            this.renderMessage(t('leaderboard.loading'));
             return;
         }
         if (this.error) {
@@ -262,7 +264,7 @@ class LeaderboardState implements GameModeState {
     }
 
     private renderEmptyState(): void {
-        this.renderMessage('Keine Einträge vorhanden.');
+        this.renderMessage(t('leaderboard.empty'));
     }
 
     private renderMessage(message: string): void {
@@ -273,32 +275,39 @@ class LeaderboardState implements GameModeState {
     }
 
     private updateSubtitle(count: number): void {
-        const scopeLabel = this.currentScope === 'global' ? 'Global' : 'Persönlich';
-        const modeLabelMap: Record<LeaderboardMode, string> = {
-            level: 'Level-Modus',
-            blocker: 'Blocker-Modus',
-            time: 'Zeit-Modus'
-        };
-        const modeLabel = modeLabelMap[this.currentMode];
-        this.subtitle.textContent = scopeLabel + ' · ' + modeLabel + ' · ' + count + ' Einträge';
+        const scopeLabel =
+            this.currentScope === 'global'
+                ? t('leaderboard.scope.global')
+                : t('leaderboard.scope.personal');
+        const modeLabel =
+            this.currentMode === 'level'
+                ? t('leaderboard.mode.level')
+                : this.currentMode === 'blocker'
+                    ? t('leaderboard.mode.blocker')
+                    : t('leaderboard.mode.time');
+        this.subtitle.textContent = t('leaderboard.subtitleTemplate', {
+            scope: scopeLabel,
+            mode: modeLabel,
+            count
+        });
     }
 
     private getMetricLabel(mode: LeaderboardMode): string {
-        if (mode === 'level') return 'Erreichtes Level';
-        if (mode === 'time') return 'Überlebenszeit';
-        return 'Blocker-Score';
+        if (mode === 'level') return t('leaderboard.metric.level');
+        if (mode === 'time') return t('leaderboard.metric.time');
+        return t('leaderboard.metric.blocker');
     }
 
     private formatMetricValue(entry: LeaderboardEntry, mode: LeaderboardMode): string {
         if (mode === 'level') {
             const level = entry.level ?? 0;
-            return 'Level ' + level;
+            return t('leaderboard.entry.level', { level });
         }
         if (mode === 'time') {
             const time = entry.timeSeconds ?? entry.score ?? 0;
             return this.formatTime(time);
         }
-        return (entry.score ?? 0) + ' Punkte';
+        return t('leaderboard.entry.points', { points: entry.score ?? 0 });
     }
 
     private buildMeta(entry: LeaderboardEntry): string {
@@ -312,7 +321,8 @@ class LeaderboardState implements GameModeState {
     private formatDate(dateString: string): string {
         const parsed = new Date(dateString);
         if (Number.isNaN(parsed.getTime())) return dateString;
-        return parsed.toLocaleDateString('de-DE', { dateStyle: 'medium' });
+        const locale = document.documentElement.lang === 'de' ? 'de-DE' : 'en-US';
+        return parsed.toLocaleDateString(locale, { dateStyle: 'medium' });
     }
 
     private formatTime(totalSeconds: number): string {
@@ -323,6 +333,11 @@ class LeaderboardState implements GameModeState {
     }
 
     private syncActiveButtons(): void {
+        this.modeButtons.level.textContent = t('leaderboard.mode.level');
+        this.modeButtons.blocker.textContent = t('leaderboard.mode.blocker');
+        this.modeButtons.time.textContent = t('leaderboard.mode.time');
+        this.scopeButtons.global.textContent = t('leaderboard.scope.global');
+        this.scopeButtons.personal.textContent = t('leaderboard.scope.personal');
         this.setActive(this.modeButtons.level, this.currentMode === 'level');
         this.setActive(this.modeButtons.blocker, this.currentMode === 'blocker');
         this.setActive(this.modeButtons.time, this.currentMode === 'time');

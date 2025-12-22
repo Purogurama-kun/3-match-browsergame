@@ -1,4 +1,5 @@
 import { getRequiredElement } from './dom.js';
+import { t } from './i18n.js';
 
 type GoogleJwtPayload = {
     sub: string;
@@ -81,6 +82,9 @@ class GoogleAuth {
     private timeProgressLabel: HTMLElement;
     private errorLabel: HTMLElement;
     private onLogin: (user: GoogleUser) => void;
+    private progressState = { level: 1, blockerHighScore: 0, timeSurvival: 0 };
+    private isProgressLoading = false;
+    private currentUserName: string | null = null;
 
     setProgress(progress: {
         level?: number;
@@ -89,38 +93,65 @@ class GoogleAuth {
         timeSurvival: number;
     }): void {
         const levelValue = Math.max(1, progress.level ?? progress.highestLevel ?? 1);
-        this.setProgressLevel(levelValue);
-        this.setBlockerHighScore(progress.blockerHighScore);
-        this.setTimeBest(progress.timeSurvival);
+        this.progressState.level = levelValue;
+        this.progressState.blockerHighScore = Math.max(0, Math.floor(Number.isFinite(progress.blockerHighScore) ? progress.blockerHighScore : 0));
+        this.progressState.timeSurvival = Math.max(0, Math.floor(Number.isFinite(progress.timeSurvival) ? progress.timeSurvival : 0));
+        this.isProgressLoading = false;
+        this.updateProgressTexts();
     }
 
     setProgressLevel(level: number): void {
         const normalized = Math.max(1, Math.min(Number.isFinite(level) ? level : 1, 50));
-        this.progressLabel.textContent = 'Fortschritt: Level ' + normalized;
+        this.progressState.level = normalized;
+        this.progressLabel.textContent = t('auth.progress.level', { level: normalized });
     }
 
     setBlockerHighScore(score: number): void {
         const normalized = Math.max(0, Math.floor(Number.isFinite(score) ? score : 0));
-        this.blockerProgressLabel.textContent = 'Blocker-Highscore: ' + normalized;
+        this.progressState.blockerHighScore = normalized;
+        this.blockerProgressLabel.textContent = t('auth.progress.blocker', { score: normalized });
     }
 
     setTimeBest(time: number): void {
         const normalized = Math.max(0, Math.floor(Number.isFinite(time) ? time : 0));
+        this.progressState.timeSurvival = normalized;
         const minutes = Math.floor(normalized / 60)
             .toString()
             .padStart(2, '0');
         const seconds = (normalized % 60).toString().padStart(2, '0');
-        this.timeProgressLabel.textContent = 'Zeit-Modus-Bestzeit: ' + minutes + ':' + seconds;
+        this.timeProgressLabel.textContent = t('auth.progress.time', {
+            time: minutes + ':' + seconds
+        });
+    }
+
+    private updateProgressTexts(): void {
+        this.setProgressLevel(this.progressState.level);
+        this.setBlockerHighScore(this.progressState.blockerHighScore);
+        this.setTimeBest(this.progressState.timeSurvival);
     }
 
     showProgressLoading(): void {
-        this.progressLabel.textContent = 'Fortschritt wird geladen...';
-        this.blockerProgressLabel.textContent = 'Blocker-Highscore wird geladen...';
-        this.timeProgressLabel.textContent = 'Zeit-Modus wird geladen...';
+        this.isProgressLoading = true;
+        this.progressLabel.textContent = t('auth.progress.loading');
+        this.blockerProgressLabel.textContent = t('auth.progress.blocker.loading');
+        this.timeProgressLabel.textContent = t('auth.progress.time.loading');
+    }
+
+    applyLocale(): void {
+        if (this.isProgressLoading) {
+            this.showProgressLoading();
+            return;
+        }
+        this.statusLabel.textContent = this.currentUserName
+            ? t('auth.status.signedIn', { name: this.currentUserName })
+            : t('auth.status.notSignedIn');
+        this.updateProgressTexts();
     }
 
     setLoggedOut(level: number = 1, blockerHighScore: number = 0, timeSurvival: number = 0): void {
-        this.statusLabel.textContent = 'Nicht angemeldet';
+        this.currentUserName = null;
+        this.isProgressLoading = false;
+        this.statusLabel.textContent = t('auth.status.notSignedIn');
         this.setProgress({ level, blockerHighScore, timeSurvival });
         this.enableLogin();
     }
@@ -153,7 +184,7 @@ class GoogleAuth {
     private handleCredential(response: GoogleCredentialResponse): void {
         const payload = this.decodeCredential(response.credential);
         if (!payload) {
-            this.showError('Anmeldung fehlgeschlagen. Bitte erneut versuchen.');
+            this.showError(t('auth.error.loginFailed'));
             return;
         }
         this.clearError();
@@ -162,7 +193,8 @@ class GoogleAuth {
             name: payload.name || payload.email || 'Spieler',
             ...(payload.email ? { email: payload.email } : {})
         };
-        this.statusLabel.textContent = 'Angemeldet als ' + user.name;
+        this.currentUserName = user.name;
+        this.statusLabel.textContent = t('auth.status.signedIn', { name: user.name });
         this.onLogin(user);
         this.disableLogin();
     }

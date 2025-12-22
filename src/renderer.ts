@@ -11,6 +11,7 @@ import {
     SHAPE_CLASS_NAMES
 } from './constants.js';
 import type { ColorKey } from './constants.js';
+import { t } from './i18n.js';
 
 type ModalOptions = {
     title: string;
@@ -154,8 +155,13 @@ class Renderer {
     renderMultiplierStatus(comboMultiplier: number, delta: number, moveScore: number): void {
         const icon = delta > 0 ? '⬆️' : delta < 0 ? '⬇️' : '✨';
         const formattedMultiplier = 'x' + comboMultiplier.toFixed(2);
-        const scorePart = moveScore > 0 ? ' · +' + moveScore + ' Punkte' : '';
-        const prefix = delta > 0 ? 'Starker Zug!' : delta < 0 ? 'Tempo verloren!' : 'Multiplikator';
+        const scorePart = moveScore > 0 ? t('renderer.points', { points: moveScore }) : '';
+        const prefix =
+            delta > 0
+                ? t('renderer.comboIncrease')
+                : delta < 0
+                    ? t('renderer.comboDecrease')
+                    : t('renderer.comboNeutral');
         this.hud.setStatus(prefix + ' ' + formattedMultiplier + scorePart, icon);
     }
 
