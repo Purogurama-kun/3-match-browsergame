@@ -2,11 +2,13 @@ import type { LeaderboardIdentity, LeaderboardMode } from './types.js';
 
 type ProgressData = {
     blockerHighScore: number;
+    timeSurvival: number;
 };
 
 type StoredProgress = {
     highestLevel: number;
     blockerHighScore: number;
+    timeSurvival: number;
 };
 
 type ProgressResponse = {
@@ -14,6 +16,7 @@ type ProgressResponse = {
     blockerHighScore?: unknown;
     bestScore?: unknown;
     data?: Partial<ProgressData> | null;
+    timeSurvival?: unknown;
 };
 
 type HistoryResponse = {
@@ -29,19 +32,22 @@ class ProgressStore {
     private readonly endpoint = '/backend/progress.php';
     private readonly maxLevel = 50;
     private readonly maxBlockerScore = 1000000000;
+    private readonly maxTimeSeconds = 86400;
 
     async load(userId: string, localProgress?: StoredProgress): Promise<StoredProgress> {
         const normalizedUserId = this.requireUserId(userId);
         const normalizedLocal = this.normalizeProgress(localProgress);
 
-        const [bestLevel, bestBlockerScore] = await Promise.all([
+        const [bestLevel, bestBlockerScore, bestTime] = await Promise.all([
             this.fetchBestFromHistory('level', normalizedUserId),
-            this.fetchBestFromHistory('blocker', normalizedUserId)
+            this.fetchBestFromHistory('blocker', normalizedUserId),
+            this.fetchBestFromHistory('time', normalizedUserId)
         ]);
 
         return {
             highestLevel: Math.max(normalizedLocal.highestLevel, bestLevel),
-            blockerHighScore: Math.max(normalizedLocal.blockerHighScore, bestBlockerScore)
+            blockerHighScore: Math.max(normalizedLocal.blockerHighScore, bestBlockerScore),
+            timeSurvival: Math.max(normalizedLocal.timeSurvival, bestTime)
         };
     }
 
@@ -53,12 +59,14 @@ class ProgressStore {
     ): Promise<StoredProgress> {
         const normalizedUserId = this.requireUserId(userId);
         const normalized = this.normalizeProgress(progress);
+        const scorePayload =
+            mode === 'time' ? normalized.timeSurvival : normalized.blockerHighScore;
         const payload = {
             userId: normalizedUserId,
             highestLevel: normalized.highestLevel,
-            score: normalized.blockerHighScore,
+            score: scorePayload,
             blockerHighScore: normalized.blockerHighScore,
-            data: { blockerHighScore: normalized.blockerHighScore },
+            data: { blockerHighScore: normalized.blockerHighScore, timeSurvival: normalized.timeSurvival },
             completedAt: new Date().toISOString(),
             ...(identity
                 ? {
@@ -115,9 +123,13 @@ class ProgressStore {
             return mode === 'level' ? 1 : 0;
         }
 
-        return mode === 'level'
-            ? this.normalizeLevel(best.highestLevel)
-            : this.normalizeScore(best.score);
+        if (mode === 'level') {
+            return this.normalizeLevel(best.highestLevel);
+        }
+        if (mode === 'time') {
+            return this.normalizeTime(best.score);
+        }
+        return this.normalizeScore(best.score);
     }
 
     private normalizeProgress(payload?: ProgressResponse, fallback?: StoredProgress): StoredProgress {
@@ -130,13 +142,22 @@ class ProgressStore {
                 payload?.data?.blockerHighScore ??
                 fallback?.blockerHighScore
         );
-        return { highestLevel, blockerHighScore };
+        const timeSurvival = this.normalizeTime(
+            payload?.timeSurvival ?? payload?.data?.timeSurvival ?? fallback?.timeSurvival
+        );
+        return { highestLevel, blockerHighScore, timeSurvival };
     }
 
     private normalizeScore(score: unknown): number {
         if (typeof score !== 'number' || !Number.isFinite(score)) return 0;
         const normalized = Math.floor(score);
         return Math.max(0, Math.min(normalized, this.maxBlockerScore));
+    }
+
+    private normalizeTime(time: unknown): number {
+        if (typeof time !== 'number' || !Number.isFinite(time)) return 0;
+        const normalized = Math.floor(time);
+        return Math.max(0, Math.min(normalized, this.maxTimeSeconds));
     }
 
     private requireUserId(userId: string): string {
@@ -158,8 +179,10 @@ class ProgressStore {
         return Math.max(1, Math.min(normalized, this.maxLevel));
     }
 
-    private mapMode(mode: LeaderboardMode): 'LevelMode' | 'BlockerMode' {
-        return mode === 'level' ? 'LevelMode' : 'BlockerMode';
+    private mapMode(mode: LeaderboardMode): 'LevelMode' | 'BlockerMode' | 'TimeMode' {
+        if (mode === 'level') return 'LevelMode';
+        if (mode === 'time') return 'TimeMode';
+        return 'BlockerMode';
     }
 }
 

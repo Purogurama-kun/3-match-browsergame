@@ -15,6 +15,7 @@ type LeaderboardRow = {
     nationality?: unknown;
     highestLevel?: unknown;
     score?: unknown;
+    timeSurvival?: unknown;
 };
 
 type HistoryResponse = {
@@ -30,6 +31,7 @@ type HistoryRow = {
 class LeaderboardStore {
     private readonly endpoint = '/backend/progress.php';
     private readonly defaultLimit = 20;
+    private readonly maxTimeSeconds = 86400;
 
     async load(
         mode: LeaderboardMode,
@@ -115,6 +117,12 @@ class LeaderboardStore {
                 level: this.normalizeLevel(row.highestLevel)
             };
         }
+        if (mode === 'time') {
+            return {
+                ...base,
+                timeSeconds: this.normalizeTime(row.score)
+            };
+        }
         return {
             ...base,
             score: this.normalizeScore(row.score)
@@ -137,6 +145,12 @@ class LeaderboardStore {
                 level: this.normalizeLevel(row.highestLevel)
             };
         }
+        if (mode === 'time') {
+            return {
+                ...base,
+                timeSeconds: this.normalizeTime(row.score)
+            };
+        }
         return {
             ...base,
             score: this.normalizeScore(row.score)
@@ -155,6 +169,12 @@ class LeaderboardStore {
         return Math.max(0, Math.min(1000000000, normalized));
     }
 
+    private normalizeTime(value: unknown): number {
+        if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
+        const normalized = Math.floor(value);
+        return Math.max(0, Math.min(this.maxTimeSeconds, normalized));
+    }
+
     private normalizeDate(value: unknown): string {
         if (typeof value === 'string' && value.trim()) {
             return value;
@@ -169,8 +189,10 @@ class LeaderboardStore {
         return trimmed.slice(0, 3).toUpperCase();
     }
 
-    private mapMode(mode: LeaderboardMode): 'LevelMode' | 'BlockerMode' {
-        return mode === 'level' ? 'LevelMode' : 'BlockerMode';
+    private mapMode(mode: LeaderboardMode): 'LevelMode' | 'BlockerMode' | 'TimeMode' {
+        if (mode === 'level') return 'LevelMode';
+        if (mode === 'time') return 'TimeMode';
+        return 'BlockerMode';
     }
 }
 

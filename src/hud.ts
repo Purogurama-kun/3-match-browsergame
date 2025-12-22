@@ -7,6 +7,7 @@ class Hud {
         this.score = getRequiredElement('score');
         this.levelCard = this.getLevelCard();
         this.level = getRequiredElement('level');
+        this.movesLabel = this.getMovesLabel();
         this.moves = getRequiredElement('moves');
         this.scoreProgress = getRequiredElement('score-progress');
         this.scoreProgressFill = getRequiredElement('score-progress-fill');
@@ -27,6 +28,7 @@ class Hud {
     private score: HTMLElement;
     private levelCard: HTMLElement;
     private level: HTMLElement;
+    private movesLabel: HTMLElement;
     private moves: HTMLElement;
     private scoreProgress: HTMLElement;
     private scoreProgressFill: HTMLElement;
@@ -42,17 +44,23 @@ class Hud {
     private exitButton: HTMLButtonElement;
 
     render(state: GameState): void {
-        this.score.textContent =
-            state.mode === 'blocker'
+        const isTimeMode = state.mode === 'time';
+        this.score.textContent = isTimeMode
+            ? this.formatTime(state.timeRemaining ?? 0)
+            : state.mode === 'blocker'
                 ? state.score + ' '
                 : state.score + '/' + state.targetScore;
         this.level.textContent = String(state.level);
-        this.moves.textContent = state.mode === 'blocker' ? '∞' : String(state.movesLeft);
+        this.movesLabel.textContent = isTimeMode ? 'Zeit' : 'Züge';
+        this.moves.textContent = isTimeMode
+            ? this.formatTime(state.timeRemaining ?? 0)
+            : state.mode === 'blocker'
+                ? '∞'
+                : String(state.movesLeft);
         this.applyDifficultyStyle(state.difficulty);
 
         this.updateProgress(state);
-        this.renderGoals(state.goals, state.mode);
-        this.renderBlockerModeHighscore(state.bestScore);
+        this.renderGoals(state.goals, state.mode, state);
     }
 
     getSwapMode(): SwapMode {
@@ -170,6 +178,10 @@ class Hud {
         return getRequiredElement('level-card');
     }
 
+    private getMovesLabel(): HTMLElement {
+        return getRequiredElement('moves-label');
+    }
+
     private getDifficultyLabel(): HTMLElement {
         return getRequiredElement('difficulty');
     }
@@ -183,6 +195,18 @@ class Hud {
     }
 
     private updateProgress(state: GameState): void {
+        if (state.mode === 'time') {
+            const remaining = Math.max(0, state.timeRemaining ?? 0);
+            const capacity = Math.max(1, state.timeCapacity ?? remaining, remaining);
+            const ratio = Math.min(1, capacity === 0 ? 0 : remaining / capacity);
+            const ariaText = 'Verbleibende Zeit ' + this.formatTime(remaining) + ' von ' + this.formatTime(capacity);
+            this.scoreProgress.setAttribute('aria-valuenow', remaining.toFixed(1));
+            this.scoreProgress.setAttribute('aria-valuemax', capacity.toFixed(1));
+            this.scoreProgress.setAttribute('aria-valuetext', ariaText);
+            this.scoreProgressFill.style.width = (ratio * 100).toFixed(1) + '%';
+            this.score.textContent = this.formatTime(remaining);
+            return;
+        }
         const clampedScore = Math.max(0, state.score);
         const target = state.mode === 'blocker'
             ? Math.max(1, Math.max(state.targetScore, state.bestScore, clampedScore))
@@ -198,10 +222,14 @@ class Hud {
         this.scoreProgressFill.style.width = (ratio * 100).toFixed(1) + '%';
     }
 
-    private renderGoals(goals: GoalProgress[], mode: GameMode): void {
+    private renderGoals(goals: GoalProgress[], mode: GameMode, state: GameState): void {
         this.goalsList.innerHTML = '';
         if (mode === 'blocker') {
+            this.renderBlockerModeHighscore(state.bestScore);
             return;
+        }
+        if (mode === 'time') {
+            this.renderTimeModeHint(state);
         }
         goals.forEach((goal) => {
             const item = document.createElement('li');
@@ -281,6 +309,18 @@ class Hud {
         this.goalsList.appendChild(item);
     }
 
+    private renderTimeModeHint(state: GameState): void {
+        const item = document.createElement('li');
+        item.className = 'hud__goal hud__goal--hint';
+        const label = document.createElement('span');
+        label.className = 'hud__goal-label';
+        const survived = this.formatTime(state.survivalTime ?? 0);
+        const best = this.formatTime(state.bestScore ?? 0);
+        label.textContent = 'Überlebt: ' + survived + ' · Bestzeit: ' + best;
+        item.appendChild(label);
+        this.goalsList.appendChild(item);
+    }
+
     private formatDifficultyLabel(difficulty: Difficulty): string {
         const labelMap: Record<Difficulty, string> = {
             easy: 'Easy',
@@ -298,6 +338,13 @@ class Hud {
         if (booster === BOOSTERS.BURST_MEDIUM) return '💥';
         if (booster === BOOSTERS.BURST_LARGE) return '☢️';
         return '';
+    }
+
+    private formatTime(totalSeconds: number): string {
+        const safeSeconds = Math.max(0, Number.isFinite(totalSeconds) ? totalSeconds : 0);
+        const minutes = Math.floor(safeSeconds / 60);
+        const seconds = Math.floor(safeSeconds % 60);
+        return minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
     }
 }
 

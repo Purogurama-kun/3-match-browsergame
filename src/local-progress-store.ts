@@ -5,9 +5,11 @@ class LocalProgressStore {
     private readonly legacyLevelKey = 'match3-highest-level';
     private readonly maxLevel = 50;
     private readonly maxBlockerScore = 1000000000;
+    private readonly maxTimeSeconds = 86400;
     private readonly defaultProgress: StoredProgress = {
         highestLevel: 1,
-        blockerHighScore: 0
+        blockerHighScore: 0,
+        timeSurvival: 0
     };
 
     load(): StoredProgress {
@@ -68,9 +70,11 @@ class LocalProgressStore {
     private normalizeProgress(progress?: Partial<StoredProgress>): StoredProgress {
         const highestLevel = this.normalizeLevel(progress?.highestLevel);
         const blockerHighScore = this.normalizeScore(progress?.blockerHighScore);
+        const timeSurvival = this.normalizeTime(progress?.timeSurvival);
         return {
             highestLevel,
-            blockerHighScore
+            blockerHighScore,
+            timeSurvival
         };
     }
 
@@ -84,6 +88,12 @@ class LocalProgressStore {
         if (typeof score !== 'number' || !Number.isFinite(score)) return this.defaultProgress.blockerHighScore;
         const normalized = Math.floor(score);
         return Math.max(0, Math.min(normalized, this.maxBlockerScore));
+    }
+
+    private normalizeTime(time: unknown): number {
+        if (typeof time !== 'number' || !Number.isFinite(time)) return this.defaultProgress.timeSurvival;
+        const normalized = Math.floor(time);
+        return Math.max(0, Math.min(normalized, this.maxTimeSeconds));
     }
 }
 

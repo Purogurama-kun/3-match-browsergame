@@ -11,6 +11,7 @@ Small Match-3 browser game with boosters, goals, and sound feedback, written in 
 - Levels mit begrenzten Zügen, Zielpunkten und pro-Level-Zielen (Farben zerstören oder Booster aktivieren).
 - Harte Bonbons, die erst durch angrenzende Matches oder Bombenexplosionen weich werden und danach matchbar sind.
 - Blocker-Modus mit zunehmender Härte, Highscore-Speicherung und automatischer Niederlage, sobald keine gültigen Züge mehr existieren.
+- Zeit-Modus mit Echtzeit-Timer, Geschwindigkeits-Anstieg, Zeitboni durch Matches und Ziele sowie persistenter Bestzeit.
 - Free-swap or require-match swap modes, plus swipe and click controls.
 - Combo multiplier scoring with HUD feedback.
 - Sound effects, optional audio toggle, and screen shake on impactful actions.
@@ -36,9 +37,9 @@ Then open `http://localhost:5500` in your browser.
 
 The PHP server exposes `backend/progress.php`, which persists user progress to `backend/progress.sqlite`. The database file is created automatically on first write and now also stores leaderboard runs:
 
-- `action=leaderboard&mode=LevelMode|BlockerMode` (GET) returns paged global entries ordered by best result.
-- `action=history&mode=LevelMode|BlockerMode&userId=<id>` (GET) returns the requesting user’s past runs ordered best-first.
-- POST requests still accept progress updates and now record completed runs for both modes when supplied.
+- `action=leaderboard&mode=LevelMode|BlockerMode|TimeMode` (GET) returns paged global entries ordered by best result.
+- `action=history&mode=LevelMode|BlockerMode|TimeMode&userId=<id>` (GET) returns the requesting user’s past runs ordered best-first.
+- POST requests still accept progress updates and now record completed runs for all modes when supplied.
 
 ### NPM run commands
 
@@ -65,7 +66,7 @@ The project uses the following concepts:
 
 - Im Hauptmenü kannst du dich per Google Login anmelden (Client-ID ist bereits hinterlegt) – du kannst aber auch als Gast direkt den Level Modus starten.
 - Nach erfolgreicher Anmeldung wird dein Name im Menü angezeigt.
-- Der höchste freigeschaltete Level und dein Blocker-Highscore werden serverseitig in einer SQLite-Datenbank gespeichert. Beim Login wird der Fortschritt anhand deiner Google-User-ID geladen, sodass er geräteunabhängig verfügbar ist.
+- Der höchste freigeschaltete Level, dein Blocker-Highscore und deine Zeit-Modus-Bestzeit werden serverseitig in einer SQLite-Datenbank gespeichert. Beim Login wird der Fortschritt anhand deiner Google-User-ID geladen, sodass er geräteunabhängig verfügbar ist.
 - Fortschritt ohne Login wird lokal gespeichert (localStorage). Meldest du dich später an, wird der lokale Fortschritt inklusive Highscore mit deinem Konto synchronisiert.
 
 ## Project structure

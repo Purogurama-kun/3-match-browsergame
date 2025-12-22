@@ -32,8 +32,8 @@
             <h1 id="main-menu-title" class="main-menu__title">Explosive Candy</h1>
             <p class="main-menu__text">
                 Kombiniere farbige Süßigkeiten, löse Explosionen aus und knacke die Levelziele. Starte im
-                Level Modus oder sichere dir im Blocker Modus einen neuen Highscore, während das Spielfeld
-                immer härter wird.
+                Level Modus, sichere dir im Blocker Modus einen neuen Highscore oder teste den neuen Zeit
+                Modus mit stetig schneller werdender Uhr.
             </p>
             <div class="auth">
                 <div class="auth__summary">
@@ -41,6 +41,7 @@
                     <div id="auth-status" class="auth__status">Nicht angemeldet</div>
                     <div id="auth-progress" class="auth__progress">Fortschritt: Level 1</div>
                     <div id="auth-progress-blocker" class="auth__progress">Blocker-Modus-Highscore: 0</div>
+                    <div id="auth-progress-time" class="auth__progress">Zeit-Modus-Bestzeit: 00:00</div>
                 </div>
                 <div class="auth__actions">
                     <div id="google-login" class="auth__button">
@@ -53,6 +54,7 @@
             <div class="main-menu__actions">
                 <button id="start-level" class="main-menu__button" type="button" disabled>Level Modus</button>
                 <button id="start-blocker" class="main-menu__button main-menu__button--secondary" type="button">Blocker Modus</button>
+                <button id="start-time" class="main-menu__button main-menu__button--secondary" type="button">Zeit Modus</button>
                 <button id="open-leaderboard" class="main-menu__button main-menu__button--ghost" type="button">
                     Bestenliste
                 </button>
@@ -67,7 +69,7 @@
                     <div class="leaderboard__lead">Übersicht</div>
                     <h2 class="leaderboard__title">Bestenliste</h2>
                     <p id="leaderboard-subtitle" class="leaderboard__subtitle">
-                        Vergleiche Level-Fortschritt und Blocker-Highscores
+                        Vergleiche Level-Fortschritt, Blocker-Highscores und Zeit-Bestzeiten
                     </p>
                 </div>
                 <button id="leaderboard-back" class="leaderboard__action" type="button">Zurück zum Menü</button>
@@ -79,6 +81,9 @@
                     </button>
                     <button id="leaderboard-mode-blocker" class="leaderboard__chip leaderboard__chip--secondary" type="button">
                         Blocker-Modus
+                    </button>
+                    <button id="leaderboard-mode-time" class="leaderboard__chip leaderboard__chip--secondary" type="button">
+                        Zeit-Modus
                     </button>
                 </div>
                 <div class="leaderboard__control-group">
@@ -102,7 +107,7 @@
             </div>
 
             <div class="hud__card hud__card--stat">
-                <div class="hud__label">Züge</div>
+                <div id="moves-label" class="hud__label">Züge</div>
                 <div id="moves" class="hud__value">20</div>
             </div>
 

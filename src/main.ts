@@ -11,9 +11,10 @@ class GameApp {
         this.mainMenu = getRequiredElement('main-menu');
         this.startLevelButton = this.getLevelButton();
         this.startBlockerButton = this.getBlockerButton();
+        this.startTimeButton = this.getTimeButton();
         this.startLeaderboardButton = this.getLeaderboardButton();
         this.leaderboard = getRequiredElement('leaderboard');
-        this.progress = { highestLevel: 1, blockerHighScore: 0 };
+        this.progress = { highestLevel: 1, blockerHighScore: 0, timeSurvival: 0 };
         this.progressStore = new ProgressStore();
         this.localProgress = new LocalProgressStore();
         this.googleAuth = new GoogleAuth({
@@ -21,6 +22,7 @@ class GameApp {
             statusId: 'auth-status',
             progressId: 'auth-progress',
             blockerProgressId: 'auth-progress-blocker',
+            timeProgressId: 'auth-progress-time',
             errorId: 'auth-error',
             onLogin: (user) => this.handleLogin(user)
         });
@@ -30,10 +32,12 @@ class GameApp {
 
         this.startLevelButton.addEventListener('click', () => this.startLevelGame());
         this.startBlockerButton.addEventListener('click', () => this.startBlockerGame());
+        this.startTimeButton.addEventListener('click', () => this.startTimeGame());
         this.startLeaderboardButton.addEventListener('click', () => this.showLeaderboard());
         this.game.onExitGameRequested(() => this.returnToMenu());
         this.game.onProgressChange((level) => this.saveProgress(level));
         this.game.onBlockerHighScore((score) => this.saveBlockerHighScore(score));
+        this.game.onTimeBest((time) => this.saveTimeBest(time));
 
         this.showMainMenu();
     }
@@ -42,6 +46,7 @@ class GameApp {
     private mainMenu: HTMLElement;
     private startLevelButton: HTMLButtonElement;
     private startBlockerButton: HTMLButtonElement;
+    private startTimeButton: HTMLButtonElement;
     private startLeaderboardButton: HTMLButtonElement;
     private leaderboard: HTMLElement;
     private googleAuth: GoogleAuth;
@@ -62,6 +67,12 @@ class GameApp {
         if (this.isProgressLoading) return;
         this.hideMainMenu();
         this.game.startBlocker(this.progress.blockerHighScore);
+    }
+
+    private startTimeGame(): void {
+        if (this.isProgressLoading) return;
+        this.hideMainMenu();
+        this.game.startTime(this.progress.timeSurvival);
     }
 
     private showLeaderboard(): void {
@@ -111,7 +122,11 @@ class GameApp {
     private loadLocalProgress(): void {
         const stored = this.localProgress.load();
         this.progress = this.mergeProgress(this.progress, stored);
-        this.googleAuth.setLoggedOut(this.progress.highestLevel, this.progress.blockerHighScore);
+        this.googleAuth.setLoggedOut(
+            this.progress.highestLevel,
+            this.progress.blockerHighScore,
+            this.progress.timeSurvival
+        );
         this.updateStartButtonState();
     }
 
@@ -127,6 +142,14 @@ class GameApp {
         const element = getRequiredElement('start-blocker');
         if (!(element instanceof HTMLButtonElement)) {
             throw new Error('Start blocker button is not a button');
+        }
+        return element;
+    }
+
+    private getTimeButton(): HTMLButtonElement {
+        const element = getRequiredElement('start-time');
+        if (!(element instanceof HTMLButtonElement)) {
+            throw new Error('Start time button is not a button');
         }
         return element;
     }
@@ -180,7 +203,8 @@ class GameApp {
     private saveProgress(unlockedLevel: number): void {
         this.progress = this.mergeProgress(this.progress, {
             highestLevel: unlockedLevel,
-            blockerHighScore: this.progress.blockerHighScore
+            blockerHighScore: this.progress.blockerHighScore,
+            timeSurvival: this.progress.timeSurvival
         });
         this.googleAuth.setProgress(this.progress);
         this.updateStartButtonState();
@@ -193,12 +217,26 @@ class GameApp {
         if (score <= this.progress.blockerHighScore) return;
         this.progress = this.mergeProgress(this.progress, {
             highestLevel: this.progress.highestLevel,
-            blockerHighScore: score
+            blockerHighScore: score,
+            timeSurvival: this.progress.timeSurvival
         });
         this.googleAuth.setProgress(this.progress);
         this.progress = this.localProgress.save(this.progress);
         if (!this.currentUser) return;
         void this.persistProgress(this.currentUser.id, this.progress, 'blocker');
+    }
+
+    private saveTimeBest(time: number): void {
+        if (time <= this.progress.timeSurvival) return;
+        this.progress = this.mergeProgress(this.progress, {
+            highestLevel: this.progress.highestLevel,
+            blockerHighScore: this.progress.blockerHighScore,
+            timeSurvival: time
+        });
+        this.googleAuth.setProgress(this.progress);
+        this.progress = this.localProgress.save(this.progress);
+        if (!this.currentUser) return;
+        void this.persistProgress(this.currentUser.id, this.progress, 'time');
     }
 
     private async persistProgress(
@@ -231,9 +269,14 @@ class GameApp {
         const isLoading = this.isProgressLoading;
         this.startLevelButton.disabled = isLoading;
         this.startBlockerButton.disabled = isLoading;
+        this.startTimeButton.disabled = isLoading;
         this.startLeaderboardButton.disabled = isLoading;
         const labelLevel = Math.max(1, this.progress.highestLevel);
         const blockerScore = Math.max(0, this.progress.blockerHighScore);
+        const timeBest = Math.max(0, this.progress.timeSurvival);
+        this.startTimeButton.textContent = isLoading
+            ? 'Zeit Modus wird geladen...'
+            : 'Zeit Modus (Best: ' + this.formatTime(timeBest) + ')';
         this.startBlockerButton.textContent = isLoading
             ? 'Blocker Modus wird geladen...'
             : 'Blocker Modus (Best: ' + blockerScore + ')';
@@ -251,15 +294,24 @@ class GameApp {
     private mergeProgress(current: StoredProgress, incoming: StoredProgress): StoredProgress {
         return {
             highestLevel: Math.max(current.highestLevel, incoming.highestLevel),
-            blockerHighScore: Math.max(current.blockerHighScore, incoming.blockerHighScore)
+            blockerHighScore: Math.max(current.blockerHighScore, incoming.blockerHighScore),
+            timeSurvival: Math.max(current.timeSurvival, incoming.timeSurvival)
         };
     }
 
     private shouldPersistMergedProgress(stored: StoredProgress, merged: StoredProgress): boolean {
         return (
             merged.highestLevel > stored.highestLevel ||
-            merged.blockerHighScore > stored.blockerHighScore
+            merged.blockerHighScore > stored.blockerHighScore ||
+            merged.timeSurvival > stored.timeSurvival
         );
+    }
+
+    private formatTime(totalSeconds: number): string {
+        const safeSeconds = Math.max(0, Math.floor(Number.isFinite(totalSeconds) ? totalSeconds : 0));
+        const minutes = Math.floor(safeSeconds / 60);
+        const seconds = safeSeconds % 60;
+        return minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
     }
 }
 

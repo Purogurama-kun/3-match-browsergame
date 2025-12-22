@@ -15,6 +15,7 @@ type GoogleAuthConfig = {
     statusId: string;
     progressId: string;
     blockerProgressId: string;
+    timeProgressId: string;
     errorId: string;
     onLogin: (user: GoogleUser) => void;
 };
@@ -64,6 +65,7 @@ class GoogleAuth {
         this.statusLabel = getRequiredElement(config.statusId);
         this.progressLabel = getRequiredElement(config.progressId);
         this.blockerProgressLabel = getRequiredElement(config.blockerProgressId);
+        this.timeProgressLabel = getRequiredElement(config.timeProgressId);
         this.errorLabel = getRequiredElement(config.errorId);
         this.onLogin = config.onLogin;
         this.disableLogin();
@@ -76,13 +78,20 @@ class GoogleAuth {
     private statusLabel: HTMLElement;
     private progressLabel: HTMLElement;
     private blockerProgressLabel: HTMLElement;
+    private timeProgressLabel: HTMLElement;
     private errorLabel: HTMLElement;
     private onLogin: (user: GoogleUser) => void;
 
-    setProgress(progress: { level?: number; highestLevel?: number; blockerHighScore: number }): void {
+    setProgress(progress: {
+        level?: number;
+        highestLevel?: number;
+        blockerHighScore: number;
+        timeSurvival: number;
+    }): void {
         const levelValue = Math.max(1, progress.level ?? progress.highestLevel ?? 1);
         this.setProgressLevel(levelValue);
         this.setBlockerHighScore(progress.blockerHighScore);
+        this.setTimeBest(progress.timeSurvival);
     }
 
     setProgressLevel(level: number): void {
@@ -95,14 +104,24 @@ class GoogleAuth {
         this.blockerProgressLabel.textContent = 'Blocker-Highscore: ' + normalized;
     }
 
+    setTimeBest(time: number): void {
+        const normalized = Math.max(0, Math.floor(Number.isFinite(time) ? time : 0));
+        const minutes = Math.floor(normalized / 60)
+            .toString()
+            .padStart(2, '0');
+        const seconds = (normalized % 60).toString().padStart(2, '0');
+        this.timeProgressLabel.textContent = 'Zeit-Modus-Bestzeit: ' + minutes + ':' + seconds;
+    }
+
     showProgressLoading(): void {
         this.progressLabel.textContent = 'Fortschritt wird geladen...';
         this.blockerProgressLabel.textContent = 'Blocker-Highscore wird geladen...';
+        this.timeProgressLabel.textContent = 'Zeit-Modus wird geladen...';
     }
 
-    setLoggedOut(level: number = 1, blockerHighScore: number = 0): void {
+    setLoggedOut(level: number = 1, blockerHighScore: number = 0, timeSurvival: number = 0): void {
         this.statusLabel.textContent = 'Nicht angemeldet';
-        this.setProgress({ level, blockerHighScore });
+        this.setProgress({ level, blockerHighScore, timeSurvival });
         this.enableLogin();
     }
 

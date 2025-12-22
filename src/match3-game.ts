@@ -9,6 +9,7 @@ import { GameModeState, ModeContext, BoardConfig } from './game-mode-state.js';
 import { LevelModeState } from './level-mode-state.js';
 import { BlockerModeState } from './blocker-mode-state.js';
 import { LeaderboardState, LeaderboardStateOptions } from './leaderboard-state.js';
+import { TimeModeState } from './time-mode-state.js';
 
 type MatchResult = {
     matched: Set<number>;
@@ -104,6 +105,7 @@ class Match3Game implements ModeContext {
     private boardAnimating: boolean;
     private progressListener: ((level: number) => void) | null = null;
     private blockerHighScoreListener: ((score: number) => void) | null = null;
+    private timeBestListener: ((time: number) => void) | null = null;
     private leaderboardState: LeaderboardState | null = null;
     private generatorMoveCounter = 0;
     private readonly generatorSpreadInterval = 2;
@@ -121,8 +123,17 @@ class Match3Game implements ModeContext {
         this.createBoard();
     }
 
+    startTime(bestSurvival: number): void {
+        this.hud.closeOptions();
+        this.switchMode(new TimeModeState(bestSurvival));
+        this.createBoard();
+    }
+
     stop(): void {
         this.generation++;
+        if (this.modeState) {
+            this.modeState.exit(this);
+        }
         this.clearPendingTimers();
         this.board.clear();
         this.resetMoveTracking();
@@ -146,6 +157,10 @@ class Match3Game implements ModeContext {
 
     onBlockerHighScore(handler: (score: number) => void): void {
         this.blockerHighScoreListener = handler;
+    }
+
+    onTimeBest(handler: (time: number) => void): void {
+        this.timeBestListener = handler;
     }
 
     showLeaderboard(options: LeaderboardStateOptions): void {
@@ -624,6 +639,26 @@ class Match3Game implements ModeContext {
         this.modalButton.focus();
     }
 
+    finishTimeRun(finalTime: number, bestTime: number): void {
+        this.sounds.play('levelFail');
+        this.showTimeResultModal(finalTime, bestTime);
+    }
+
+    private showTimeResultModal(finalTime: number, bestTime: number): void {
+        this.modalCallback = () => {
+            this.switchMode(new TimeModeState(bestTime));
+            this.createBoard();
+        };
+        const isNewBest = finalTime >= bestTime;
+        const finalLabel = this.formatTime(Math.max(0, finalTime));
+        const bestLabel = this.formatTime(Math.max(0, bestTime));
+        this.modalTitle.textContent = isNewBest ? 'Neue Bestzeit!' : 'Zeit abgelaufen!';
+        this.modalText.textContent = 'Überlebt: ' + finalLabel + '. Bestzeit: ' + bestLabel + '. Noch einmal?';
+        this.modalButton.textContent = 'Neu starten';
+        this.modalEl.classList.add('modal--visible');
+        this.modalButton.focus();
+    }
+
     private hideResultModal(): void {
         if (!this.modalEl.classList.contains('modal--visible')) return;
         this.modalEl.classList.remove('modal--visible');
@@ -637,6 +672,9 @@ class Match3Game implements ModeContext {
         this.state.score += effective;
         this.currentMoveScore += effective;
         this.currentMoveBaseScore += basePoints;
+        if (this.modeState.handleScoreAwarded) {
+            this.modeState.handleScoreAwarded(this.state, basePoints, this);
+        }
     }
 
     private beginMove(): void {
@@ -1082,6 +1120,13 @@ class Match3Game implements ModeContext {
         };
     }
 
+    private formatTime(totalSeconds: number): string {
+        const safeSeconds = Math.max(0, Math.floor(Number.isFinite(totalSeconds) ? totalSeconds : 0));
+        const minutes = Math.floor(safeSeconds / 60);
+        const seconds = safeSeconds % 60;
+        return minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+    }
+
     getHud(): Hud {
         return this.hud;
     }
@@ -1105,6 +1150,12 @@ class Match3Game implements ModeContext {
     notifyBlockerHighScore(score: number): void {
         if (this.blockerHighScoreListener) {
             this.blockerHighScoreListener(score);
+        }
+    }
+
+    notifyTimeBest(time: number): void {
+        if (this.timeBestListener) {
+            this.timeBestListener(time);
         }
     }
 
