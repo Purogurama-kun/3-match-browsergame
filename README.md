@@ -95,3 +95,49 @@ The project uses the following concepts:
 
 Note that 'http://localhost:5500' ≠ 'http://127.0.0.1:5500'! FedCM is extremly strict.
 The client ID is the public identifier of the app in Google’s login system. Client-ID: 276995857018-9foeghnr835nqq9kc2dpbl5j9ibljodg.apps.googleusercontent.com
+
+## ChatGPT Codex Token Saving
+
+### Token-Efficient Configuration
+
+| Measure                                      | Description                                               | Typical Token Savings |
+| -------------------------------------------- | --------------------------------------------------------- | --------------------- |
+| **Local instead of Cloud Agents**            | Local execution prevents repeated repository re-ingestion | **30–50%**            |
+| **Do not create PRs via Codex**              | Codex only edits code locally; PRs are created manually   | **25–50%**            |
+| **Console instead of VS Code Extension**     | No automatic context expansion                            | **30–60%**            |
+| **Disable explanations**                     | No explanatory text in responses                          | **10–30%**            |
+| **Disable code reviews**                     | Avoids read-only repository scans                         | **20–40%**            |
+| **Use smaller models instead of GPT-5.2**    | Avoids reasoning overkill for standard tasks              | **25–60%**            |
+| **Do not run CLI commands via Codex**        | Prevents log ingestion and repeated context growth        | **10–60%**            |
+
+### VS Code
+
+| Measure                                      | Description                                               | Typical Token Savings |
+| -------------------------------------------- | --------------------------------------------------------- | --------------------- |
+| **Disable auto repository search**           | Prevents silent background context buildup                | **20–50%**            |
+
+### Token-Efficient Prompts
+
+| Measure                                      | Description                                               | Typical Token Savings |
+| -------------------------------------------- | --------------------------------------------------------- | --------------------- |
+| **Diff only**                                | Return only code changes, not full files                  | **30–70%**            |
+| **Explicitly define new classes**            | Avoids pattern mining (e.g. “Implement TimeMode”)         | **10–25%**            |
+| **English prompts**                          | More efficient tokenization                               | **5–15%**             |
+| **Batch prompts instead of single prompts**  | One shared context for multiple tasks                      | **15–35%**            |
+| **Provide context manually**                 | Prevents automatic repository scanning                    | **30–60%**            |
+| **Explicit file list**                       | Disables repository-wide search                           | **20–50%**            |
+| **Line-range selection**                     | Send only relevant code lines                             | **30–70%**            |
+
+### Glossary
+
+- **“Batch prompts instead of single prompts”**:  
+  Combine multiple related tasks into a single prompt (e.g. `Tasks: 1. Fix Bug A; 2. Fix Bug B; …`) so the context is loaded once.
+
+- **“Provide context manually”**:  
+  In VS Code, select the relevant lines before invoking Codex; in the console, include context explicitly in the prompt (e.g. `Context: File: src/auth/session.ts (lines 40–80)`).
+
+- **“Explicit file list”**:  
+  State exactly which files may be modified (e.g. `Modify only: src/game.ts`).
+
+- **“Do not run CLI commands via Codex”**:  
+  Running commands like `tsc` through Codex is expensive because Codex executes the command, reads stdout and stderr, interprets the output, and keeps it as context for follow-up actions. CLI logs can be very large and quickly consume tokens.
