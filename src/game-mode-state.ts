@@ -13,8 +13,10 @@ interface ModeContext {
     getSounds(): SoundManager;
     finishLevel(result: 'win' | 'lose', completedLevel: number): void;
     finishBlockerRun(finalScore: number, bestScore: number): void;
+    finishTimeRun(finalTime: number, bestTime: number): void;
     notifyProgress(unlockedLevel: number): void;
     notifyBlockerHighScore(score: number): void;
+    notifyTimeBest(time: number): void;
     hardenCells(amount: number): void;
     ensurePlayableBoard(config: BoardConfig): void;
     updateHud(state: GameState): void;
@@ -34,6 +36,7 @@ interface GameModeState {
     checkForCompletion(state: GameState, context: ModeContext): void;
     handleColorCleared(state: GameState, color: string, context: ModeContext): void;
     handleBoosterUsed(state: GameState, booster: BoosterType, context: ModeContext): void;
+    handleScoreAwarded?(state: GameState, basePoints: number, context: ModeContext): void;
     getBoardConfig(): BoardConfig;
     shouldSpawnHardCandy(state: GameState): boolean;
     onBoardCreated?(state: GameState, context: ModeContext): void;

@@ -6,9 +6,9 @@ type SwapMode = 'free-swap' | 'require-match';
 
 type SwipeDirection = 'up' | 'down' | 'left' | 'right';
 
-type GameMode = 'level' | 'blocker' | 'leaderboard';
+type GameMode = 'level' | 'blocker' | 'time' | 'leaderboard';
 
-type LeaderboardMode = Extract<GameMode, 'level' | 'blocker'>;
+type LeaderboardMode = Extract<GameMode, 'level' | 'blocker' | 'time'>;
 type LeaderboardScope = 'global' | 'personal';
 
 type LeaderboardEntry = {
@@ -17,6 +17,7 @@ type LeaderboardEntry = {
     nationality?: string | null;
     level?: number;
     score?: number;
+    timeSeconds?: number;
 };
 
 type LeaderboardIdentity = {
@@ -70,6 +71,9 @@ type GameState = {
     goals: GoalProgress[];
     difficulty: Difficulty;
     comboMultiplier: number;
+    timeRemaining?: number;
+    survivalTime?: number;
+    timeCapacity?: number;
 };
 
 export {

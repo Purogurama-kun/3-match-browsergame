@@ -41,7 +41,8 @@ class LeaderboardState implements GameModeState {
         this.backButton = this.getButton('leaderboard-back');
         this.modeButtons = {
             level: this.getButton('leaderboard-mode-level'),
-            blocker: this.getButton('leaderboard-mode-blocker')
+            blocker: this.getButton('leaderboard-mode-blocker'),
+            time: this.getButton('leaderboard-mode-time')
         };
         this.scopeButtons = {
             global: this.getButton('leaderboard-scope-global'),
@@ -49,7 +50,8 @@ class LeaderboardState implements GameModeState {
         };
         this.dataset = {
             level: { global: [], personal: [] },
-            blocker: { global: [], personal: [] }
+            blocker: { global: [], personal: [] },
+            time: { global: [], personal: [] }
         };
         this.store = new LeaderboardStore();
         this.identity = options.identity ?? null;
@@ -133,6 +135,11 @@ class LeaderboardState implements GameModeState {
             this.syncActiveButtons();
             this.loadCurrent();
         });
+        this.modeButtons.time.addEventListener('click', () => {
+            this.currentMode = 'time';
+            this.syncActiveButtons();
+            this.loadCurrent();
+        });
         this.scopeButtons.global.addEventListener('click', () => {
             this.currentScope = 'global';
             this.syncActiveButtons();
@@ -190,7 +197,9 @@ class LeaderboardState implements GameModeState {
             const levelDiff = (b.level ?? 0) - (a.level ?? 0);
             if (levelDiff !== 0) return levelDiff;
         }
-        const scoreDiff = (b.score ?? 0) - (a.score ?? 0);
+        const metricB = mode === 'time' ? b.timeSeconds ?? b.score ?? 0 : b.score ?? 0;
+        const metricA = mode === 'time' ? a.timeSeconds ?? a.score ?? 0 : a.score ?? 0;
+        const scoreDiff = metricB - metricA;
         if (scoreDiff !== 0) return scoreDiff;
         const timeDiff = new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime();
         return timeDiff;
@@ -262,18 +271,29 @@ class LeaderboardState implements GameModeState {
 
     private updateSubtitle(count: number): void {
         const scopeLabel = this.currentScope === 'global' ? 'Global' : 'Persönlich';
-        const modeLabel = this.currentMode === 'level' ? 'Level-Modus' : 'Blocker-Modus';
+        const modeLabelMap: Record<LeaderboardMode, string> = {
+            level: 'Level-Modus',
+            blocker: 'Blocker-Modus',
+            time: 'Zeit-Modus'
+        };
+        const modeLabel = modeLabelMap[this.currentMode];
         this.subtitle.textContent = scopeLabel + ' · ' + modeLabel + ' · ' + count + ' Einträge';
     }
 
     private getMetricLabel(mode: LeaderboardMode): string {
-        return mode === 'level' ? 'Erreichtes Level' : 'Blocker-Score';
+        if (mode === 'level') return 'Erreichtes Level';
+        if (mode === 'time') return 'Überlebenszeit';
+        return 'Blocker-Score';
     }
 
     private formatMetricValue(entry: LeaderboardEntry, mode: LeaderboardMode): string {
         if (mode === 'level') {
             const level = entry.level ?? 0;
             return 'Level ' + level;
+        }
+        if (mode === 'time') {
+            const time = entry.timeSeconds ?? entry.score ?? 0;
+            return this.formatTime(time);
         }
         return (entry.score ?? 0) + ' Punkte';
     }
@@ -292,9 +312,17 @@ class LeaderboardState implements GameModeState {
         return parsed.toLocaleDateString('de-DE', { dateStyle: 'medium' });
     }
 
+    private formatTime(totalSeconds: number): string {
+        const normalized = Math.max(0, Math.floor(Number.isFinite(totalSeconds) ? totalSeconds : 0));
+        const minutes = Math.floor(normalized / 60);
+        const seconds = normalized % 60;
+        return minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+    }
+
     private syncActiveButtons(): void {
         this.setActive(this.modeButtons.level, this.currentMode === 'level');
         this.setActive(this.modeButtons.blocker, this.currentMode === 'blocker');
+        this.setActive(this.modeButtons.time, this.currentMode === 'time');
         this.setActive(this.scopeButtons.global, this.currentScope === 'global');
         this.setActive(this.scopeButtons.personal, this.currentScope === 'personal');
     }
