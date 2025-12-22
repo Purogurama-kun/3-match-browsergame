@@ -113,7 +113,9 @@ Use `npm run codex` to be token efficient -e.g.:
 | Cloud Tasks  | 1 message     | ~25 credits             | Not available      |
 | Code Review  | 1 pull request| ~25 credits             | Not available      |
 
-Here is a overview freom ChatGPT about their token costs: https://help.openai.com/en/articles/11481834-chatgpt-rate-card-business-enterpriseedu .
+Here is a overview freom ChatGPT about their credit costs: https://help.openai.com/en/articles/11481834-chatgpt-rate-card-business-enterpriseedu .
+
+Note that credits aren't tokens. Credit prices do not map 1:1 to token usages. You can buy 1'000 credits for 40€ and pay per action. But the table is still relevant, because it shows internal calculation costs and what uses less tokens.
 
 ##### Key takeaway
 > **Cloud tasks and PR reviews are ~5× more expensive than local tasks.**  
