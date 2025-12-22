@@ -46,7 +46,9 @@ The PHP server exposes `backend/progress.php`, which persists user progress to `
 - `npm run build` ➔ `tsc`
 - `npm run watch` ➔ `tsc -w`
 - `npm run docs` ➔ `jsdoc -c jsdoc.json`
-- `npm run codex` ➔ `codex --model gpt-5.1-codex-mini --local --diff-only --no-explain --no-review` (is very token cheap)
+- `npm run codex` ➔ `codex --model gpt-5.1-codex-mini` (is very token cheap)
+- `npm run codex:exec` ➔ `codex exec --model gpt-5.1-codex-mini`
+- `npm run codex:apply` ➔ `codex apply` (modify files after `codex exec` based on the diff. Afterwards you can use `git add .`)
 
 ## Setup php
 
@@ -100,8 +102,8 @@ The client ID is the public identifier of the app in Google’s login system. Cl
 ## ChatGPT Codex Token Saving
 
 Use `npm run codex` to be token efficient -e.g.:
-- `npm run codex -- "Fix null handling in src/auth/session.ts"`
-- `sed -n '40,80p' src/auth/session.ts | npm run codex -- "Fix null handling in src/auth/session.ts"` (with context)
+- `npm run codex:exec -- "Fix null handling in src/auth/session.ts"`
+- `sed -n '40,80p' src/auth/session.ts | npm run codex:exec -- "Fix null handling in src/auth/session.ts"` (with context)
 
 ### Token costs
 
@@ -117,13 +119,6 @@ Here is a overview freom ChatGPT about their credit costs: https://help.openai.c
 
 Note that credits aren't tokens. Credit prices do not map 1:1 to token usages. You can buy 1'000 credits for 40€ and pay per action. But the table is still relevant, because it shows internal calculation costs and what uses less tokens.
 
-##### Key takeaway
-> **Cloud tasks and PR reviews are ~5× more expensive than local tasks.**  
-> **GPT-5.1-Codex-mini is the cheapest possible Codex mode.**
-
-### One-line summary
-**GPT-5.1-Codex-mini + diff-only = cheapest possible Codex workflow.** (codex-mini means local and no PR)
-
 ### Token-Efficient Configuration
 
 | Measure                                      | Description                                               | Typical Token Savings |
@@ -132,7 +127,7 @@ Note that credits aren't tokens. Credit prices do not map 1:1 to token usages. Y
 | **Do not create PRs via Codex**              | Codex only edits code locally; PRs are created manually   | **25–50%**            |
 | **Console instead of VS Code Extension**     | No automatic context expansion                            | **30–60%**            |
 | **Disable explanations**                     | No explanatory text in responses                          | **10–30%**            |
-| **Disable code reviews**                     | Avoids read-only repository scans                         | **20–40%**            |
+| **So not use code reviews**                  | Avoids read-only repository scans (bad:`codex review`)    | **20–40%**            |
 | **Use smaller models instead of GPT-5.2**    | Avoids reasoning overkill for standard tasks              | **25–60%**            |
 | **Do not run CLI commands via Codex**        | Prevents log ingestion and repeated context growth        | **10–60%**            |
 

@@ -9,7 +9,9 @@
     "build": "tsc",
     "watch": "tsc --watch",
     "docs": "jsdoc -c jsdoc.json",
-    "codex": "codex --model gpt-5.1-codex-mini --local --diff-only --no-explain --no-review"
+    "codex": "codex --model gpt-5.1-codex-mini",
+    "codex:exec": "codex exec --model gpt-5.1-codex-mini",
+    "codex:apply": "codex apply"
   },
   "repository": {
     "type": "git",
