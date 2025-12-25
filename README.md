@@ -31,7 +31,7 @@ npm init -y
 npm install --save-dev typescript
 npm install --save-dev jsdoc
 npm run build
-php -c backend/php.ini -S 0.0.0.0:5500 -t .
+npm run server
 ```
 
 Then open `http://localhost:5500` in your browser.
@@ -46,6 +46,7 @@ The PHP server exposes `backend/progress.php`, which persists user progress to `
 
 - `npm run build` ➔ `tsc`
 - `npm run watch` ➔ `tsc -w`
+- `npm run server` ➔ `php -c backend/php.ini -S 0.0.0.0:5500 -t .`
 - `npm run docs` ➔ `jsdoc -c jsdoc.json`
 - `npm run codex` ➔ `codex --model gpt-5.1-codex-mini` (is very token cheap)
 - `npm run codex:exec` ➔ `codex exec --model gpt-5.1-codex-mini`

@@ -8,6 +8,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
+    "server": "php -c backend/php.ini -S 0.0.0.0:5500 -t .",
     "docs": "jsdoc -c jsdoc.json",
     "codex": "codex --model gpt-5.1-codex-mini",
     "codex:exec": "codex exec --model gpt-5.1-codex-mini",
