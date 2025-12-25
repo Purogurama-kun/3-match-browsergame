@@ -87,6 +87,12 @@ git pull (needs to be up-to-date)
 git merge my-new-branch
 ```
 
+**Remove unselected changes:**
+If codex wrote something you do not like and you haven't used `git add .`, then you can easily restore the current branch state.
+```
+git restore .
+```
+
 ## Project structure
 
 - `index.html` page markup
