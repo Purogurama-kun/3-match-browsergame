@@ -124,6 +124,7 @@ class Match3Game implements ModeContext {
         this.resetMoveTracking();
         this.renderer.resetMoveEvaluation();
         this.renderer.hideModal(false);
+        this.clearPendingPowerup();
         this.hud.resetStatus();
     }
 
@@ -306,6 +307,7 @@ class Match3Game implements ModeContext {
             const { row, col } = this.getRowCol(index);
             this.pendingPowerup = null;
             this.renderer.clearSelection();
+            this.hud.setPendingPowerup(null);
             this.applyBombPowerup(row, col);
             return;
         }
@@ -327,28 +329,43 @@ class Match3Game implements ModeContext {
             this.pendingPowerupSelections = [];
             this.pendingPowerup = null;
             this.renderer.clearSelection();
+            this.hud.setPendingPowerup(null);
             this.executeSwitchPowerup(first, index);
         }
     }
 
     private handleTacticalPowerup(type: TacticalPowerup): void {
-        if (this.boardAnimating || this.moveActive || this.powerupInProgress) return;
+        if (this.boardAnimating || this.moveActive) return;
         if (!this.modeState.canStartMove(this.state)) return;
-        if (!this.consumePowerup(type)) return;
+        if (!this.hasPowerup(type)) return;
+        if (this.pendingPowerup === type) {
+            this.cancelPendingPowerup();
+            return;
+        }
+        if (this.pendingPowerup) {
+            this.clearPendingPowerup();
+        }
+        if (this.powerupInProgress) return;
+
         const meta = TACTICAL_POWERUPS[type];
         if (!meta) return;
+
         this.powerupInProgress = true;
         this.syncPowerupToolbarLock();
         this.renderer.clearSelection();
         this.state.selected = null;
         const localizedLabel = t(meta.labelKey);
+
         if (type === 'shuffle') {
+            this.consumePowerup(type);
             this.hud.setStatus(t('hud.status.powerupActivated', { powerup: localizedLabel }), meta.icon ?? '✨');
+            this.hud.setPendingPowerup(null);
             this.pendingPowerup = null;
             this.applyShufflePowerup();
         } else {
             this.pendingPowerup = type;
             this.pendingPowerupSelections = [];
+            this.hud.setPendingPowerup(type);
             this.hud.setStatus(t('hud.status.chooseTarget', { powerup: localizedLabel }), meta.icon ?? '✨');
         }
         this.updateHud();
@@ -538,6 +555,27 @@ class Match3Game implements ModeContext {
         }
     }
 
+    private hasPowerup(type: TacticalPowerup): boolean {
+        return (this.state.powerups[type] ?? 0) > 0;
+    }
+
+    private clearPendingPowerup(showStatus = false): void {
+        if (!this.pendingPowerup) return;
+        this.pendingPowerup = null;
+        this.pendingPowerupSelections = [];
+        this.powerupInProgress = false;
+        this.syncPowerupToolbarLock();
+        this.hud.setPendingPowerup(null);
+        this.renderer.clearSelection();
+        if (showStatus) {
+            this.hud.setStatus(t('hud.status.powerupCanceled'), '✖️');
+        }
+    }
+
+    private cancelPendingPowerup(): void {
+        this.clearPendingPowerup(true);
+    }
+
     private consumePowerup(type: TacticalPowerup): boolean {
         const remaining = this.state.powerups[type] ?? 0;
         if (remaining <= 0) return false;
@@ -574,6 +612,11 @@ class Match3Game implements ModeContext {
     }
 
     private applyBombPowerup(row: number, col: number): void {
+        if (!this.consumePowerup('bomb')) {
+            this.releasePowerupLock();
+            return;
+        }
+        this.updateHud();
         const startRow = Math.min(Math.max(row - 1, 0), GRID_SIZE - 4);
         const startCol = Math.min(Math.max(col - 1, 0), GRID_SIZE - 4);
         const affected: number[] = [];
@@ -597,6 +640,11 @@ class Match3Game implements ModeContext {
     }
 
     private executeSwitchPowerup(firstIndex: number, secondIndex: number): void {
+        if (!this.consumePowerup('switch')) {
+            this.releasePowerupLock();
+            return;
+        }
+        this.updateHud();
         this.board.swapCells(firstIndex, secondIndex);
         this.renderer.refreshBoard(this.board);
         this.hud.setStatus(t('hud.status.switchExecuted'), TACTICAL_POWERUPS.switch.icon);

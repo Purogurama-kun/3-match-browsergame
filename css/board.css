@@ -229,6 +229,13 @@
     text-align: left;
 }
 
+.tactical-toolbar__button--active:not(:disabled) {
+    border-color: #a855f7;
+    box-shadow:
+        0 10px 26px rgba(168, 85, 247, 0.35),
+        inset 0 0 0 1px rgba(168, 85, 247, 0.9);
+}
+
 .tactical-toolbar__button:not(:disabled):hover {
     transform: translateY(-2px);
     box-shadow:

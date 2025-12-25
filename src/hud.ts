@@ -73,6 +73,7 @@ class Hud {
     private powerupHandler: ((type: TacticalPowerup) => void) | null = null;
     private toolbarBlocked = false;
     private lastPowerupInventory: PowerupInventory | null = null;
+    private pendingPowerupType: TacticalPowerup | null = null;
 
     render(state: GameState): void {
         const isTimeMode = state.mode === 'time';
@@ -163,23 +164,19 @@ class Hud {
     }
 
     setPowerupToolbarBlocked(blocked: boolean): void {
-        if (this.toolbarBlocked === blocked) return;
         this.toolbarBlocked = blocked;
-        if (this.lastPowerupInventory) {
-            this.updatePowerupButtons(this.lastPowerupInventory);
-            return;
-        }
-        const powerupTypes = Object.keys(TACTICAL_POWERUPS) as TacticalPowerup[];
-        powerupTypes.forEach((type) => {
-            const button = this.powerupButtons[type];
-            button.disabled = blocked;
-            button.classList.toggle('tactical-toolbar__button--blocked', blocked);
-        });
+        this.updateToolbarState();
     }
 
     setStatus(text: string, icon: string): void {
         this.statusText.textContent = text;
         this.statusIcon.textContent = icon;
+    }
+
+    setPendingPowerup(type: TacticalPowerup | null): void {
+        if (this.pendingPowerupType === type) return;
+        this.pendingPowerupType = type;
+        this.updateToolbarState();
     }
 
     onExitGame(handler: () => void): void {
@@ -289,6 +286,7 @@ class Hud {
             this.powerupCountNodes[type] = count;
             this.tacticalToolbar.appendChild(button);
         });
+        this.updateToolbarState();
     }
 
     private refreshPowerupButtons(): void {
@@ -397,9 +395,22 @@ class Hud {
             const countNode = this.powerupCountNodes[type];
             const remaining = Math.max(0, powerups[type] ?? 0);
             countNode.textContent = String(remaining);
-            const blockedState = this.toolbarBlocked || remaining <= 0;
-            button.disabled = blockedState;
-            button.classList.toggle('tactical-toolbar__button--blocked', this.toolbarBlocked);
+        });
+        this.updateToolbarState();
+    }
+
+    private updateToolbarState(): void {
+        const powerupTypes = Object.keys(TACTICAL_POWERUPS) as TacticalPowerup[];
+        powerupTypes.forEach((type) => {
+            const button = this.powerupButtons[type];
+            if (!button) return;
+            const remaining = Math.max(0, this.lastPowerupInventory?.[type] ?? 0);
+            const blockedByToolbar = this.toolbarBlocked && this.pendingPowerupType !== type;
+            const shouldDisable = blockedByToolbar || remaining <= 0;
+            button.disabled = shouldDisable;
+            button.classList.toggle('tactical-toolbar__button--blocked', blockedByToolbar);
+            button.classList.toggle('tactical-toolbar__button--active', this.pendingPowerupType === type);
+            button.setAttribute('aria-pressed', String(this.pendingPowerupType === type));
         });
     }
 
