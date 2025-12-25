@@ -25,6 +25,7 @@ class Hud {
         this.level = getRequiredElement('level');
         this.movesLabel = this.getMovesLabel();
         this.moves = getRequiredElement('moves');
+        this.movesCard = this.getMovesCard();
         this.scoreProgress = getRequiredElement('score-progress');
         this.scoreProgressFill = getRequiredElement('score-progress-fill');
         this.statusText = getRequiredElement('status-text');
@@ -53,6 +54,7 @@ class Hud {
     private level: HTMLElement;
     private movesLabel: HTMLElement;
     private moves: HTMLElement;
+    private movesCard: HTMLElement;
     private scoreProgress: HTMLElement;
     private scoreProgressFill: HTMLElement;
     private statusText: HTMLElement;
@@ -79,6 +81,8 @@ class Hud {
 
     render(state: GameState): void {
         const isTimeMode = state.mode === 'time';
+        const shouldShowMovesCard = state.mode === 'level';
+        this.movesCard.style.display = shouldShowMovesCard ? '' : 'none';
         this.score.textContent = isTimeMode
             ? this.formatTime(state.timeRemaining ?? 0)
             : state.mode === 'blocker'
@@ -312,6 +316,10 @@ class Hud {
 
     private getMovesLabel(): HTMLElement {
         return getRequiredElement('moves-label');
+    }
+
+    private getMovesCard(): HTMLElement {
+        return getRequiredElement('moves-card');
     }
 
     private getDifficultyLabel(): HTMLElement {
