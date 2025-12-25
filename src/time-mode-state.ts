@@ -195,7 +195,10 @@ class TimeModeState implements GameModeState {
     private handleGoalCompleted(index: number, state: GameState, context: ModeContext): void {
         this.completedGoals++;
         this.addTime(state, this.goalBonusSeconds);
-        const nextGoal = this.createGoal();
+        const otherGoals = state.goals
+            .filter((_, idx) => idx !== index)
+            .map((goal) => this.goalProgressToDefinition(goal));
+        const nextGoal = this.createGoalProgress(otherGoals);
         state.goals = state.goals.map((goal, idx) => (idx === index ? nextGoal : goal));
         context.getHud().setStatus(
             t('time.status.goalComplete', { seconds: this.goalBonusSeconds.toFixed(0) }),
@@ -205,12 +208,16 @@ class TimeModeState implements GameModeState {
     }
 
     private createGoals(count: number): GoalProgress[] {
-        return Array.from({ length: count }, () => this.createGoal());
+        const goals: GoalProgress[] = [];
+        for (let i = 0; i < count; i++) {
+            const exclude = goals.map((goal) => this.goalProgressToDefinition(goal));
+            goals.push(this.createGoalProgress(exclude));
+        }
+        return goals;
     }
 
-    private createGoal(): GoalProgress {
-        const tier = this.difficultyTier;
-        const goal = Math.random() < 0.6 ? this.createColorGoal(tier) : this.createBoosterGoal(tier);
+    private createGoalProgress(exclude: LevelGoal[]): GoalProgress {
+        const goal = this.createUniqueLevelGoal(exclude);
         return {
             ...goal,
             current: 0,
@@ -231,6 +238,38 @@ class TimeModeState implements GameModeState {
         const pick = boosters[Math.floor(Math.random() * boosters.length)] ?? BOOSTERS.BURST_SMALL;
         const target = 1 + Math.floor(tier / 2);
         return { type: 'activate-booster', booster: pick, target };
+    }
+
+    private createUniqueLevelGoal(exclude: LevelGoal[]): LevelGoal {
+        const tier = this.difficultyTier;
+        let candidate: LevelGoal = this.createColorGoal(tier);
+        for (let attempt = 0; attempt < 6; attempt++) {
+            candidate = Math.random() < 0.6 ? this.createColorGoal(tier) : this.createBoosterGoal(tier);
+            if (!this.isDuplicateGoal(candidate, exclude)) {
+                return candidate;
+            }
+        }
+        return candidate;
+    }
+
+    private isDuplicateGoal(goal: LevelGoal, existing: LevelGoal[]): boolean {
+        return existing.some((other) => {
+            if (goal.type !== other.type) return false;
+            if (goal.type === 'destroy-color' && other.type === 'destroy-color') {
+                return goal.color === other.color;
+            }
+            if (goal.type === 'activate-booster' && other.type === 'activate-booster') {
+                return goal.booster === other.booster;
+            }
+            return false;
+        });
+    }
+
+    private goalProgressToDefinition(goal: GoalProgress): LevelGoal {
+        if (goal.type === 'destroy-color') {
+            return { type: 'destroy-color', color: goal.color, target: goal.target };
+        }
+        return { type: 'activate-booster', booster: goal.booster, target: goal.target };
     }
 
     private endRun(context: ModeContext): void {
