@@ -509,14 +509,51 @@ class Match3Game implements ModeContext {
     private executeBoosterEffect(booster: BoosterType, row: number, col: number): void {
         if (booster === BOOSTERS.LINE) {
             this.sounds.play('lineBomb');
-            this.destroyCells(this.getRowIndices(row));
+            const affected: number[] = [...this.getRowIndices(row)];
+            if (this.state.mode === 'blocker') {
+                affected.push(...this.getColumnIndices(col));
+            }
+            this.destroyCells(affected);
             return;
+        }
+
+        if (this.state.mode === 'blocker') {
+            const size = this.getBlockerBoosterSize(booster);
+            if (size !== null) {
+                this.sounds.play('radiusBomb');
+                this.destroySquareArea(row, col, size);
+                return;
+            }
         }
 
         const radius = this.getBoosterRadius(booster);
         if (radius === null) return;
         this.sounds.play('radiusBomb');
         this.destroyCircularArea(row, col, radius);
+    }
+
+    private getBlockerBoosterSize(booster: BoosterType): number | null {
+        if (booster === BOOSTERS.BURST_SMALL) return 3;
+        if (booster === BOOSTERS.BURST_MEDIUM) return 4;
+        if (booster === BOOSTERS.BURST_LARGE) return 6;
+        return null;
+    }
+
+    private destroySquareArea(row: number, col: number, size: number): void {
+        if (size <= 0) return;
+        const halfBefore = Math.floor((size - 1) / 2);
+        const halfAfter = size - 1 - halfBefore;
+        const startRow = Math.max(0, row - halfBefore);
+        const endRow = Math.min(GRID_SIZE - 1, row + halfAfter);
+        const startCol = Math.max(0, col - halfBefore);
+        const endCol = Math.min(GRID_SIZE - 1, col + halfAfter);
+        const affected: number[] = [];
+        for (let r = startRow; r <= endRow; r++) {
+            for (let c = startCol; c <= endCol; c++) {
+                affected.push(this.indexAt(r, c));
+            }
+        }
+        this.destroyCells(affected);
     }
 
     private getBoosterRadius(booster: BoosterType): number | null {
