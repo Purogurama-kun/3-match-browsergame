@@ -27,6 +27,13 @@ body {
     --cell-size: 3.75rem;
 }
 
+.match-app--menu {
+    background-image: url("/assets/images/main-menu-background.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: repeat; /* for mobile phones */
+}
+
 .match-app--menu .hud,
 .match-app--menu .board,
 .match-app--menu .move-evaluation,
