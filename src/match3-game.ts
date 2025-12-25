@@ -181,6 +181,7 @@ class Match3Game implements ModeContext {
         }
         this.modeState = modeState;
         this.state = this.modeState.enter(this);
+        this.renderer.setGameMode(this.state.mode);
         this.refreshGoalDescriptions();
         this.updateCellShapeMode(this.cellShapeMode);
     }

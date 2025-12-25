@@ -187,40 +187,25 @@
     box-shadow: 0 0 0.9375rem 0.25rem rgba(255, 235, 59, 0.35), inset 0 0 0 1px rgba(255, 235, 59, 0.6);
 }
 
-.board__cell--bomb-line-vertical::after {
-    content: "↕"; /* alternativ: 🡙 */
-    position: absolute;
-    inset: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    color: white;
-    font-size: 20px;
-    font-weight: bold;
-
-    text-shadow:
-        -1px 0 black,
-         1px 0 black,
-         0 -1px black,
-         0  1px black;
+.board__cell--bomb-line-vertical::before {
+    content: "↕";
 }
-
 
 .board__cell--bomb-line-horizontal::after {
     content: "↔";
+    transform: translateY(-2px);
+}
+
+.board__cell--bomb-line-vertical::before,
+.board__cell--bomb-line-horizontal::after {
     position: absolute;
     inset: 0;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     color: white;
     font-size: 20px;
     font-weight: bold;
-
     text-shadow:
         -1px 0 black,
          1px 0 black,

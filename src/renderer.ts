@@ -2,7 +2,7 @@ import { Hud } from './hud.js';
 import { getRequiredElement } from './dom.js';
 import { Board, CellState } from './board.js';
 import { SwipeDirection } from './types.js';
-import type { LineOrientation } from './types.js';
+import type { GameMode, LineOrientation } from './types.js';
 import {
     GRID_SIZE,
     BOOSTERS,
@@ -44,6 +44,7 @@ class Renderer {
     private readonly swipeThreshold = 18;
     private cellShapesEnabled = true;
     private readonly particleEffect: ParticleEffect;
+    private gameMode: GameMode = 'level';
 
     constructor(hud: Hud) {
         this.hud = hud;
@@ -66,6 +67,10 @@ class Renderer {
                 this.hideModal();
             }
         });
+    }
+
+    setGameMode(mode: GameMode): void {
+        this.gameMode = mode;
     }
 
     screenShake(): void {
@@ -345,9 +350,13 @@ class Renderer {
         cell.textContent = '';
         if (booster === BOOSTERS.LINE) {
             cell.classList.add('board__cell--bomb-line');
-            const directionClass =
-                orientation === 'vertical' ? 'board__cell--bomb-line-vertical' : 'board__cell--bomb-line-horizontal';
-            cell.classList.add(directionClass);
+            if (this.gameMode === 'blocker') {
+                cell.classList.add('board__cell--bomb-line-horizontal', 'board__cell--bomb-line-vertical');
+            } else {
+                const directionClass =
+                    orientation === 'vertical' ? 'board__cell--bomb-line-vertical' : 'board__cell--bomb-line-horizontal';
+                cell.classList.add(directionClass);
+            }
             cell.textContent = '💣';
         }
         if (booster === BOOSTERS.BURST_SMALL) {
