@@ -74,6 +74,17 @@ The project uses the following concepts:
 - Der höchste freigeschaltete Level, dein Blocker-Highscore und deine Zeit-Modus-Bestzeit werden serverseitig in einer SQLite-Datenbank gespeichert. Beim Login wird der Fortschritt anhand deiner Google-User-ID geladen, sodass er geräteunabhängig verfügbar ist.
 - Fortschritt ohne Login wird lokal gespeichert (localStorage). Meldest du dich später an, wird der lokale Fortschritt inklusive Highscore mit deinem Konto synchronisiert.
 
+## Git workflow
+
+Changes to new branch:
+```
+git checkout -b my-new-branch
+git add .
+git commit -m "Description"
+git push -u origin my-new-branch (afterwards `git push`)
+git checkout main
+```
+
 ## Project structure
 
 - `index.html` page markup

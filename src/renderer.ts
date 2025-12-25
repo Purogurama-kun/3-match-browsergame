@@ -12,6 +12,8 @@ import {
 } from './constants.js';
 import type { ColorKey } from './constants.js';
 import { t } from './i18n.js';
+import { ParticleEffect } from './particle-effect.js';
+import type { ParticleOptions } from './particle-effect.js';
 
 type ModalOptions = {
     title: string;
@@ -40,6 +42,7 @@ class Renderer {
     private touchStartY: number | null = null;
     private readonly swipeThreshold = 18;
     private cellShapesEnabled = true;
+    private readonly particleEffect: ParticleEffect;
 
     constructor(hud: Hud) {
         this.hud = hud;
@@ -49,6 +52,7 @@ class Renderer {
         this.modalText = getRequiredElement('result-text');
         this.modalButton = getRequiredElement('result-button') as HTMLButtonElement;
         this.moveEvaluationEl = getRequiredElement('move-evaluation');
+        this.particleEffect = new ParticleEffect(this.gameEl);
 
         this.modalButton.addEventListener('click', () => this.hideModal());
         this.modalEl.addEventListener('click', (event) => {
@@ -87,6 +91,7 @@ class Renderer {
         this.selectedIndex = null;
         this.cells.length = 0;
         this.gameEl.innerHTML = '';
+        this.particleEffect.reset();
         for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
             const cell = document.createElement('div');
             cell.className = 'board__cell';
@@ -146,6 +151,16 @@ class Renderer {
     clearCellExplosion(index: number): void {
         if (!this.explodingIndices.delete(index)) return;
         this.getCellElement(index).classList.remove('board__cell--explode');
+    }
+
+    emitCellParticles(index: number, color: string | null = null, options: ParticleOptions = {}): void {
+        const cell = this.getCellElement(index);
+        const resolvedColor =
+            color ||
+            cell.style.getPropertyValue('--cell-color') ||
+            options.accentColor ||
+            null;
+        this.particleEffect.emitFromCell(cell, resolvedColor, options);
     }
 
     isCellExploding(index: number): boolean {

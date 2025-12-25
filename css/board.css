@@ -1,4 +1,5 @@
 .board {
+    position: relative;
     display: grid;
     grid-template-columns: repeat(8, var(--cell-size));
     grid-template-rows: repeat(8, var(--cell-size));
@@ -7,6 +8,37 @@
     padding: 0.375rem;
     border-radius: 12px;
     touch-action: none;
+}
+
+.board__particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: visible;
+    z-index: 5;
+}
+
+.board__particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--particle-color, #fff);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+    transform: translate(-50%, -50%);
+    animation: board-particle-burst var(--particle-duration, 0.7s) ease-out forwards;
+    animation-delay: var(--particle-delay, 0s);
+    will-change: transform, opacity;
+}
+
+.board__particle::after {
+    content: '';
+    position: absolute;
+    inset: 50%;
+    border-radius: inherit;
+    background: inherit;
+    opacity: 0.6;
+    filter: blur(1px);
 }
 
 .board--shake {
@@ -262,4 +294,18 @@
     80% { transform: translate(0.3125rem, -0.3125rem); }
     90% { transform: translate(-0.3125rem, 0.3125rem); }
     100% { transform: translate(0, 0); }
+}
+
+@keyframes board-particle-burst {
+    0% {
+        opacity: 0.85;
+        transform: translate(-50%, -50%) translate(0, 0) scale(1);
+    }
+    70% {
+        opacity: 0.45;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) translate(var(--particle-x, 0), var(--particle-y, 0)) scale(0.3);
+    }
 }

@@ -19,6 +19,7 @@ import { BlockerModeState } from './blocker-mode-state.js';
 import { LeaderboardState, LeaderboardStateOptions } from './leaderboard-state.js';
 import { TimeModeState } from './time-mode-state.js';
 import { t, Locale } from './i18n.js';
+import type { ParticleOptions } from './particle-effect.js';
 
 type MatchResult = {
     matched: Set<number>;
@@ -443,6 +444,7 @@ class Match3Game implements ModeContext {
         const booster = this.board.getCellBooster(index);
         const color = this.board.getCellColor(index);
         if ((!color && booster === BOOSTERS.NONE) || this.renderer.isCellExploding(index)) return;
+        this.renderer.emitCellParticles(index, color || null, this.getParticleOptionsForBooster(booster));
         if (isGenerator) {
             this.renderer.animateGeneratorHit(index);
         }
@@ -1241,6 +1243,64 @@ class Match3Game implements ModeContext {
             row: Math.floor(index / GRID_SIZE),
             col: index % GRID_SIZE
         };
+    }
+
+    private getParticleOptionsForBooster(booster: BoosterType): ParticleOptions {
+        const baseOptions: ParticleOptions = {
+            count: 16,
+            minDistance: 16,
+            maxDistance: 28,
+            minDuration: 0.58,
+            maxDuration: 0.92,
+            delayVariance: 0.2
+        };
+        if (booster === BOOSTERS.LINE) {
+            return {
+                ...baseOptions,
+                count: 22,
+                minDistance: 22,
+                maxDistance: 34,
+                minDuration: 0.72,
+                maxDuration: 1.02,
+                accentColor: '#fde047'
+            };
+        }
+        if (booster === BOOSTERS.BURST_SMALL) {
+            return {
+                ...baseOptions,
+                count: 24,
+                minDistance: 24,
+                maxDistance: 38,
+                minDuration: 0.78,
+                maxDuration: 1.05,
+                accentColor: '#4ade80'
+            };
+        }
+        if (booster === BOOSTERS.BURST_MEDIUM) {
+            return {
+                ...baseOptions,
+                count: 28,
+                minDistance: 28,
+                maxDistance: 44,
+                minDuration: 0.86,
+                maxDuration: 1.18,
+                delayVariance: 0.24,
+                accentColor: '#fb923c'
+            };
+        }
+        if (booster === BOOSTERS.BURST_LARGE) {
+            return {
+                ...baseOptions,
+                count: 34,
+                minDistance: 32,
+                maxDistance: 52,
+                minDuration: 0.95,
+                maxDuration: 1.35,
+                delayVariance: 0.28,
+                accentColor: '#67e8f9'
+            };
+        }
+        return baseOptions;
     }
 
     private formatTime(totalSeconds: number): string {
