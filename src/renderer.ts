@@ -286,8 +286,20 @@ class Renderer {
         cell.dataset.colorKey = colorKey ?? '';
         cell.textContent = '';
         cell.style.removeProperty('--cell-color');
+        cell.classList.remove('board__cell--sugar-chest');
+        cell.style.removeProperty('--sugar-chest-image');
         if (state.blocked) {
             cell.classList.add('board__cell--void');
+            return;
+        }
+        const chestStage = state.sugarChestStage;
+        if (typeof chestStage === 'number') {
+            const stageIndex = String(chestStage).padStart(2, '0');
+            cell.classList.add('board__cell--sugar-chest');
+            cell.style.setProperty(
+                '--sugar-chest-image',
+                `url(/assets/images/sugar-chest-${stageIndex}.png)`
+            );
             return;
         }
         if (state.color) {

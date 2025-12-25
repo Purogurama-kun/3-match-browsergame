@@ -30,6 +30,29 @@
     font-size: 0.95rem;
 }
 
+.auth__coins {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.35rem;
+}
+
+.auth__coins-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 12px;
+    object-fit: contain;
+    background: #0f1327;
+    padding: 0.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth__coins-count {
+    color: #cfd5ff;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
 .auth__actions {
     display: grid;
     gap: 0.35rem;

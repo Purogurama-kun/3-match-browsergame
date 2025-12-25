@@ -16,7 +16,9 @@ class GameApp {
         this.startTimeButton = this.getTimeButton();
         this.startLeaderboardButton = this.getLeaderboardButton();
         this.leaderboard = getRequiredElement('leaderboard');
-        this.progress = { highestLevel: 1, blockerHighScore: 0, timeSurvival: 0 };
+        this.coinIcon = this.getCoinIcon();
+        this.coinLabel = this.getCoinLabel();
+        this.progress = { highestLevel: 1, blockerHighScore: 0, timeSurvival: 0, sugarCoins: 0 };
         this.progressStore = new ProgressStore();
         this.localProgress = new LocalProgressStore();
         this.googleAuth = new GoogleAuth({
@@ -42,6 +44,7 @@ class GameApp {
         this.game.onProgressChange((level) => this.saveProgress(level));
         this.game.onBlockerHighScore((score) => this.saveBlockerHighScore(score));
         this.game.onTimeBest((time) => this.saveTimeBest(time));
+        this.game.onSugarCoinsEarned((amount) => this.grantSugarCoins(amount));
 
         this.showMainMenu();
     }
@@ -53,6 +56,8 @@ class GameApp {
     private startTimeButton: HTMLButtonElement;
     private startLeaderboardButton: HTMLButtonElement;
     private leaderboard: HTMLElement;
+    private coinIcon: HTMLImageElement;
+    private coinLabel: HTMLElement;
     private googleAuth: GoogleAuth;
     private progressStore: ProgressStore;
     private localProgress: LocalProgressStore;
@@ -100,6 +105,7 @@ class GameApp {
     private handleLocaleChange(locale: Locale): void {
         this.updateStartButtonState();
         this.googleAuth.applyLocale();
+        this.updateSugarCoinDisplay();
         this.game.handleLocaleChange(locale);
     }
 
@@ -137,6 +143,7 @@ class GameApp {
             this.progress.blockerHighScore,
             this.progress.timeSurvival
         );
+        this.updateSugarCoinDisplay();
         this.updateStartButtonState();
     }
 
@@ -172,12 +179,31 @@ class GameApp {
         return element;
     }
 
+    private getCoinIcon(): HTMLImageElement {
+        const element = getRequiredElement('auth-coin-icon');
+        if (!(element instanceof HTMLImageElement)) {
+            throw new Error('Sugar coin icon is not an image');
+        }
+        return element;
+    }
+
+    private getCoinLabel(): HTMLElement {
+        const element = getRequiredElement('auth-coin-count');
+        if (!(element instanceof HTMLElement)) {
+            throw new Error('Sugar coin label is not an element');
+        }
+        return element;
+    }
+
     private handleLogin(user: GoogleUser): void {
         const localProgress = this.progress;
         this.isProgressLoading = true;
         this.currentUser = user;
         this.googleAuth.clearError();
         this.googleAuth.showProgressLoading();
+        this.coinLabel.textContent = t('auth.progress.coins.loading');
+        this.coinIcon.src = 'assets/images/sugar_coin_icon.png';
+        this.coinIcon.alt = t('auth.progress.coins.loading');
         this.updateStartButtonState();
         void this.loadProgress(user.id, localProgress);
     }
@@ -190,6 +216,7 @@ class GameApp {
             this.progress = mergedProgress;
             this.googleAuth.setProgress(mergedProgress);
             this.googleAuth.clearError();
+            this.updateSugarCoinDisplay();
             if (this.shouldPersistMergedProgress(stored, mergedProgress)) {
                 void this.persistProgress(userId, mergedProgress, 'both');
             }
@@ -199,6 +226,7 @@ class GameApp {
                 this.progress = localProgress;
                 this.googleAuth.showError(t('auth.error.progressLoad'));
                 this.googleAuth.setProgress(this.progress);
+                this.updateSugarCoinDisplay();
             }
         } finally {
             if (this.isCurrentUser(userId)) {
@@ -212,13 +240,15 @@ class GameApp {
         this.progress = this.mergeProgress(this.progress, {
             highestLevel: unlockedLevel,
             blockerHighScore: this.progress.blockerHighScore,
-            timeSurvival: this.progress.timeSurvival
+            timeSurvival: this.progress.timeSurvival,
+            sugarCoins: this.progress.sugarCoins
         });
         this.googleAuth.setProgress(this.progress);
         this.updateStartButtonState();
         this.progress = this.localProgress.save(this.progress);
         if (!this.currentUser) return;
         void this.persistProgress(this.currentUser.id, this.progress, 'level');
+        this.updateSugarCoinDisplay();
     }
 
     private saveBlockerHighScore(score: number): void {
@@ -226,12 +256,14 @@ class GameApp {
         this.progress = this.mergeProgress(this.progress, {
             highestLevel: this.progress.highestLevel,
             blockerHighScore: score,
-            timeSurvival: this.progress.timeSurvival
+            timeSurvival: this.progress.timeSurvival,
+            sugarCoins: this.progress.sugarCoins
         });
         this.googleAuth.setProgress(this.progress);
         this.progress = this.localProgress.save(this.progress);
         if (!this.currentUser) return;
         void this.persistProgress(this.currentUser.id, this.progress, 'blocker');
+        this.updateSugarCoinDisplay();
     }
 
     private saveTimeBest(time: number): void {
@@ -239,12 +271,14 @@ class GameApp {
         this.progress = this.mergeProgress(this.progress, {
             highestLevel: this.progress.highestLevel,
             blockerHighScore: this.progress.blockerHighScore,
-            timeSurvival: time
+            timeSurvival: time,
+            sugarCoins: this.progress.sugarCoins
         });
         this.googleAuth.setProgress(this.progress);
         this.progress = this.localProgress.save(this.progress);
         if (!this.currentUser) return;
         void this.persistProgress(this.currentUser.id, this.progress, 'time');
+        this.updateSugarCoinDisplay();
     }
 
     private async persistProgress(
@@ -258,6 +292,7 @@ class GameApp {
             this.progress = this.mergeProgress(this.progress, stored);
             this.googleAuth.setProgress(this.progress);
             this.googleAuth.clearError();
+            this.updateSugarCoinDisplay();
         } catch (error) {
             console.error('Failed to save progress', error);
             if (this.isCurrentUser(userId)) {
@@ -297,11 +332,20 @@ class GameApp {
         this.startLevelButton.textContent = t('mainMenu.start.levelAt', { level: labelLevel });
     }
 
+    private updateSugarCoinDisplay(): void {
+        const coins = Math.max(0, Math.floor(Number.isFinite(this.progress.sugarCoins) ? this.progress.sugarCoins : 0));
+        const label = t('auth.progress.coins', { coins });
+        this.coinLabel.textContent = label;
+        this.coinIcon.src = coins === 1 ? 'assets/images/sugar_coin.png' : 'assets/images/sugar_coin_icon.png';
+        this.coinIcon.alt = label;
+    }
+
     private mergeProgress(current: StoredProgress, incoming: StoredProgress): StoredProgress {
         return {
             highestLevel: Math.max(current.highestLevel, incoming.highestLevel),
             blockerHighScore: Math.max(current.blockerHighScore, incoming.blockerHighScore),
-            timeSurvival: Math.max(current.timeSurvival, incoming.timeSurvival)
+            timeSurvival: Math.max(current.timeSurvival, incoming.timeSurvival),
+            sugarCoins: Math.max(current.sugarCoins, incoming.sugarCoins)
         };
     }
 
@@ -309,7 +353,8 @@ class GameApp {
         return (
             merged.highestLevel > stored.highestLevel ||
             merged.blockerHighScore > stored.blockerHighScore ||
-            merged.timeSurvival > stored.timeSurvival
+            merged.timeSurvival > stored.timeSurvival ||
+            merged.sugarCoins > stored.sugarCoins
         );
     }
 
@@ -318,6 +363,16 @@ class GameApp {
         const minutes = Math.floor(safeSeconds / 60);
         const seconds = safeSeconds % 60;
         return minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+    }
+
+    grantSugarCoins(amount: number): void {
+        const rounded = Math.max(0, Math.floor(Number.isFinite(amount) ? amount : 0));
+        if (rounded === 0) return;
+        const nextCoins = Math.max(0, this.progress.sugarCoins + rounded);
+        this.progress = this.localProgress.save({ ...this.progress, sugarCoins: nextCoins });
+        this.updateSugarCoinDisplay();
+        if (!this.currentUser) return;
+        void this.persistProgress(this.currentUser.id, this.progress, 'both');
     }
 }
 

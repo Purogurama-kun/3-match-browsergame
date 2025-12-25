@@ -168,6 +168,7 @@ function handleGet(PDO $database): void
 {
     $userId = requireUserId($_GET['userId'] ?? null);
     $localLevel = clampLevel($_GET['localLevel'] ?? 1);
+    $localCoins = clampCoins($_GET['localCoins'] ?? 0);
     $progress = fetchProgress($database, $userId);
 
     if (!$progress) {
@@ -181,17 +182,19 @@ function handleGet(PDO $database): void
     $data = decodeData($progress['data'] ?? '{}');
     $existingScore = clampScore($data['blockerHighScore'] ?? 0);
     $existingTime = clampTime($data['timeSurvival'] ?? 0);
+    $existingCoins = clampCoins($data['sugarCoins'] ?? 0);
 
     $bestLevel = max($localLevel, $existingLevel, fetchBestLevelFromRuns($database, $userId));
     $bestScore = max($existingScore, fetchBestScoreFromRuns($database, $userId, MODE_BLOCKER));
     $bestTime = max($existingTime, fetchBestScoreFromRuns($database, $userId, MODE_TIME));
+    $bestCoins = max($localCoins, $existingCoins);
 
     $normalizedData = normalizeData(
-        ['blockerHighScore' => $bestScore, 'timeSurvival' => $bestTime],
+        ['blockerHighScore' => $bestScore, 'timeSurvival' => $bestTime, 'sugarCoins' => $bestCoins],
         $data
     );
 
-    if ($bestLevel !== $existingLevel || $bestScore !== $existingScore || $bestTime !== $existingTime) {
+    if ($bestLevel !== $existingLevel || $bestScore !== $existingScore || $bestTime !== $existingTime || $bestCoins !== $existingCoins) {
         saveProgress($database, $userId, $bestLevel, json_encode($normalizedData, JSON_THROW_ON_ERROR));
     }
 
@@ -211,6 +214,7 @@ function handlePost(PDO $database): void
     $scores = determineScores($data, $payload, $mode);
     $submittedScore = clampScore($scores['blocker']);
     $submittedTime = clampTime($scores['time']);
+    $submittedCoins = clampCoins($data['sugarCoins'] ?? 0);
     $displayName = sanitizeDisplayName($payload['displayName'] ?? $userId);
     $nationality = sanitizeNationality($payload['nationality'] ?? null);
     $completedAt = sanitizeCompletedAt($payload['completedAt'] ?? null);
@@ -220,12 +224,14 @@ function handlePost(PDO $database): void
     $existingData = decodeData($progress['data'] ?? '{}');
     $existingScore = clampScore($existingData['blockerHighScore'] ?? 0);
     $existingTime = clampTime($existingData['timeSurvival'] ?? 0);
+    $existingCoins = clampCoins($existingData['sugarCoins'] ?? 0);
 
     $highestLevel = max($existingLevel, $submittedLevel);
     $normalizedData = normalizeData(
         [
             'blockerHighScore' => max($existingScore, $submittedScore),
-            'timeSurvival' => max($existingTime, $submittedTime)
+            'timeSurvival' => max($existingTime, $submittedTime),
+            'sugarCoins' => max($existingCoins, $submittedCoins)
         ],
         $existingData
     );
@@ -255,10 +261,15 @@ function handlePost(PDO $database): void
     $bestLevel = max($highestLevel, fetchBestLevelFromRuns($database, $userId));
     $bestScore = max($normalizedData['blockerHighScore'], fetchBestScoreFromRuns($database, $userId, MODE_BLOCKER));
     $bestTime = max($normalizedData['timeSurvival'], fetchBestScoreFromRuns($database, $userId, MODE_TIME));
+    $bestCoins = $normalizedData['sugarCoins'];
 
     respond(200, [
         'highestLevel' => $bestLevel,
-        'data' => ['blockerHighScore' => $bestScore, 'timeSurvival' => $bestTime]
+        'data' => [
+            'blockerHighScore' => $bestScore,
+            'timeSurvival' => $bestTime,
+            'sugarCoins' => $bestCoins
+        ]
     ]);
 }
 
@@ -372,9 +383,14 @@ function normalizeData(array $data, array $existing = []): array
     $submittedTime = clampTime($data['timeSurvival'] ?? 0);
     $timeSurvival = max($currentTime, $submittedTime);
 
+    $currentCoins = clampCoins($existing['sugarCoins'] ?? 0);
+    $submittedCoins = clampCoins($data['sugarCoins'] ?? 0);
+    $sugarCoins = max($currentCoins, $submittedCoins);
+
     return [
         'blockerHighScore' => $blockerHighScore,
-        'timeSurvival' => $timeSurvival
+        'timeSurvival' => $timeSurvival,
+        'sugarCoins' => $sugarCoins
     ];
 }
 
@@ -396,6 +412,16 @@ function clampTime(mixed $time): int
 
     $normalized = (int) floor((float) $time);
     return max(0, min(MAX_TIME, $normalized));
+}
+
+function clampCoins(mixed $coins): int
+{
+    if (!is_numeric($coins)) {
+        return 0;
+    }
+
+    $normalized = (int) floor((float) $coins);
+    return max(0, $normalized);
 }
 
 function sanitizeDisplayName(?string $rawDisplayName): string

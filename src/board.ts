@@ -1,4 +1,6 @@
 import { GRID_SIZE, BOOSTERS, BoosterType, COLORS, randomColor } from './constants.js';
+
+const SUGAR_CHEST_CHANCE = 0.01;
 import type { LineOrientation } from './types.js';
 
 type CellState = {
@@ -8,6 +10,7 @@ type CellState = {
     hard: boolean;
     blocked: boolean;
     generator: boolean;
+    sugarChestStage?: number;
 };
 
 class Board {
@@ -29,12 +32,19 @@ class Board {
                 blocked,
                 generator: isGenerator
             };
+            const shouldSpawnChest =
+                !blocked && !state.hard && !state.generator && this.shouldSpawnSugarChest();
             if (blocked) {
+                state.color = '';
+            } else if (shouldSpawnChest) {
                 state.color = '';
             } else {
                 state.color = this.pickColorForIndex(i);
             }
             this.cellStates.push(state);
+            if (shouldSpawnChest) {
+                this.setSugarChestStage(i, 1);
+            }
         }
     }
 
@@ -124,6 +134,7 @@ class Board {
         state.hard = false;
         state.generator = false;
         delete state.lineOrientation;
+        delete state.sugarChestStage;
     }
 
     swapCells(a: number, b: number): void {
@@ -188,6 +199,45 @@ class Board {
             row: Math.floor(index / GRID_SIZE),
             col: index % GRID_SIZE
         };
+    }
+
+    isSugarChest(index: number): boolean {
+        return typeof this.getCellState(index).sugarChestStage === 'number';
+    }
+
+    getSugarChestStage(index: number): number | undefined {
+        return this.getCellState(index).sugarChestStage;
+    }
+
+    setSugarChestStage(index: number, stage: number): void {
+        const state = this.getCellState(index);
+        state.color = '';
+        state.booster = BOOSTERS.NONE;
+        state.hard = false;
+        state.generator = false;
+        delete state.lineOrientation;
+        const normalized = Math.max(1, Math.min(4, Math.floor(stage)));
+        state.sugarChestStage = normalized;
+    }
+
+    spawnSugarChest(index: number): void {
+        this.setSugarChestStage(index, 1);
+    }
+
+    removeSugarChest(index: number): void {
+        delete this.getCellState(index).sugarChestStage;
+    }
+
+    trySpawnSugarChest(index: number): boolean {
+        if (!this.shouldSpawnSugarChest()) {
+            return false;
+        }
+        this.spawnSugarChest(index);
+        return true;
+    }
+
+    private shouldSpawnSugarChest(): boolean {
+        return Math.random() < SUGAR_CHEST_CHANCE;
     }
 }
 

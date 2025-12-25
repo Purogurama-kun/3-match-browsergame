@@ -42,6 +42,8 @@ type MatchAccumulator = {
     largestMatch: number;
 };
 
+const SUGAR_CHEST_REWARD = 1;
+
 class Match3Game implements ModeContext {
     constructor() {
         this.sounds = new SoundManager();
@@ -93,6 +95,7 @@ class Match3Game implements ModeContext {
     private cellShapeMode: CellShapeMode = 'square';
     private pendingPowerup: TacticalPowerup | null = null;
     private pendingPowerupSelections: number[] = [];
+    private sugarCoinListener: ((amount: number) => void) | null = null;
     private powerupInProgress = false;
     private progressListener: ((level: number) => void) | null = null;
     private blockerHighScoreListener: ((score: number) => void) | null = null;
@@ -152,6 +155,10 @@ class Match3Game implements ModeContext {
 
     onTimeBest(handler: (time: number) => void): void {
         this.timeBestListener = handler;
+    }
+
+    onSugarCoinsEarned(handler: (amount: number) => void): void {
+        this.sugarCoinListener = handler;
     }
 
     showLeaderboard(options: LeaderboardStateOptions): void {
@@ -397,6 +404,7 @@ class Match3Game implements ModeContext {
         const matchResult = this.findMatches();
         const { matched, boostersToCreate } = matchResult;
         this.softenAdjacentHardCandies(matched);
+        this.advanceSugarChestsNearMatches(matched);
 
         if (matched.size > 0) {
             const hasBlastBooster = boostersToCreate.some(
@@ -453,8 +461,26 @@ class Match3Game implements ModeContext {
         });
     }
 
+    private advanceSugarChestsNearMatches(matched: Set<number>): void {
+        if (matched.size === 0) return;
+        const upgraded = new Set<number>();
+        matched.forEach((idx) => {
+            const { row, col } = this.getRowCol(idx);
+            this.getAdjacentIndices(row, col).forEach((neighbor) => {
+                if (upgraded.has(neighbor)) return;
+                if (!this.board.isSugarChest(neighbor)) return;
+                upgraded.add(neighbor);
+                this.handleSugarChestHit(neighbor, true);
+            });
+        });
+    }
+
     private destroyCell(index: number): void {
         if (this.board.isBlockedIndex(index)) return;
+        if (this.board.isSugarChest(index)) {
+            this.handleSugarChestHit(index, false);
+            return;
+        }
         const isGenerator = this.board.isBlockerGenerator(index);
         if (this.board.isHardCandy(index)) {
             if (isGenerator) {
@@ -481,6 +507,40 @@ class Match3Game implements ModeContext {
             }
             this.updateHud();
             this.renderer.updateCell(index, this.board.getCellState(index));
+        }, 300);
+    }
+
+    private handleSugarChestHit(index: number, triggeredByMatch: boolean): void {
+        if (!this.board.isSugarChest(index)) return;
+        const stage = this.board.getSugarChestStage(index) ?? 1;
+        if (stage >= 4) {
+            if (triggeredByMatch) {
+                this.destroySugarChest(index);
+            }
+            return;
+        }
+        this.board.setSugarChestStage(index, stage + 1);
+        this.renderer.updateCell(index, this.board.getCellState(index));
+    }
+
+    private destroySugarChest(index: number): void {
+        if (!this.board.isSugarChest(index)) return;
+        this.renderer.emitCellParticles(index, '#fcd34d', {
+            count: 12,
+            minDistance: 10,
+            maxDistance: 24,
+            minDuration: 0.6,
+            maxDuration: 0.9
+        });
+        this.renderer.markCellExploding(index);
+        this.defer(() => {
+            this.renderer.clearCellExplosion(index);
+            this.board.removeSugarChest(index);
+            this.board.clearCell(index);
+            this.renderer.updateCell(index, this.board.getCellState(index));
+            if (this.sugarCoinListener) {
+                this.sugarCoinListener(SUGAR_CHEST_REWARD);
+            }
         }, 300);
     }
 
@@ -759,6 +819,7 @@ class Match3Game implements ModeContext {
                 const targetIndex = r * GRID_SIZE + c;
                 if (this.board.isBlockedIndex(targetIndex)) continue;
                 if (this.board.getCellColor(targetIndex)) continue;
+                if (this.board.isSugarChest(targetIndex)) continue;
                 for (let k = r - 1; k >= 0; k--) {
                     const sourceIndex = k * GRID_SIZE + c;
                     if (this.board.isBlockedIndex(sourceIndex)) continue;
@@ -781,6 +842,9 @@ class Match3Game implements ModeContext {
                     break;
                 }
                 if (!this.board.getCellColor(targetIndex)) {
+                    if (this.board.trySpawnSugarChest(targetIndex)) {
+                        continue;
+                    }
                     const spawnHardCandy = this.shouldSpawnHardCandy();
                     if (this.shouldSpawnBombFromDrop()) {
                         this.createFallingBomb(targetIndex);
@@ -814,16 +878,21 @@ class Match3Game implements ModeContext {
         if (targetRow < 0 || targetRow >= GRID_SIZE || targetCol < 0 || targetCol >= GRID_SIZE) return null;
         const targetIndex = targetRow * GRID_SIZE + targetCol;
         if (this.board.isBlockedIndex(targetIndex)) return null;
+        if (this.board.isSugarChest(index) || this.board.isSugarChest(targetIndex)) return null;
         return targetIndex;
     }
 
     private trySwap(firstIndex: number, secondIndex: number): void {
         const firstIsLocked =
-            this.board.isBlockedCell(firstIndex) || this.board.isHardCandy(firstIndex) || this.board.isBlockerGenerator(firstIndex);
+            this.board.isBlockedCell(firstIndex) ||
+            this.board.isHardCandy(firstIndex) ||
+            this.board.isBlockerGenerator(firstIndex) ||
+            this.board.isSugarChest(firstIndex);
         const secondIsLocked =
             this.board.isBlockedCell(secondIndex) ||
             this.board.isHardCandy(secondIndex) ||
-            this.board.isBlockerGenerator(secondIndex);
+            this.board.isBlockerGenerator(secondIndex) ||
+            this.board.isSugarChest(secondIndex);
         if (firstIsLocked || secondIsLocked) {
             this.showInvalidMove(firstIsLocked ? firstIndex : secondIndex);
             return;
@@ -1231,6 +1300,7 @@ class Match3Game implements ModeContext {
     private getMatchableColor(index: number): string {
         if (this.board.isBlockedIndex(index)) return '';
         if (this.board.isHardCandy(index)) return '';
+        if (this.board.isSugarChest(index)) return '';
         const booster = this.board.getCellBooster(index);
         if (booster === BOOSTERS.BURST_LARGE) return '';
         return this.board.getCellColor(index);

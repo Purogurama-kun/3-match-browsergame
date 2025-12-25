@@ -3,12 +3,14 @@ import type { LeaderboardIdentity, LeaderboardMode } from './types.js';
 type ProgressData = {
     blockerHighScore: number;
     timeSurvival: number;
+    sugarCoins: number;
 };
 
 type StoredProgress = {
     highestLevel: number;
     blockerHighScore: number;
     timeSurvival: number;
+    sugarCoins: number;
 };
 
 type ProgressResponse = {
@@ -17,15 +19,7 @@ type ProgressResponse = {
     bestScore?: unknown;
     data?: Partial<ProgressData> | null;
     timeSurvival?: unknown;
-};
-
-type HistoryResponse = {
-    entries?: unknown;
-};
-
-type HistoryRow = {
-    highestLevel?: unknown;
-    score?: unknown;
+    sugarCoins?: unknown;
 };
 
 class ProgressStore {
@@ -38,17 +32,12 @@ class ProgressStore {
         const normalizedUserId = this.requireUserId(userId);
         const normalizedLocal = this.normalizeProgress(localProgress);
 
-        const [bestLevel, bestBlockerScore, bestTime] = await Promise.all([
-            this.fetchBestFromHistory('level', normalizedUserId),
-            this.fetchBestFromHistory('blocker', normalizedUserId),
-            this.fetchBestFromHistory('time', normalizedUserId)
-        ]);
-
-        return {
-            highestLevel: Math.max(normalizedLocal.highestLevel, bestLevel),
-            blockerHighScore: Math.max(normalizedLocal.blockerHighScore, bestBlockerScore),
-            timeSurvival: Math.max(normalizedLocal.timeSurvival, bestTime)
-        };
+        const serverProgress = await this.fetchProgress(
+            normalizedUserId,
+            normalizedLocal.highestLevel,
+            normalizedLocal.sugarCoins
+        );
+        return this.normalizeProgress(serverProgress, normalizedLocal);
     }
 
     async save(
@@ -93,16 +82,14 @@ class ProgressStore {
         return this.normalizeProgress(serverPayload, normalized);
     }
 
-    private async fetchBestFromHistory(mode: LeaderboardMode, userId: string): Promise<number> {
+    private async fetchProgress(userId: string, localLevel: number, localCoins: number): Promise<ProgressResponse> {
         const response = await fetch(
             this.endpoint +
                 '?' +
                 new URLSearchParams({
-                    action: 'history',
-                    mode: this.mapMode(mode),
                     userId,
-                    limit: '1',
-                    offset: '0'
+                    localLevel: String(localLevel),
+                    localCoins: String(localCoins)
                 }).toString(),
             {
                 headers: {
@@ -112,24 +99,10 @@ class ProgressStore {
         );
 
         if (!response.ok) {
-            throw new Error('Failed to load history: ' + response.status);
+            throw new Error('Failed to load progress: ' + response.status);
         }
 
-        const payload = (await response.json()) as HistoryResponse;
-        const entries = Array.isArray(payload.entries) ? payload.entries : [];
-        const [best] = entries as HistoryRow[];
-
-        if (!best) {
-            return mode === 'level' ? 1 : 0;
-        }
-
-        if (mode === 'level') {
-            return this.normalizeLevel(best.highestLevel);
-        }
-        if (mode === 'time') {
-            return this.normalizeTime(best.score);
-        }
-        return this.normalizeScore(best.score);
+        return (await response.json()) as ProgressResponse;
     }
 
     private normalizeProgress(payload?: ProgressResponse, fallback?: StoredProgress): StoredProgress {
@@ -145,7 +118,10 @@ class ProgressStore {
         const timeSurvival = this.normalizeTime(
             payload?.timeSurvival ?? payload?.data?.timeSurvival ?? fallback?.timeSurvival
         );
-        return { highestLevel, blockerHighScore, timeSurvival };
+        const sugarCoins = this.normalizeCoins(
+            payload?.sugarCoins ?? payload?.data?.sugarCoins ?? fallback?.sugarCoins
+        );
+        return { highestLevel, blockerHighScore, timeSurvival, sugarCoins };
     }
 
     private normalizeScore(score: unknown): number {
@@ -158,6 +134,12 @@ class ProgressStore {
         if (typeof time !== 'number' || !Number.isFinite(time)) return 0;
         const normalized = Math.floor(time);
         return Math.max(0, Math.min(normalized, this.maxTimeSeconds));
+    }
+
+    private normalizeCoins(amount: unknown): number {
+        if (typeof amount !== 'number' || !Number.isFinite(amount)) return 0;
+        const normalized = Math.floor(amount);
+        return Math.max(0, normalized);
     }
 
     private requireUserId(userId: string): string {

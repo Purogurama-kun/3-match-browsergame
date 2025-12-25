@@ -9,7 +9,8 @@ class LocalProgressStore {
     private readonly defaultProgress: StoredProgress = {
         highestLevel: 1,
         blockerHighScore: 0,
-        timeSurvival: 0
+        timeSurvival: 0,
+        sugarCoins: 0
     };
 
     load(): StoredProgress {
@@ -71,10 +72,12 @@ class LocalProgressStore {
         const highestLevel = this.normalizeLevel(progress?.highestLevel);
         const blockerHighScore = this.normalizeScore(progress?.blockerHighScore);
         const timeSurvival = this.normalizeTime(progress?.timeSurvival);
+        const sugarCoins = this.normalizeCoins(progress?.sugarCoins);
         return {
             highestLevel,
             blockerHighScore,
-            timeSurvival
+            timeSurvival,
+            sugarCoins
         };
     }
 
@@ -94,6 +97,12 @@ class LocalProgressStore {
         if (typeof time !== 'number' || !Number.isFinite(time)) return this.defaultProgress.timeSurvival;
         const normalized = Math.floor(time);
         return Math.max(0, Math.min(normalized, this.maxTimeSeconds));
+    }
+
+    private normalizeCoins(amount: unknown): number {
+        if (typeof amount !== 'number' || !Number.isFinite(amount)) return this.defaultProgress.sugarCoins;
+        const normalized = Math.floor(amount);
+        return Math.max(0, normalized);
     }
 }
 
