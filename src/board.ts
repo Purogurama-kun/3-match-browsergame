@@ -1,8 +1,10 @@
 import { GRID_SIZE, BOOSTERS, BoosterType, COLORS, randomColor } from './constants.js';
+import type { LineOrientation } from './types.js';
 
 type CellState = {
     color: string;
     booster: BoosterType;
+    lineOrientation?: LineOrientation;
     hard: boolean;
     blocked: boolean;
     generator: boolean;
@@ -62,7 +64,24 @@ class Board {
     }
 
     setBooster(index: number, type: BoosterType): void {
-        this.getCellState(index).booster = type;
+        const state = this.getCellState(index);
+        state.booster = type;
+        if (type !== BOOSTERS.LINE) {
+            delete state.lineOrientation;
+        }
+    }
+
+    getLineOrientation(index: number): LineOrientation | undefined {
+        return this.getCellState(index).lineOrientation;
+    }
+
+    setLineOrientation(index: number, orientation: LineOrientation | null): void {
+        const state = this.getCellState(index);
+        if (orientation === null) {
+            delete state.lineOrientation;
+        } else {
+            state.lineOrientation = orientation;
+        }
     }
 
     isBlockedIndex(index: number): boolean {
@@ -90,6 +109,7 @@ class Board {
         state.generator = isGenerator;
         state.hard = isHard;
         state.booster = BOOSTERS.NONE;
+        delete state.lineOrientation;
     }
 
     softenCandy(index: number): void {
@@ -103,6 +123,7 @@ class Board {
         state.booster = BOOSTERS.NONE;
         state.hard = false;
         state.generator = false;
+        delete state.lineOrientation;
     }
 
     swapCells(a: number, b: number): void {

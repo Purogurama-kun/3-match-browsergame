@@ -2,6 +2,7 @@ import { Hud } from './hud.js';
 import { getRequiredElement } from './dom.js';
 import { Board, CellState } from './board.js';
 import { SwipeDirection } from './types.js';
+import type { LineOrientation } from './types.js';
 import {
     GRID_SIZE,
     BOOSTERS,
@@ -275,6 +276,11 @@ class Renderer {
         cell.dataset.blocked = state.blocked ? 'true' : 'false';
         cell.dataset.hard = state.hard ? 'true' : 'false';
         cell.dataset.generator = state.generator ? 'true' : 'false';
+        if (state.lineOrientation) {
+            cell.dataset.lineOrientation = state.lineOrientation;
+        } else {
+            delete cell.dataset.lineOrientation;
+        }
         this.clearShapeClasses(cell);
         const colorKey = state.color ? getColorKeyFromHex(state.color) : null;
         cell.dataset.colorKey = colorKey ?? '';
@@ -298,7 +304,7 @@ class Renderer {
         if (state.hard) {
             cell.classList.add('board__cell--hard');
         }
-        this.applyBoosterVisual(cell, state.booster);
+        this.applyBoosterVisual(cell, state.booster, state.lineOrientation);
     }
 
     private applyShapeForColor(cell: HTMLDivElement, colorKey: ColorKey | null): void {
@@ -312,9 +318,11 @@ class Renderer {
         SHAPE_CLASS_NAMES.forEach((className) => cell.classList.remove(className));
     }
 
-    private applyBoosterVisual(cell: HTMLDivElement, booster: BoosterType): void {
+    private applyBoosterVisual(cell: HTMLDivElement, booster: BoosterType, orientation?: LineOrientation): void {
         cell.classList.remove(
             'board__cell--bomb-line',
+            'board__cell--bomb-line-horizontal',
+            'board__cell--bomb-line-vertical',
             'board__cell--bomb-radius',
             'board__cell--bomb-small',
             'board__cell--bomb-medium',
@@ -325,6 +333,9 @@ class Renderer {
         cell.textContent = '';
         if (booster === BOOSTERS.LINE) {
             cell.classList.add('board__cell--bomb-line');
+            const directionClass =
+                orientation === 'vertical' ? 'board__cell--bomb-line-vertical' : 'board__cell--bomb-line-horizontal';
+            cell.classList.add(directionClass);
             cell.textContent = '💣';
         }
         if (booster === BOOSTERS.BURST_SMALL) {

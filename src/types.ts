@@ -80,6 +80,8 @@ type GameState = {
 
 type CellShapeMode = 'square' | 'shaped';
 
+type LineOrientation = 'horizontal' | 'vertical';
+
 export {
     GameState,
     SwipeDirection,
@@ -97,5 +99,6 @@ export {
     LeaderboardEntry,
     LeaderboardIdentity,
     PowerupInventory,
-    CellShapeMode
+    CellShapeMode,
+    LineOrientation
 };

@@ -10,7 +10,7 @@ import {
 import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
 import { Board } from './board.js';
-import { CellShapeMode, GameState, SwipeDirection } from './types.js';
+import { CellShapeMode, GameState, LineOrientation, SwipeDirection } from './types.js';
 import { Renderer } from './renderer.js';
 import { describeGoal, LEVELS } from './levels.js';
 import { GameModeState, ModeContext, BoardConfig } from './game-mode-state.js';
@@ -21,16 +21,22 @@ import { TimeModeState } from './time-mode-state.js';
 import { t, Locale } from './i18n.js';
 import type { ParticleOptions } from './particle-effect.js';
 
+type BoosterCreation = {
+    index: number;
+    type: BoosterType;
+    orientation?: LineOrientation;
+};
+
 type MatchResult = {
     matched: Set<number>;
-    boostersToCreate: { index: number; type: BoosterType }[];
+    boostersToCreate: BoosterCreation[];
     largestMatch: number;
     createdBoosterTypes: BoosterType[];
 };
 
 type MatchAccumulator = {
     matched: Set<number>;
-    boostersToCreate: { index: number; type: BoosterType }[];
+    boostersToCreate: BoosterCreation[];
     boosterSlots: Set<number>;
     createdBoosterTypes: Set<BoosterType>;
     largestMatch: number;
@@ -417,7 +423,7 @@ class Match3Game implements ModeContext {
                 this.destroyCell(idx);
             });
             this.defer(() => {
-                boostersToCreate.forEach((b) => this.createBooster(b.index, b.type));
+                boostersToCreate.forEach((b) => this.createBooster(b.index, b.type, b.orientation));
                 this.dropCells();
             }, 350);
             return;
@@ -478,13 +484,18 @@ class Match3Game implements ModeContext {
         }, 300);
     }
 
-    private createBooster(index: number, type: BoosterType): void {
+    private createBooster(index: number, type: BoosterType, orientation?: LineOrientation): void {
         if (type === BOOSTERS.BURST_LARGE) {
             this.board.setCellColor(index, BLACK_BOMB_COLOR);
         } else {
             this.board.setCellColor(index, randomColor());
         }
         this.board.setBooster(index, type);
+        if (type === BOOSTERS.LINE) {
+            this.board.setLineOrientation(index, orientation ?? 'horizontal');
+        } else {
+            this.board.setLineOrientation(index, null);
+        }
         this.renderer.updateCell(index, this.board.getCellState(index));
     }
 
@@ -509,9 +520,14 @@ class Match3Game implements ModeContext {
     private executeBoosterEffect(booster: BoosterType, row: number, col: number): void {
         if (booster === BOOSTERS.LINE) {
             this.sounds.play('lineBomb');
-            const affected: number[] = [...this.getRowIndices(row)];
+            const index = this.indexAt(row, col);
+            const orientation = this.board.getLineOrientation(index) ?? 'horizontal';
+            const affected: number[] =
+                orientation === 'horizontal' ? [...this.getRowIndices(row)] : [...this.getColumnIndices(col)];
             if (this.state.mode === 'blocker') {
-                affected.push(...this.getColumnIndices(col));
+                const secondary =
+                    orientation === 'horizontal' ? this.getColumnIndices(col) : this.getRowIndices(row);
+                affected.push(...secondary);
             }
             this.destroyCells(affected);
             return;
@@ -752,10 +768,14 @@ class Match3Game implements ModeContext {
                     const sourceIsGenerator = this.board.isBlockerGenerator(sourceIndex);
                     this.board.setBlockerGenerator(targetIndex, sourceIsGenerator, sourceIsHard);
                     this.board.setCellColor(targetIndex, sourceColor);
-                    this.board.setBooster(
-                        targetIndex,
-                        sourceIsGenerator ? BOOSTERS.NONE : this.board.getCellBooster(sourceIndex)
-                    );
+                    const sourceBooster = sourceIsGenerator ? BOOSTERS.NONE : this.board.getCellBooster(sourceIndex);
+                    const sourceOrientation = sourceIsGenerator ? null : this.board.getLineOrientation(sourceIndex);
+                    this.board.setBooster(targetIndex, sourceBooster);
+                    if (sourceBooster === BOOSTERS.LINE) {
+                        this.board.setLineOrientation(targetIndex, sourceOrientation ?? 'horizontal');
+                    } else {
+                        this.board.setLineOrientation(targetIndex, null);
+                    }
                     this.board.setHardCandy(targetIndex, sourceIsHard);
                     this.board.clearCell(sourceIndex);
                     break;
@@ -1091,15 +1111,15 @@ class Match3Game implements ModeContext {
 
     private scanLineMatches(accumulator: MatchAccumulator): void {
         for (let r = 0; r < GRID_SIZE; r++) {
-            this.checkLine(this.getRowIndices(r), accumulator);
+            this.checkLine(this.getRowIndices(r), accumulator, 'horizontal');
         }
 
         for (let c = 0; c < GRID_SIZE; c++) {
-            this.checkLine(this.getColumnIndices(c), accumulator);
+            this.checkLine(this.getColumnIndices(c), accumulator, 'vertical');
         }
     }
 
-    private checkLine(indices: number[], accumulator: MatchAccumulator): void {
+    private checkLine(indices: number[], accumulator: MatchAccumulator, orientation: LineOrientation): void {
         let streak = 1;
         for (let i = 1; i <= indices.length; i++) {
             const prevIndex = indices[i - 1];
@@ -1120,7 +1140,7 @@ class Match3Game implements ModeContext {
                         if (lineIndex === undefined) {
                             throw new Error('Missing line booster index');
                         }
-                        this.addBoosterSlot(lineIndex, BOOSTERS.LINE, accumulator);
+                        this.addBoosterSlot(lineIndex, BOOSTERS.LINE, accumulator, orientation);
                     }
                     if (streak >= 5) {
                         const centerIndex = streakCells[Math.floor(streakCells.length / 2)];
@@ -1192,10 +1212,19 @@ class Match3Game implements ModeContext {
         accumulator.largestMatch = Math.max(accumulator.largestMatch, offsets.length);
     }
 
-    private addBoosterSlot(index: number, type: BoosterType, accumulator: MatchAccumulator): void {
+    private addBoosterSlot(
+        index: number,
+        type: BoosterType,
+        accumulator: MatchAccumulator,
+        orientation?: LineOrientation
+    ): void {
         if (accumulator.boosterSlots.has(index)) return;
         accumulator.boosterSlots.add(index);
-        accumulator.boostersToCreate.push({ index, type });
+        const creation: BoosterCreation = { index, type };
+        if (type === BOOSTERS.LINE) {
+            creation.orientation = orientation ?? 'horizontal';
+        }
+        accumulator.boostersToCreate.push(creation);
         accumulator.createdBoosterTypes.add(type);
     }
 
