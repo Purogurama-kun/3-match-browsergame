@@ -1,4 +1,11 @@
+import {
+    TACTICAL_POWERUPS,
+    TacticalPowerup,
+    createFreshPowerupInventory,
+    MAX_TACTICAL_POWERUP_STOCK
+} from './constants.js';
 import type { StoredProgress } from './progress-store.js';
+import type { PowerupInventory } from './types.js';
 
 class LocalProgressStore {
     private readonly progressKey = 'match3-progress';
@@ -10,7 +17,8 @@ class LocalProgressStore {
         highestLevel: 1,
         blockerHighScore: 0,
         timeSurvival: 0,
-        sugarCoins: 0
+        sugarCoins: 0,
+        powerups: createFreshPowerupInventory()
     };
 
     load(): StoredProgress {
@@ -73,11 +81,13 @@ class LocalProgressStore {
         const blockerHighScore = this.normalizeScore(progress?.blockerHighScore);
         const timeSurvival = this.normalizeTime(progress?.timeSurvival);
         const sugarCoins = this.normalizeCoins(progress?.sugarCoins);
+        const powerups = this.normalizePowerups(progress?.powerups);
         return {
             highestLevel,
             blockerHighScore,
             timeSurvival,
-            sugarCoins
+            sugarCoins,
+            powerups
         };
     }
 
@@ -103,6 +113,21 @@ class LocalProgressStore {
         if (typeof amount !== 'number' || !Number.isFinite(amount)) return this.defaultProgress.sugarCoins;
         const normalized = Math.floor(amount);
         return Math.max(0, normalized);
+    }
+
+    private normalizePowerups(powerups?: Partial<Record<TacticalPowerup, number>>): PowerupInventory {
+        const inventory = createFreshPowerupInventory();
+        const powerupTypes = Object.keys(TACTICAL_POWERUPS) as TacticalPowerup[];
+        powerupTypes.forEach((type) => {
+            inventory[type] = this.clampPowerup(powerups?.[type]);
+        });
+        return inventory;
+    }
+
+    private clampPowerup(value: unknown): number {
+        if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
+        const normalized = Math.floor(value);
+        return Math.max(0, Math.min(MAX_TACTICAL_POWERUP_STOCK, normalized));
     }
 }
 

@@ -9,6 +9,8 @@ const MODE_BLOCKER = 'BlockerMode';
 const MODE_TIME = 'TimeMode';
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
+const POWERUP_TYPES = ['shuffle', 'switch', 'bomb'];
+const MAX_POWERUP_STOCK = 2;
 
 header('Content-Type: application/json');
 header('Cache-Control: no-store');
@@ -183,14 +185,22 @@ function handleGet(PDO $database): void
     $existingScore = clampScore($data['blockerHighScore'] ?? 0);
     $existingTime = clampTime($data['timeSurvival'] ?? 0);
     $existingCoins = clampCoins($data['sugarCoins'] ?? 0);
+    $existingPowerups = clampPowerups($data['powerups'] ?? []);
 
     $bestLevel = max($localLevel, $existingLevel, fetchBestLevelFromRuns($database, $userId));
     $bestScore = max($existingScore, fetchBestScoreFromRuns($database, $userId, MODE_BLOCKER));
     $bestTime = max($existingTime, fetchBestScoreFromRuns($database, $userId, MODE_TIME));
     $bestCoins = max($localCoins, $existingCoins);
+    $bestPowerups = $existingPowerups;
 
+    $data['powerups'] = $existingPowerups;
     $normalizedData = normalizeData(
-        ['blockerHighScore' => $bestScore, 'timeSurvival' => $bestTime, 'sugarCoins' => $bestCoins],
+        [
+            'blockerHighScore' => $bestScore,
+            'timeSurvival' => $bestTime,
+            'sugarCoins' => $bestCoins,
+            'powerups' => $bestPowerups
+        ],
         $data
     );
 
@@ -225,15 +235,24 @@ function handlePost(PDO $database): void
     $existingScore = clampScore($existingData['blockerHighScore'] ?? 0);
     $existingTime = clampTime($existingData['timeSurvival'] ?? 0);
     $existingCoins = clampCoins($existingData['sugarCoins'] ?? 0);
+    $existingPowerups = clampPowerups($existingData['powerups'] ?? []);
 
     $highestLevel = max($existingLevel, $submittedLevel);
+    $submittedPowerups = clampPowerups($data['powerups'] ?? []);
+    $mergedPowerups = [];
+    foreach (POWERUP_TYPES as $type) {
+        $mergedPowerups[$type] = max($existingPowerups[$type] ?? 0, $submittedPowerups[$type] ?? 0);
+    }
+    $existingDataWithPowerups = $existingData;
+    $existingDataWithPowerups['powerups'] = $existingPowerups;
     $normalizedData = normalizeData(
         [
             'blockerHighScore' => max($existingScore, $submittedScore),
             'timeSurvival' => max($existingTime, $submittedTime),
-            'sugarCoins' => max($existingCoins, $submittedCoins)
+            'sugarCoins' => max($existingCoins, $submittedCoins),
+            'powerups' => $mergedPowerups
         ],
-        $existingData
+        $existingDataWithPowerups
     );
     $encodedData = json_encode($normalizedData, JSON_THROW_ON_ERROR);
 
@@ -262,13 +281,15 @@ function handlePost(PDO $database): void
     $bestScore = max($normalizedData['blockerHighScore'], fetchBestScoreFromRuns($database, $userId, MODE_BLOCKER));
     $bestTime = max($normalizedData['timeSurvival'], fetchBestScoreFromRuns($database, $userId, MODE_TIME));
     $bestCoins = $normalizedData['sugarCoins'];
+    $bestPowerups = $normalizedData['powerups'];
 
     respond(200, [
         'highestLevel' => $bestLevel,
         'data' => [
             'blockerHighScore' => $bestScore,
             'timeSurvival' => $bestTime,
-            'sugarCoins' => $bestCoins
+            'sugarCoins' => $bestCoins,
+            'powerups' => $bestPowerups
         ]
     ]);
 }
@@ -387,10 +408,18 @@ function normalizeData(array $data, array $existing = []): array
     $submittedCoins = clampCoins($data['sugarCoins'] ?? 0);
     $sugarCoins = max($currentCoins, $submittedCoins);
 
+    $currentPowerups = clampPowerups($existing['powerups'] ?? []);
+    $submittedPowerups = clampPowerups($data['powerups'] ?? []);
+    $powerups = [];
+    foreach (POWERUP_TYPES as $type) {
+        $powerups[$type] = max($currentPowerups[$type] ?? 0, $submittedPowerups[$type] ?? 0);
+    }
+
     return [
         'blockerHighScore' => $blockerHighScore,
         'timeSurvival' => $timeSurvival,
-        'sugarCoins' => $sugarCoins
+        'sugarCoins' => $sugarCoins,
+        'powerups' => $powerups
     ];
 }
 
@@ -422,6 +451,29 @@ function clampCoins(mixed $coins): int
 
     $normalized = (int) floor((float) $coins);
     return max(0, $normalized);
+}
+
+function clampPowerups(mixed $powerups): array
+{
+    $result = [];
+    foreach (POWERUP_TYPES as $type) {
+        $candidate = null;
+        if (is_array($powerups) && array_key_exists($type, $powerups)) {
+            $candidate = $powerups[$type];
+        }
+        $result[$type] = clampPowerup($candidate);
+    }
+    return $result;
+}
+
+function clampPowerup(mixed $value): int
+{
+    if (!is_numeric($value)) {
+        return 0;
+    }
+
+    $normalized = (int) floor((float) $value);
+    return max(0, min(MAX_POWERUP_STOCK, $normalized));
 }
 
 function sanitizeDisplayName(?string $rawDisplayName): string

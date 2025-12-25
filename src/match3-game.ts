@@ -5,12 +5,13 @@ import {
     BoosterType,
     randomColor,
     TACTICAL_POWERUPS,
-    TacticalPowerup
+    TacticalPowerup,
+    createFreshPowerupInventory
 } from './constants.js';
 import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
 import { Board } from './board.js';
-import { CellShapeMode, GameState, LineOrientation, SwipeDirection } from './types.js';
+import { CellShapeMode, GameState, LineOrientation, PowerupInventory, SwipeDirection } from './types.js';
 import { Renderer } from './renderer.js';
 import { describeGoal, LEVELS } from './levels.js';
 import { GameModeState, ModeContext, BoardConfig } from './game-mode-state.js';
@@ -64,6 +65,7 @@ class Match3Game implements ModeContext {
         this.hud.setCellShapeMode(this.cellShapeMode);
         this.modeState = new LevelModeState(1);
         this.state = this.modeState.enter(this);
+        this.state.powerups = this.powerupInventory;
         this.refreshGoalDescriptions();
         this.updateCellShapeMode(this.state.cellShapeMode);
 
@@ -97,6 +99,8 @@ class Match3Game implements ModeContext {
     private pendingPowerupSelections: number[] = [];
     private sugarCoinListener: ((amount: number) => void) | null = null;
     private powerupInProgress = false;
+    private powerupInventory: PowerupInventory = createFreshPowerupInventory();
+    private powerupInventoryListener: ((inventory: PowerupInventory) => void) | null = null;
     private progressListener: ((level: number) => void) | null = null;
     private blockerHighScoreListener: ((score: number) => void) | null = null;
     private timeBestListener: ((time: number) => void) | null = null;
@@ -161,6 +165,18 @@ class Match3Game implements ModeContext {
         this.sugarCoinListener = handler;
     }
 
+    onPowerupInventoryChange(handler: (inventory: PowerupInventory) => void): void {
+        this.powerupInventoryListener = handler;
+    }
+
+    setPowerupInventory(inventory: PowerupInventory): void {
+        this.powerupInventory = { ...inventory };
+        if (this.state) {
+            this.state.powerups = this.powerupInventory;
+        }
+        this.updateHud();
+    }
+
     showLeaderboard(options: LeaderboardStateOptions): void {
         this.stop();
         if (this.leaderboardState) {
@@ -181,6 +197,7 @@ class Match3Game implements ModeContext {
         }
         this.modeState = modeState;
         this.state = this.modeState.enter(this);
+        this.state.powerups = this.powerupInventory;
         this.renderer.setGameMode(this.state.mode);
         this.refreshGoalDescriptions();
         this.updateCellShapeMode(this.cellShapeMode);
@@ -694,7 +711,17 @@ class Match3Game implements ModeContext {
         const remaining = this.state.powerups[type] ?? 0;
         if (remaining <= 0) return false;
         this.state.powerups[type] = remaining - 1;
+        this.notifyPowerupInventoryChange();
         return true;
+    }
+
+    private notifyPowerupInventoryChange(): void {
+        if (!this.powerupInventoryListener) return;
+        this.powerupInventoryListener(this.getCurrentPowerups());
+    }
+
+    private getCurrentPowerups(): PowerupInventory {
+        return { ...this.powerupInventory };
     }
 
     private applyShufflePowerup(): void {

@@ -34,7 +34,8 @@ const TACTICAL_POWERUPS = {
     }
 } as const;
 
-const TACTICAL_POWERUP_USES = 1;
+const MAX_TACTICAL_POWERUP_STOCK = 2;
+const DEFAULT_TACTICAL_POWERUP_USES = 0;
 
 type BoosterType = typeof BOOSTERS[keyof typeof BOOSTERS];
 type ColorKey = keyof typeof COLOR_DEFINITIONS;
@@ -58,12 +59,16 @@ const SHAPE_CLASS_NAMES: string[] = [
     'board__cell--shape-square'
 ];
 
-function createFreshPowerupInventory(): Record<TacticalPowerup, number> {
+function createPowerupInventory(initial: number): Record<TacticalPowerup, number> {
     const inventory = {} as Record<TacticalPowerup, number>;
     (Object.keys(TACTICAL_POWERUPS) as TacticalPowerup[]).forEach((key) => {
-        inventory[key] = TACTICAL_POWERUP_USES;
+        inventory[key] = initial;
     });
     return inventory;
+}
+
+function createFreshPowerupInventory(): Record<TacticalPowerup, number> {
+    return createPowerupInventory(DEFAULT_TACTICAL_POWERUP_USES);
 }
 
 function randomColor(): string {
@@ -106,5 +111,6 @@ export {
     CandyShape,
     COLOR_SHAPE_CLASS,
     SHAPE_CLASS_NAMES,
-    createFreshPowerupInventory
+    createFreshPowerupInventory,
+    MAX_TACTICAL_POWERUP_STOCK
 };

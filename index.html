@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="css/move-evaluation.css" />
     <link rel="stylesheet" href="css/modal.css" />
     <link rel="stylesheet" href="css/options-modal.css" />
+    <link rel="stylesheet" href="css/shop.css" />
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script type="module" src="dist/main.js"></script>
 </head>
@@ -67,6 +68,7 @@
                 <button id="start-level" class="main-menu__button" type="button" disabled>Level Modus</button>
                 <button id="start-blocker" class="main-menu__button main-menu__button--secondary" type="button">Blocker Modus</button>
                 <button id="start-time" class="main-menu__button main-menu__button--secondary" type="button">Zeit Modus</button>
+                <button id="open-shop" class="main-menu__button main-menu__button--secondary" type="button" data-i18n-key="button.shop">Shop</button>
                     <button
                         id="open-leaderboard"
                         class="main-menu__button main-menu__button--ghost"
@@ -78,6 +80,25 @@
                 <p class="main-menu__note" data-i18n-key="mainMenu.note">
                     High scores are stored along with your level progress. Open the options menu via the top-right button.
                 </p>
+            </div>
+        </div>
+    </div>
+    <div id="shop" class="shop" hidden>
+        <div class="shop__card">
+            <div class="shop__header">
+                <p class="shop__lead" data-i18n-key="shop.lead">Spend sugar coins on tactical advantages.</p>
+                <h2 class="shop__title" data-i18n-key="shop.title">Sugar Shop</h2>
+            </div>
+            <div class="shop__coins">
+                <img src="assets/images/sugar_coin_icon.png" alt="Sugar coins" class="shop__coins-icon" />
+                <span id="shop-coin-count" class="shop__coins-count">Sugar coins: 0</span>
+            </div>
+            <div id="shop-feedback" class="shop__feedback" aria-live="polite" hidden></div>
+            <div id="shop-items" class="shop__grid"></div>
+            <div class="shop__actions">
+                <button id="shop-close" class="main-menu__button main-menu__button--ghost" type="button" data-i18n-key="button.back">
+                    Back
+                </button>
             </div>
         </div>
     </div>

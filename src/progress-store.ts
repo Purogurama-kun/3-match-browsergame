@@ -1,9 +1,18 @@
-import type { LeaderboardIdentity, LeaderboardMode } from './types.js';
+import {
+    TACTICAL_POWERUPS,
+    TacticalPowerup,
+    createFreshPowerupInventory,
+    MAX_TACTICAL_POWERUP_STOCK
+} from './constants.js';
+import type { LeaderboardIdentity, LeaderboardMode, PowerupInventory } from './types.js';
+
+const POWERUP_TYPES = Object.keys(TACTICAL_POWERUPS) as TacticalPowerup[];
 
 type ProgressData = {
     blockerHighScore: number;
     timeSurvival: number;
     sugarCoins: number;
+    powerups: PowerupInventory;
 };
 
 type StoredProgress = {
@@ -11,6 +20,7 @@ type StoredProgress = {
     blockerHighScore: number;
     timeSurvival: number;
     sugarCoins: number;
+    powerups: PowerupInventory;
 };
 
 type ProgressResponse = {
@@ -50,12 +60,18 @@ class ProgressStore {
         const normalized = this.normalizeProgress(progress);
         const scorePayload =
             mode === 'time' ? normalized.timeSurvival : normalized.blockerHighScore;
+        const payloadData = {
+            blockerHighScore: normalized.blockerHighScore,
+            timeSurvival: normalized.timeSurvival,
+            sugarCoins: normalized.sugarCoins,
+            powerups: normalized.powerups
+        };
         const payload = {
             userId: normalizedUserId,
             highestLevel: normalized.highestLevel,
             score: scorePayload,
             blockerHighScore: normalized.blockerHighScore,
-            data: { blockerHighScore: normalized.blockerHighScore, timeSurvival: normalized.timeSurvival },
+            data: payloadData,
             completedAt: new Date().toISOString(),
             ...(identity
                 ? {
@@ -121,7 +137,8 @@ class ProgressStore {
         const sugarCoins = this.normalizeCoins(
             payload?.sugarCoins ?? payload?.data?.sugarCoins ?? fallback?.sugarCoins
         );
-        return { highestLevel, blockerHighScore, timeSurvival, sugarCoins };
+        const powerups = this.normalizePowerups(payload?.data?.powerups ?? null, fallback?.powerups);
+        return { highestLevel, blockerHighScore, timeSurvival, sugarCoins, powerups };
     }
 
     private normalizeScore(score: unknown): number {
@@ -140,6 +157,29 @@ class ProgressStore {
         if (typeof amount !== 'number' || !Number.isFinite(amount)) return 0;
         const normalized = Math.floor(amount);
         return Math.max(0, normalized);
+    }
+
+    private normalizePowerups(
+        powerups: PowerupInventory | null | undefined,
+        fallback?: PowerupInventory
+    ): PowerupInventory {
+        const baseline = fallback ?? createFreshPowerupInventory();
+        const inventory = createFreshPowerupInventory();
+        POWERUP_TYPES.forEach((type) => {
+            const fallbackValue = baseline[type] ?? 0;
+            const candidate =
+                powerups && typeof powerups[type] === 'number'
+                    ? this.clampPowerup(powerups[type])
+                    : fallbackValue;
+            inventory[type] = Math.max(fallbackValue, candidate);
+        });
+        return inventory;
+    }
+
+    private clampPowerup(value: unknown): number {
+        if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
+        const normalized = Math.floor(value);
+        return Math.max(0, Math.min(MAX_TACTICAL_POWERUP_STOCK, normalized));
     }
 
     private requireUserId(userId: string): string {
