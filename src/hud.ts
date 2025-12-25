@@ -31,6 +31,7 @@ class Hud {
         this.statusIcon = getRequiredElement('status-icon');
         this.goalsList = this.getGoalsListElement();
         this.tacticalToolbar = this.getTacticalToolbar();
+        this.timeHint = this.getTimeHintElement();
         this.powerupButtons = {} as Record<TacticalPowerup, HTMLButtonElement>;
         this.powerupCountNodes = {} as Record<TacticalPowerup, HTMLElement>;
         this.initPowerupButtons();
@@ -63,6 +64,7 @@ class Hud {
     private audioToggle: HTMLButtonElement;
     private difficultyLabel: HTMLElement;
     private exitButton: HTMLButtonElement;
+    private timeHint: HTMLElement;
     private cellShapeSelect: HTMLSelectElement;
     private languageSelect: HTMLSelectElement;
     private audioEnabled = true;
@@ -246,6 +248,14 @@ class Hud {
         return element;
     }
 
+    private getTimeHintElement(): HTMLElement {
+        const element = getRequiredElement('hud-time-hint');
+        if (!(element instanceof HTMLElement)) {
+            throw new Error('Time hint element is not an element');
+        }
+        return element;
+    }
+
     private getTacticalToolbar(): HTMLElement {
         return getRequiredElement('tactical-toolbar');
     }
@@ -358,10 +368,13 @@ class Hud {
         this.goalsList.innerHTML = '';
         if (mode === 'blocker') {
             this.renderBlockerModeHighscore(state.bestScore);
+            this.hideTimeModeHint();
             return;
         }
         if (mode === 'time') {
             this.renderTimeModeHint(state);
+        } else {
+            this.hideTimeModeHint();
         }
         goals.forEach((goal) => {
             const item = document.createElement('li');
@@ -479,15 +492,15 @@ class Hud {
     }
 
     private renderTimeModeHint(state: GameState): void {
-        const item = document.createElement('li');
-        item.className = 'hud__goal hud__goal--hint';
-        const label = document.createElement('span');
-        label.className = 'hud__goal-label';
         const survived = this.formatTime(state.survivalTime ?? 0);
         const best = this.formatTime(state.bestScore ?? 0);
-        label.textContent = t('hud.timeModeHint', { survived, best });
-        item.appendChild(label);
-        this.goalsList.appendChild(item);
+        this.timeHint.textContent = t('hud.timeModeHint', { survived, best });
+        this.timeHint.removeAttribute('hidden');
+    }
+
+    private hideTimeModeHint(): void {
+        this.timeHint.setAttribute('hidden', 'true');
+        this.timeHint.textContent = '';
     }
 
     private formatDifficultyLabel(difficulty: Difficulty): string {

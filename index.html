@@ -136,20 +136,21 @@
             </div>
         </div>
 
-        <div class="hud__card hud__card--goals">
-            <div class="hud__label" data-i18n-key="hud.label.goals">Goals</div>
+            <div class="hud__card hud__card--goals">
+                <div class="hud__label" data-i18n-key="hud.label.goals">Goals</div>
 
-            <div class="hud__progress">
-                <div id="score-progress" class="hud__progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0">
-                    <div id="score-progress-fill" class="hud__progress-fill"></div>
+                <div class="hud__progress">
+                    <div id="score-progress" class="hud__progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0">
+                        <div id="score-progress-fill" class="hud__progress-fill"></div>
+                    </div>
+                    <span class="hud__text">
+                        <span id="score" class="hud__value-strong">0/300</span>
+                    </span>
                 </div>
-                <span class="hud__text">
-                    <span id="score" class="hud__value-strong">0/300</span>
-                </span>
-            </div>
+                <div id="hud-time-hint" class="hud__time-hint" hidden></div>
 
-            <ul id="goals-list" class="hud__goals-list"></ul>
-        </div>
+                <ul id="goals-list" class="hud__goals-list"></ul>
+            </div>
     </div>
     <div id="game" class="board"></div>
     <div id="tactical-toolbar" class="tactical-toolbar" role="toolbar" aria-label="Taktische Werkzeuge"></div>
