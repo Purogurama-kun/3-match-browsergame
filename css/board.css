@@ -173,23 +173,44 @@
 }
 
 .board__cell--bomb-line-vertical::after {
-    background: linear-gradient(
-        90deg,
-        rgba(0, 0, 0, 0) 35%,
-        rgba(250, 204, 21, 0.35) 35%,
-        rgba(250, 204, 21, 0.35) 65%,
-        rgba(0, 0, 0, 0) 65%
-    );
+    content: "↕"; /* alternativ: 🡙 */
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+
+    text-shadow:
+        -1px 0 black,
+         1px 0 black,
+         0 -1px black,
+         0  1px black;
 }
 
+
 .board__cell--bomb-line-horizontal::after {
-    background: linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0) 35%,
-        rgba(250, 204, 21, 0.35) 35%,
-        rgba(250, 204, 21, 0.35) 65%,
-        rgba(0, 0, 0, 0) 65%
-    );
+    content: "↔";
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+
+    text-shadow:
+        -1px 0 black,
+         1px 0 black,
+         0 -1px black,
+         0  1px black;
 }
 
 .board__cell--bomb-small {
