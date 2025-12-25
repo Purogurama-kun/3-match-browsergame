@@ -83,6 +83,8 @@ git add .
 git commit -m "Description"
 git push -u origin my-new-branch (afterwards `git push`)
 git checkout main
+git pull (needs to be up-to-date)
+git merge my-new-branch
 ```
 
 ## Project structure
