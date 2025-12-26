@@ -31,10 +31,20 @@ body {
 
 .match-app--menu {
     background-image: url("/assets/images/main-menu-background.png");
-    background-size: cover;
+    background-size: contain;
     background-position: top center;
     background-repeat: no-repeat;
     overflow-y: hidden;
+}
+
+@media (max-width: 780px) {
+    .match-app--menu {
+        background-image: url("/assets/images/main-menu-background.png");
+        background-size: cover;
+        background-position: top center;
+        background-repeat: no-repeat;
+        overflow-y: hidden;
+    }
 }
 
 .match-app--menu .hud,

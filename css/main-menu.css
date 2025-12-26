@@ -1,6 +1,6 @@
 .main-menu {
     width: min(42rem, 100%);
-    margin: clamp(6rem, 22vh, 15rem) 0 0; /*top{clamp:min, preferred, max}, [left, right], bottom */
+    margin: clamp(6rem, 32vh, 20rem) 0 0; /*top{clamp:min, preferred, max}, [left, right], bottom */
     box-sizing: border-box;
     overflow: visible;
 }
@@ -9,15 +9,15 @@
     width: 100%;
     max-width: 100%;
     border-radius: 32px;
-    background: rgba(9, 12, 30, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    box-shadow:
+    /*background: rgba(9, 12, 30, 0.32);*/
+    /*border: 1px solid rgba(255, 255, 255, 0.16);*/
+    /*box-shadow:
         0 30px 60px rgba(4, 5, 10, 0.65),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);*/
     padding: clamp(1.5rem, 3vw, 2.75rem);
     display: grid;
     gap: 1.25rem;
-    backdrop-filter: blur(18px);
+    backdrop-filter: blur(0px);
     box-sizing: border-box;
 }
 
@@ -50,36 +50,34 @@
 }
 
 .main-menu__actions {
-    display: grid;
+    /*display: grid;
     grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
-    gap: 0.75rem;
+    gap: 0.75rem;*/
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .main-menu__button {
-    padding: 0.9rem 1rem;
+    padding: 0.5rem 0;
     border-radius: 18px;
-    border: none;
-    background: linear-gradient(145deg, #43d5c9, #50e4ff);
-    color: #04131f;
-    font-weight: 700;
+    border: 1px solid white;
+    color: white;
+    font-weight:bold;
     font-size: 1.05rem;
     cursor: pointer;
     text-align: center;
-    box-shadow: 0 14px 30px rgba(67, 213, 201, 0.35);
     transition: transform 0.2s ease, filter 0.2s ease;
+    backdrop-filter: blur(18px);
+    background: rgba(0, 0, 0, 0.3);
 }
 
 .main-menu__button--secondary {
-    background: linear-gradient(145deg, #4a74ff, #6a8dff);
-    color: #0b1224;
-    box-shadow: 0 14px 30px rgba(74, 116, 255, 0.35);
+    
 }
 
 .main-menu__button--blocker {
-    background: linear-gradient(145deg, #ffd841, #ffb347);
-    color: #241800;
-    border: 1px solid #ffd841;
-    font-weight: 800;
+    
 }
 
 .main-menu__button:hover {
@@ -109,10 +107,11 @@
     min-width: 0;
     padding: 0.75rem 1rem;
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(0, 0, 0, 0.4);
     display: grid;
     gap: 0.65rem;
+    backdrop-filter: blur(18px);
+    border: 1px solid white;
 }
 
 .main-menu__icon-actions {
@@ -126,11 +125,12 @@
     height: 48px;
     border-radius: 16px;
     border: 1px solid transparent;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.4);
     display: grid;
     place-items: center;
     cursor: pointer;
     transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    backdrop-filter: blur(22px);
 }
 
 .main-menu__icon-button img {
