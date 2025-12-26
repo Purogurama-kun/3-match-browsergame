@@ -43,6 +43,15 @@ type MatchAccumulator = {
     largestMatch: number;
 };
 
+type ColumnEntry = {
+    color: string;
+    booster: BoosterType;
+    lineOrientation?: LineOrientation | undefined;
+    hard: boolean;
+    generator: boolean;
+    sugarChestStage?: number;
+};
+
 const SUGAR_CHEST_REWARD = 1;
 
 class Match3Game implements ModeContext {
@@ -842,51 +851,104 @@ class Match3Game implements ModeContext {
     }
 
     private dropCells(): void {
-        for (let c = 0; c < GRID_SIZE; c++) {
-            for (let r = GRID_SIZE - 1; r >= 0; r--) {
-                const targetIndex = r * GRID_SIZE + c;
-                if (this.board.isBlockedIndex(targetIndex)) continue;
-                if (this.board.getCellColor(targetIndex)) continue;
-                if (this.board.isSugarChest(targetIndex)) continue;
-                for (let k = r - 1; k >= 0; k--) {
-                    const sourceIndex = k * GRID_SIZE + c;
-                    if (this.board.isBlockedIndex(sourceIndex)) continue;
-                    const sourceColor = this.board.getCellColor(sourceIndex);
-                    if (!sourceColor) continue;
-                    const sourceIsHard = this.board.isHardCandy(sourceIndex);
-                    const sourceIsGenerator = this.board.isBlockerGenerator(sourceIndex);
-                    this.board.setBlockerGenerator(targetIndex, sourceIsGenerator, sourceIsHard);
-                    this.board.setCellColor(targetIndex, sourceColor);
-                    const sourceBooster = sourceIsGenerator ? BOOSTERS.NONE : this.board.getCellBooster(sourceIndex);
-                    const sourceOrientation = sourceIsGenerator ? null : this.board.getLineOrientation(sourceIndex);
-                    this.board.setBooster(targetIndex, sourceBooster);
-                    if (sourceBooster === BOOSTERS.LINE) {
-                        this.board.setLineOrientation(targetIndex, sourceOrientation ?? 'horizontal');
-                    } else {
-                        this.board.setLineOrientation(targetIndex, null);
-                    }
-                    this.board.setHardCandy(targetIndex, sourceIsHard);
-                    this.board.clearCell(sourceIndex);
-                    break;
-                }
-                if (!this.board.getCellColor(targetIndex)) {
-                    if (this.board.trySpawnSugarChest(targetIndex)) {
-                        continue;
-                    }
-                    const spawnHardCandy = this.shouldSpawnHardCandy();
-                    if (this.shouldSpawnBombFromDrop()) {
-                        this.createFallingBomb(targetIndex);
-                        this.board.setHardCandy(targetIndex, false);
-                    } else {
-                        this.board.setCellColor(targetIndex, randomColor());
-                        this.board.setBooster(targetIndex, BOOSTERS.NONE);
-                        this.board.setHardCandy(targetIndex, spawnHardCandy);
-                    }
-                }
-            }
+        for (let col = 0; col < GRID_SIZE; col++) {
+            this.collapseColumn(col);
         }
         this.renderer.refreshBoard(this.board);
         this.defer(() => this.checkMatches(), 200);
+    }
+
+    private collapseColumn(col: number): void {
+        let segmentBottom = GRID_SIZE - 1;
+        for (let row = GRID_SIZE - 1; row >= -1; row--) {
+            const isBoundary =
+                row < 0 || this.board.isBlockedIndex(row * GRID_SIZE + col);
+            if (isBoundary) {
+                const segmentTop = row + 1;
+                if (segmentTop <= segmentBottom) {
+                    this.collapseColumnSegment(col, segmentTop, segmentBottom);
+                }
+                segmentBottom = row - 1;
+            }
+        }
+    }
+
+    private collapseColumnSegment(col: number, topRow: number, bottomRow: number): void {
+        if (topRow > bottomRow) return;
+        const entries: ColumnEntry[] = [];
+        for (let row = topRow; row <= bottomRow; row++) {
+            const index = row * GRID_SIZE + col;
+            const entry = this.captureColumnEntry(index);
+            if (entry) {
+                entries.push(entry);
+            }
+            this.board.clearCell(index);
+        }
+        let targetRow = bottomRow;
+        while (entries.length > 0) {
+            const entry = entries.pop()!;
+            const index = targetRow * GRID_SIZE + col;
+            this.placeColumnEntry(index, entry);
+            targetRow--;
+        }
+        for (let row = targetRow; row >= topRow; row--) {
+            const index = row * GRID_SIZE + col;
+            if (this.board.trySpawnSugarChest(index)) continue;
+            const spawnHardCandy = this.shouldSpawnHardCandy();
+            if (this.shouldSpawnBombFromDrop()) {
+                this.createFallingBomb(index);
+                this.board.setHardCandy(index, false);
+            } else {
+                this.board.setCellColor(index, randomColor());
+                this.board.setBooster(index, BOOSTERS.NONE);
+                this.board.setHardCandy(index, spawnHardCandy);
+            }
+        }
+    }
+
+    private captureColumnEntry(index: number): ColumnEntry | null {
+        const state = this.board.getCellState(index);
+        if (state.blocked) return null;
+        if (state.sugarChestStage !== undefined) {
+            return {
+                color: '',
+                booster: BOOSTERS.NONE,
+                hard: false,
+                generator: false,
+                sugarChestStage: state.sugarChestStage
+            };
+        }
+        if (!state.color && state.booster === BOOSTERS.NONE && !state.hard && !state.generator) {
+            return null;
+        }
+        return {
+            color: state.color,
+            booster: state.booster,
+            lineOrientation: state.lineOrientation,
+            hard: state.hard,
+            generator: state.generator
+        };
+    }
+
+    private placeColumnEntry(index: number, entry: ColumnEntry): void {
+        this.board.clearCell(index);
+        if (entry.sugarChestStage !== undefined) {
+            this.board.setSugarChestStage(index, entry.sugarChestStage);
+            return;
+        }
+        if (entry.generator) {
+            this.board.setBlockerGenerator(index, true, entry.hard);
+            return;
+        }
+        const state = this.board.getCellState(index);
+        state.color = entry.color;
+        state.booster = entry.booster;
+        if (entry.booster === BOOSTERS.LINE) {
+            state.lineOrientation = entry.lineOrientation ?? 'horizontal';
+        } else {
+            delete state.lineOrientation;
+        }
+        state.hard = entry.hard;
     }
 
     private areAdjacent(aIndex: number, bIndex: number): boolean {
@@ -906,7 +968,6 @@ class Match3Game implements ModeContext {
         if (targetRow < 0 || targetRow >= GRID_SIZE || targetCol < 0 || targetCol >= GRID_SIZE) return null;
         const targetIndex = targetRow * GRID_SIZE + targetCol;
         if (this.board.isBlockedIndex(targetIndex)) return null;
-        if (this.board.isSugarChest(index) || this.board.isSugarChest(targetIndex)) return null;
         return targetIndex;
     }
 
@@ -914,13 +975,11 @@ class Match3Game implements ModeContext {
         const firstIsLocked =
             this.board.isBlockedCell(firstIndex) ||
             this.board.isHardCandy(firstIndex) ||
-            this.board.isBlockerGenerator(firstIndex) ||
-            this.board.isSugarChest(firstIndex);
+            this.board.isBlockerGenerator(firstIndex);
         const secondIsLocked =
             this.board.isBlockedCell(secondIndex) ||
             this.board.isHardCandy(secondIndex) ||
-            this.board.isBlockerGenerator(secondIndex) ||
-            this.board.isSugarChest(secondIndex);
+            this.board.isBlockerGenerator(secondIndex);
         if (firstIsLocked || secondIsLocked) {
             this.showInvalidMove(firstIsLocked ? firstIndex : secondIndex);
             return;
