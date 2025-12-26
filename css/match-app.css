@@ -1,9 +1,12 @@
 html, body {
     height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 body {
     margin: 0;
+    padding: 0;
 }
 
 .match-app {
@@ -15,12 +18,11 @@ body {
     align-items: center;
     gap: 0.75rem;
     margin: 0;
-    padding: 1.25rem;
+    padding: 0.5rem;
     min-height: 100vh;
     min-height: 100dvh;
     box-sizing: border-box;
     overflow-x: hidden;
-    overflow-y: auto;
     width: 100%;
     overscroll-behavior-y: auto;
 
@@ -30,8 +32,9 @@ body {
 .match-app--menu {
     background-image: url("/assets/images/main-menu-background.png");
     background-size: cover;
-    background-position: center;
-    background-repeat: repeat; /* for mobile phones */
+    background-position: top center;
+    background-repeat: no-repeat;
+    overflow-y: hidden;
 }
 
 .match-app--menu .hud,

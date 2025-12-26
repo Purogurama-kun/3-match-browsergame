@@ -1,22 +1,18 @@
 .auth {
     display: grid;
-    gap: 0.5rem;
-    padding: 0.75rem;
-    border-radius: 12px;
-    border: 1px solid #2f3654;
-    background: #0c0f1b;
+    gap: 0.35rem;
 }
 
 .auth__summary {
     display: grid;
-    gap: 0.15rem;
+    gap: 0.1rem;
 }
 
 .auth__label {
-    font-size: 0.95rem;
-    color: #cfd5ff;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    color: rgba(223, 229, 255, 0.8);
 }
 
 .auth__status {
@@ -27,14 +23,13 @@
 
 .auth__progress {
     color: #cfd5ff;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
 }
 
 .auth__coins {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    margin-top: 0.35rem;
+    gap: 0.35rem;
 }
 
 .auth__coins-icon {
@@ -55,7 +50,7 @@
 
 .auth__actions {
     display: grid;
-    gap: 0.35rem;
+    gap: 0.5rem;
 }
 
 .auth__button {
@@ -72,19 +67,13 @@
 .auth__button-text {
     display: inline-block;
     padding: 0.75rem 1rem;
-    border-radius: 12px;
+    border-radius: 14px;
     border: 1px solid #5fd1a2;
     background: linear-gradient(135deg, #36c9a9, #3fd6c6);
     color: #04131f;
     font-weight: 800;
-    font-size: 1.05rem;
+    font-size: 1rem;
     text-align: center;
-}
-
-.auth__hint {
-    margin: 0;
-    color: #cfd5ff;
-    font-size: 0.9rem;
 }
 
 .auth__error {

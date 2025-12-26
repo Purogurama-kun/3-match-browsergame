@@ -31,56 +31,62 @@
 
     <div id="main-menu" class="main-menu" role="dialog" aria-labelledby="main-menu-title">
         <div class="main-menu__card">
-            <div class="main-menu__lead" data-i18n-key="mainMenu.lead">Welcome to</div>
-            <h1 id="main-menu-title" class="main-menu__title">Explosive Candy</h1>
-            <p class="main-menu__text" data-i18n-key="mainMenu.description">
-                Combine colorful candies, trigger explosions, and beat the level targets. Jump into Level Mode, chase a
-                new high score in Blocker Mode, or test the speeding-up Time Mode.
-            </p>
-            <div class="auth">
-                <div class="auth__summary">
-                    <div class="auth__label" data-i18n-key="auth.label">Google Login</div>
-                    <div id="auth-status" class="auth__status" data-i18n-key="auth.status.notSignedIn">Not signed in</div>
-                    <div id="auth-progress" class="auth__progress" data-i18n-key="auth.progress.level">
-                        Progress: Level 1
-                    </div>
-                    <div id="auth-progress-blocker" class="auth__progress" data-i18n-key="auth.progress.blocker">
-                        Blocker high score: 0
-                    </div>
-                    <div id="auth-progress-time" class="auth__progress" data-i18n-key="auth.progress.time">
-                        Time mode best: 00:00
-                    </div>
-                    <div class="auth__coins">
-                        <img id="auth-coin-icon" class="auth__coins-icon" src="assets/images/sugar_coin_icon.png" alt="Sugar coins">
-                        <span id="auth-coin-count" class="auth__coins-count">Sugar coins: 0</span>
-                    </div>
-                </div>
-                <div class="auth__actions">
-                    <div id="google-login" class="auth__button">
-                        <span class="auth__button-text" data-i18n-key="auth.loginButton">Sign in with Google</span>
-                    </div>
-                    <p class="auth__hint" data-i18n-key="auth.hint">
-                        Sign in before playing so your progress is tied to your account.
-                    </p>
-                    <p id="auth-error" class="auth__error" hidden></p>
-                </div>
+            <div class="main-menu__hero">
+                <div class="main-menu__lead" data-i18n-key="mainMenu.lead">Welcome to</div>
+                <h1 id="main-menu-title" class="main-menu__title">Explosive Candy</h1>
+                <p class="main-menu__tagline">Pick a mode and let the explosions begin.</p>
             </div>
             <div class="main-menu__actions">
                 <button id="start-level" class="main-menu__button" type="button" disabled>Level Modus</button>
-                <button id="start-blocker" class="main-menu__button main-menu__button--secondary" type="button">Blocker Modus</button>
+                <button id="start-blocker" class="main-menu__button main-menu__button--blocker" type="button">Blocker Modus</button>
                 <button id="start-time" class="main-menu__button main-menu__button--secondary" type="button">Zeit Modus</button>
-                <button id="open-shop" class="main-menu__button main-menu__button--secondary" type="button" data-i18n-key="button.shop">Shop</button>
+            </div>
+            <div class="main-menu__utility">
+                <div class="auth main-menu__auth" aria-live="polite">
+                    <div class="auth__summary">
+                        <div class="auth__label" data-i18n-key="auth.label">Google Login</div>
+                        <div id="auth-status" class="auth__status" data-i18n-key="auth.status.notSignedIn">Not signed in</div>
+                    </div>
+                    <div style="display:none;" hidden>
+                        <div id="auth-progress" class="auth__progress" data-i18n-key="auth.progress.level">
+                            Progress: Level 1
+                        </div>
+                        <div id="auth-progress-blocker" class="auth__progress" data-i18n-key="auth.progress.blocker">
+                            Blocker high score: 0
+                        </div>
+                        <div id="auth-progress-time" class="auth__progress" data-i18n-key="auth.progress.time">
+                            Time mode best: 00:00
+                        </div>
+                        <div class="auth__coins">
+                            <img id="auth-coin-icon" class="auth__coins-icon" src="assets/images/sugar_coin_icon.png" alt="Sugar coins">
+                            <span id="auth-coin-count" class="auth__coins-count">Sugar coins: 0</span>
+                        </div>
+                    </div>
+                    <div class="auth__actions">
+                        <div id="google-login" class="auth__button">
+                            <span class="auth__button-text" data-i18n-key="auth.loginButton">Sign in with Google</span>
+                        </div>
+                        <p id="auth-error" class="auth__error" hidden></p>
+                    </div>
+                </div>
+                <div class="main-menu__icon-actions">
+                    <button
+                        id="open-shop"
+                        class="main-menu__icon-button main-menu__icon-button--shop"
+                        type="button"
+                        aria-label="Open shop"
+                    >
+                        <img src="assets/images/store.svg" alt="" aria-hidden="true" />
+                    </button>
                     <button
                         id="open-leaderboard"
-                        class="main-menu__button main-menu__button--ghost"
+                        class="main-menu__icon-button main-menu__icon-button--leaderboard"
                         type="button"
-                        data-i18n-key="button.leaderboard"
+                        aria-label="Open leaderboard"
                     >
-                        Leaderboard
+                        <img src="assets/images/leaderboard.svg" alt="" aria-hidden="true" />
                     </button>
-                <p class="main-menu__note" data-i18n-key="mainMenu.note">
-                    High scores are stored along with your level progress. Open the options menu via the top-right button.
-                </p>
+                </div>
             </div>
         </div>
     </div>
@@ -97,7 +103,7 @@
             <div id="shop-feedback" class="shop__feedback" aria-live="polite" hidden></div>
             <div id="shop-items" class="shop__grid"></div>
             <div class="shop__actions">
-                <button id="shop-close" class="main-menu__button main-menu__button--ghost" type="button" data-i18n-key="button.back">
+                <button id="shop-close" class="shop__back-button" type="button" data-i18n-key="button.back">
                     Back
                 </button>
             </div>
