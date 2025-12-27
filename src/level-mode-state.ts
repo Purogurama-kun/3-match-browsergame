@@ -7,6 +7,7 @@ import {
 import { BoardConfig, GameModeState, ModeContext } from './game-mode-state.js';
 import { LevelDefinition, GameState, LevelGoal, GoalProgress } from './types.js';
 import { describeGoal, getLevelDefinition } from './levels.js';
+import { t } from './i18n.js';
 
 class LevelModeState implements GameModeState {
     readonly id = 'level';
@@ -56,7 +57,12 @@ class LevelModeState implements GameModeState {
     }
 
     handleBoardSettled(state: GameState, context: ModeContext): void {
+        if (context.isModalVisible()) return;
         this.checkForCompletion(state, context);
+        if (context.isModalVisible()) return;
+        if (!context.hasAnyValidMove()) {
+            context.shuffleBoardWithNotice(t('hud.status.noMoves'));
+        }
     }
 
     checkForCompletion(state: GameState, context: ModeContext): void {

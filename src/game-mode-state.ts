@@ -19,6 +19,7 @@ interface ModeContext {
     notifyTimeBest(time: number): void;
     hardenCells(amount: number): void;
     ensurePlayableBoard(config: BoardConfig): void;
+    shuffleBoardWithNotice(message: string): void;
     updateHud(state: GameState): void;
     hasAnyValidMove(): boolean;
     isModalVisible(): boolean;

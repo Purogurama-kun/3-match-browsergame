@@ -79,3 +79,29 @@ body {
         --cell-size: 2.3rem;
     }
 }
+
+.shuffle-notice {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 1.5rem;
+    background: rgba(11, 15, 29, 0.92);
+    color: #f8fafc;
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+    z-index: 110;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.shuffle-notice--visible {
+    opacity: 1;
+}
+
+.shuffle-notice__text {
+    max-width: 24rem;
+}

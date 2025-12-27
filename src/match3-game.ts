@@ -285,6 +285,13 @@ class Match3Game implements ModeContext {
         }
     }
 
+    shuffleBoardWithNotice(message: string): void {
+        if (this.boardAnimating || this.powerupInProgress) return;
+        if (!this.rearrangeBoardColors()) return;
+        this.renderer.showShuffleNotice(message);
+        this.defer(() => this.checkMatches(), 150);
+    }
+
     private handleCellClick(index: number): void {
         if (this.boardAnimating) return;
         if (this.pendingPowerup) {
@@ -735,6 +742,17 @@ class Match3Game implements ModeContext {
     }
 
     private applyShufflePowerup(): void {
+        if (!this.rearrangeBoardColors()) {
+            this.releasePowerupLock();
+            return;
+        }
+        this.defer(() => {
+            this.checkMatches();
+            this.releasePowerupLock();
+        }, 150);
+    }
+
+    private rearrangeBoardColors(): boolean {
         const candidateIndices: number[] = [];
         const colors: string[] = [];
         for (let index = 0; index < GRID_SIZE * GRID_SIZE; index++) {
@@ -746,8 +764,7 @@ class Match3Game implements ModeContext {
             colors.push(color);
         }
         if (colors.length === 0) {
-            this.releasePowerupLock();
-            return;
+            return false;
         }
         this.shuffleArray(colors);
         candidateIndices.forEach((index, idx) => {
@@ -756,10 +773,7 @@ class Match3Game implements ModeContext {
             this.board.setCellColor(index, color);
         });
         this.renderer.refreshBoard(this.board);
-        this.defer(() => {
-            this.checkMatches();
-            this.releasePowerupLock();
-        }, 150);
+        return true;
     }
 
     private applyBombPowerup(row: number, col: number): void {

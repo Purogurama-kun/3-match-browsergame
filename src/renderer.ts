@@ -32,6 +32,9 @@ class Renderer {
     private readonly modalButton: HTMLButtonElement;
     private readonly moveEvaluationEl: HTMLElement;
     private moveEvaluationTimer: number | null = null;
+    private readonly shuffleNoticeEl: HTMLElement;
+    private readonly shuffleNoticeTextEl: HTMLElement;
+    private shuffleNoticeTimer: number | null = null;
     private modalCallback: (() => void) | null = null;
     private readonly cells: HTMLDivElement[] = [];
     private selectedIndex: number | null = null;
@@ -54,6 +57,8 @@ class Renderer {
         this.modalText = getRequiredElement('result-text');
         this.modalButton = getRequiredElement('result-button') as HTMLButtonElement;
         this.moveEvaluationEl = getRequiredElement('move-evaluation');
+        this.shuffleNoticeEl = getRequiredElement('shuffle-notice');
+        this.shuffleNoticeTextEl = getRequiredElement('shuffle-notice-text');
         this.particleEffect = new ParticleEffect(this.gameEl);
 
         this.modalButton.addEventListener('click', () => this.hideModal());
@@ -208,6 +213,27 @@ class Renderer {
             this.moveEvaluationTimer = null;
         }
         this.moveEvaluationEl.classList.remove('move-evaluation--visible');
+    }
+
+    showShuffleNotice(message: string): void {
+        if (!message) return;
+        this.shuffleNoticeTextEl.textContent = message;
+        this.shuffleNoticeEl.removeAttribute('hidden');
+        this.shuffleNoticeEl.classList.add('shuffle-notice--visible');
+        if (this.shuffleNoticeTimer !== null) {
+            clearTimeout(this.shuffleNoticeTimer);
+        }
+        this.shuffleNoticeTimer = window.setTimeout(() => this.hideShuffleNotice(), 1400);
+    }
+
+    hideShuffleNotice(): void {
+        if (this.shuffleNoticeTimer !== null) {
+            clearTimeout(this.shuffleNoticeTimer);
+            this.shuffleNoticeTimer = null;
+        }
+        if (this.shuffleNoticeEl.hasAttribute('hidden')) return;
+        this.shuffleNoticeEl.setAttribute('hidden', 'true');
+        this.shuffleNoticeEl.classList.remove('shuffle-notice--visible');
     }
 
     playSpawnAnimation(): number {

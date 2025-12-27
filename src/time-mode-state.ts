@@ -79,10 +79,12 @@ class TimeModeState implements GameModeState {
     }
 
     handleBoardSettled(state: GameState, context: ModeContext): void {
-        if (!context.hasAnyValidMove()) {
-            context.ensurePlayableBoard(this.getBoardConfig());
-        }
+        if (context.isModalVisible()) return;
         this.checkForCompletion(state, context);
+        if (context.isModalVisible()) return;
+        if (!context.hasAnyValidMove()) {
+            context.shuffleBoardWithNotice(t('hud.status.noMoves'));
+        }
     }
 
     checkForCompletion(state: GameState, context: ModeContext): void {
