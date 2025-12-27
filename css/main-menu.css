@@ -1,8 +1,14 @@
 .main-menu {
     width: min(42rem, 100%);
-    margin: clamp(6rem, 32vh, 20rem) 0 0; /*top{clamp:min, preferred, max}, [left, right], bottom */
+    margin: clamp(6rem, 45vh, 30rem) 0 0; /*top{clamp:min, preferred, max}, [left, right], bottom */
     box-sizing: border-box;
     overflow: visible;
+}
+
+@media (max-width: 780px) {
+    .main-menu {
+        margin: clamp(6rem, 32vh, 20rem) 0 0; /*top{clamp:min, preferred, max}, [left, right], bottom */
+    }
 }
 
 .main-menu__card {

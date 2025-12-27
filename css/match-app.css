@@ -30,7 +30,7 @@ body {
 }
 
 .match-app--menu {
-    background-image: url("/assets/images/main-menu-background.png");
+    background-image: url("/assets/images/main-menu-bg-landscape.png");
     background-size: contain;
     background-position: top center;
     background-repeat: no-repeat;
