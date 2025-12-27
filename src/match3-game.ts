@@ -68,6 +68,8 @@ class Match3Game implements ModeContext {
             }
         });
         this.hud.onCellShapeModeChange((mode) => this.updateCellShapeMode(mode));
+        this.hud.onPerformanceModeChange((enabled) => this.setPerformanceMode(enabled));
+        this.setPerformanceMode(this.loadPerformanceModeSetting());
         this.hud.initOptionsMenu();
         this.hud.setAudioEnabled(this.sounds.isEnabled());
         this.renderer.setCellShapesEnabled(true);
@@ -117,6 +119,8 @@ class Match3Game implements ModeContext {
     private generatorMoveCounter = 0;
     private readonly generatorSpreadInterval = 2;
     private readonly generatorSpreadRadius = 3;
+    private performanceMode = false;
+    private readonly performanceModeStorageKey = 'match3-performance-mode';
 
     startLevel(level: number): void {
         this.hud.closeOptions();
@@ -289,7 +293,7 @@ class Match3Game implements ModeContext {
         if (this.boardAnimating || this.powerupInProgress) return;
         if (!this.rearrangeBoardColors()) return;
         this.renderer.showShuffleNotice(message);
-        this.defer(() => this.checkMatches(), 150);
+        this.defer(() => this.checkMatches(), this.getAnimationDelay(150));
     }
 
     private handleCellClick(index: number): void {
@@ -455,7 +459,9 @@ class Match3Game implements ModeContext {
             } else {
                 this.sounds.play('match');
             }
-            this.renderer.screenShake();
+            if (!this.performanceMode) {
+                this.renderer.screenShake();
+            }
             matched.forEach((idx) => {
                 const booster = this.board.getCellBooster(idx);
                 if (booster !== BOOSTERS.NONE) {
@@ -467,7 +473,7 @@ class Match3Game implements ModeContext {
             this.defer(() => {
                 boostersToCreate.forEach((b) => this.createBooster(b.index, b.type, b.orientation));
                 this.dropCells();
-            }, 350);
+            }, this.getAnimationDelay(350));
             return;
         }
 
@@ -527,7 +533,9 @@ class Match3Game implements ModeContext {
         const booster = this.board.getCellBooster(index);
         const color = this.board.getCellColor(index);
         if ((!color && booster === BOOSTERS.NONE) || this.renderer.isCellExploding(index)) return;
-        this.renderer.emitCellParticles(index, color || null, this.getParticleOptionsForBooster(booster));
+        if (!this.performanceMode) {
+            this.renderer.emitCellParticles(index, color || null, this.getParticleOptionsForBooster(booster));
+        }
         if (isGenerator) {
             this.renderer.animateGeneratorHit(index);
         }
@@ -541,7 +549,7 @@ class Match3Game implements ModeContext {
             }
             this.updateHud();
             this.renderer.updateCell(index, this.board.getCellState(index));
-        }, 300);
+        }, this.getAnimationDelay(300));
     }
 
     private handleSugarChestHit(index: number, triggeredByMatch: boolean): void {
@@ -559,13 +567,15 @@ class Match3Game implements ModeContext {
 
     private destroySugarChest(index: number): void {
         if (!this.board.isSugarChest(index)) return;
-        this.renderer.emitCellParticles(index, '#fcd34d', {
-            count: 12,
-            minDistance: 10,
-            maxDistance: 24,
-            minDuration: 0.6,
-            maxDuration: 0.9
-        });
+        if (!this.performanceMode) {
+            this.renderer.emitCellParticles(index, '#fcd34d', {
+                count: 12,
+                minDistance: 10,
+                maxDistance: 24,
+                minDuration: 0.6,
+                maxDuration: 0.9
+            });
+        }
         this.renderer.markCellExploding(index);
         this.defer(() => {
             this.renderer.clearCellExplosion(index);
@@ -576,7 +586,7 @@ class Match3Game implements ModeContext {
             if (this.sugarCoinListener) {
                 this.sugarCoinListener(SUGAR_CHEST_REWARD);
             }
-        }, 300);
+        }, this.getAnimationDelay(300));
     }
 
     private createBooster(index: number, type: BoosterType, orientation?: LineOrientation): void {
@@ -607,7 +617,7 @@ class Match3Game implements ModeContext {
         this.executeBoosterEffect(booster, row, col);
 
         if (consumesMove) {
-            this.defer(() => this.dropCells(), 300);
+            this.defer(() => this.dropCells(), this.getAnimationDelay(300));
         }
         this.updateHud();
     }
@@ -749,7 +759,7 @@ class Match3Game implements ModeContext {
         this.defer(() => {
             this.checkMatches();
             this.releasePowerupLock();
-        }, 150);
+        }, this.getAnimationDelay(150));
     }
 
     private rearrangeBoardColors(): boolean {
@@ -796,12 +806,14 @@ class Match3Game implements ModeContext {
             }
         }
         this.sounds.play('radiusBomb');
-        this.renderer.screenShake();
+        if (!this.performanceMode) {
+            this.renderer.screenShake();
+        }
         affected.forEach((index) => this.destroyCellAndMaybeFinishGenerator(index));
         this.defer(() => {
             this.dropCells();
             this.releasePowerupLock();
-        }, 320);
+        }, this.getAnimationDelay(320));
     }
 
     private executeSwitchPowerup(firstIndex: number, secondIndex: number): void {
@@ -816,7 +828,7 @@ class Match3Game implements ModeContext {
         this.defer(() => {
             this.checkMatches();
             this.releasePowerupLock();
-        }, 120);
+        }, this.getAnimationDelay(120));
     }
 
     private shuffleArray<T>(items: T[]): void {
@@ -870,7 +882,7 @@ class Match3Game implements ModeContext {
             this.collapseColumn(col);
         }
         this.renderer.refreshBoard(this.board);
-        this.defer(() => this.checkMatches(), 200);
+        this.defer(() => this.checkMatches(), this.getAnimationDelay(200));
     }
 
     private collapseColumn(col: number): void {
@@ -1016,7 +1028,7 @@ class Match3Game implements ModeContext {
         this.modeState.consumeMove(this.state);
         this.beginMove();
         this.updateHud();
-        this.defer(() => this.checkMatches(), 120);
+        this.defer(() => this.checkMatches(), this.getAnimationDelay(120));
     }
 
     private defer(callback: () => void, delay: number): void {
@@ -1035,7 +1047,7 @@ class Match3Game implements ModeContext {
 
     private showInvalidMove(index: number): void {
         this.renderer.showInvalidMove(index);
-        this.defer(() => this.renderer.clearInvalidMove(index), 350);
+        this.defer(() => this.renderer.clearInvalidMove(index), this.getAnimationDelay(350));
     }
 
     finishLevel(result: 'win' | 'lose', completedLevel: number): void {
@@ -1521,7 +1533,36 @@ class Match3Game implements ModeContext {
         this.defer(() => {
             this.boardAnimating = false;
             this.syncPowerupToolbarLock();
-        }, duration);
+        }, this.getAnimationDelay(duration));
+    }
+
+    private setPerformanceMode(enabled: boolean): void {
+        this.performanceMode = enabled;
+        this.hud.setPerformanceModeEnabled(enabled);
+        this.renderer.setAnimationsEnabled(!enabled);
+        this.savePerformanceModeSetting(enabled);
+    }
+
+    private savePerformanceModeSetting(enabled: boolean): void {
+        try {
+            window.localStorage.setItem(this.performanceModeStorageKey, enabled ? 'true' : 'false');
+        } catch {
+            // ignore quota or permission issues
+        }
+    }
+
+    private loadPerformanceModeSetting(): boolean {
+        try {
+            return window.localStorage.getItem(this.performanceModeStorageKey) === 'true';
+        } catch {
+            return false;
+        }
+    }
+
+    private getAnimationDelay(duration: number): number {
+        if (duration <= 0) return 0;
+        if (!this.performanceMode) return duration;
+        return Math.max(0, Math.round(duration * 0.35));
     }
 
     private getRowCol(index: number): { row: number; col: number } {

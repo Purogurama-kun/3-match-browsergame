@@ -46,6 +46,7 @@ class Renderer {
     private touchStartY: number | null = null;
     private readonly swipeThreshold = 18;
     private cellShapesEnabled = true;
+    private animationsEnabled = true;
     private readonly particleEffect: ParticleEffect;
     private gameMode: GameMode = 'level';
 
@@ -89,6 +90,10 @@ class Renderer {
 
     setCellShapesEnabled(enabled: boolean): void {
         this.cellShapesEnabled = enabled;
+    }
+
+    setAnimationsEnabled(enabled: boolean): void {
+        this.animationsEnabled = enabled;
     }
 
     renderBoard(
@@ -237,6 +242,9 @@ class Renderer {
     }
 
     playSpawnAnimation(): number {
+        if (!this.animationsEnabled) {
+            return 0;
+        }
         const baseDuration = 550;
         let longestDelay = 0;
         this.cells.forEach((cell, index) => {

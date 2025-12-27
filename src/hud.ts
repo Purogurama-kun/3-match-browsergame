@@ -40,13 +40,22 @@ class Hud {
         this.optionsClose = this.getOptionsClose();
         this.optionsModal = this.getOptionsModal();
         this.audioToggle = this.getAudioToggle();
+        this.performanceToggle = getRequiredElement('performance-toggle') as HTMLButtonElement;
         this.cellShapeSelect = this.getCellShapeSelect();
         this.languageSelect = this.getLanguageSelect();
         this.difficultyLabel = this.getDifficultyLabel();
         this.exitButton = this.getExitButton();
         this.setAudioToggleState(true);
         this.setLanguage('en');
+        this.setPerformanceModeEnabled(false);
         this.hideOptionsModal();
+        this.performanceToggle.addEventListener('click', () => {
+            const nextState = this.performanceToggle.getAttribute('aria-pressed') !== 'true';
+            this.setPerformanceModeEnabled(nextState);
+            if (this.performanceModeHandler) {
+                this.performanceModeHandler(nextState);
+            }
+        });
     }
 
     private score: HTMLElement;
@@ -69,6 +78,9 @@ class Hud {
     private timeHint: HTMLElement;
     private cellShapeSelect: HTMLSelectElement;
     private languageSelect: HTMLSelectElement;
+    private performanceToggle: HTMLButtonElement;
+    private performanceModeEnabled = false;
+    private performanceModeHandler: ((enabled: boolean) => void) | null = null;
     private audioEnabled = true;
     private cellShapeMode: CellShapeMode = 'square';
     private tacticalToolbar: HTMLElement;
@@ -455,6 +467,18 @@ class Hud {
         this.audioEnabled = enabled;
         this.audioToggle.setAttribute('aria-pressed', String(enabled));
         this.audioToggle.textContent = enabled ? t('hud.audio.on') : t('hud.audio.off');
+    }
+
+    setPerformanceModeEnabled(enabled: boolean): void {
+        this.performanceModeEnabled = enabled;
+        this.performanceToggle.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+        this.performanceToggle.textContent = enabled
+            ? t('options.performance.low')
+            : t('options.performance.high');
+    }
+
+    onPerformanceModeChange(handler: (enabled: boolean) => void): void {
+        this.performanceModeHandler = handler;
     }
 
     private createGoalVisual(goal: GoalProgress): HTMLElement {
