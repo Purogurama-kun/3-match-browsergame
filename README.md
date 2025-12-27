@@ -17,6 +17,10 @@ Small Match-3 browser game with boosters, goals, and sound feedback, written in 
 - Sound effects, optional audio toggle, and screen shake on impactful actions.
 - English and German UI text with a language selector in the options menu.
 - 5% chance of bombs falling from above on max multiplier (0% chnace on x0 multiplier)
+- Auto shuffle on no possivble moves
+- Sugar chest and sugar coins
+- Shop with available boosters
+- Blocker generator
 
 ## Known errors
 
