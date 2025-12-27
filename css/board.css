@@ -358,3 +358,48 @@
         transform: translate(-50%, -50%) translate(var(--particle-x, 0), var(--particle-y, 0)) scale(0.3);
     }
 }
+
+.board__sugar-notification {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #ffffff;
+    background: rgba(15, 23, 42, 0.9);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.6);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: board-sugar-notification 2s ease-out forwards;
+    z-index: 15;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.board__sugar-notification-icon {
+    width: 1rem;
+    height: 1rem;
+    display: block;
+}
+
+.board__sugar-notification-value {
+    text-transform: none;
+}
+
+@keyframes board-sugar-notification {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    25% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -110%) scale(1.05);
+    }
+}

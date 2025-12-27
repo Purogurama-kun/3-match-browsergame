@@ -565,6 +565,7 @@ class Match3Game implements ModeContext {
             this.board.removeSugarChest(index);
             this.board.clearCell(index);
             this.renderer.updateCell(index, this.board.getCellState(index));
+            this.renderer.showSugarCoinReward(index, SUGAR_CHEST_REWARD);
             if (this.sugarCoinListener) {
                 this.sugarCoinListener(SUGAR_CHEST_REWARD);
             }

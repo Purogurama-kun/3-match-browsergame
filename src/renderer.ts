@@ -431,6 +431,40 @@ class Renderer {
         return cell;
     }
 
+    showSugarCoinReward(index: number, amount: number): void {
+        if (amount <= 0) return;
+        const cell = this.getCellElement(index);
+        const notification = document.createElement('div');
+        notification.className = 'board__sugar-notification';
+
+        const icon = document.createElement('img');
+        icon.className = 'board__sugar-notification-icon';
+        icon.src = '/assets/images/sugar_coin.png';
+        icon.alt = '';
+        icon.setAttribute('aria-hidden', 'true');
+
+        const value = document.createElement('span');
+        value.className = 'board__sugar-notification-value';
+        value.textContent = `+${amount}`;
+
+        notification.append(icon, value);
+
+        const centerX = cell.offsetLeft + cell.clientWidth / 2;
+        const centerY = cell.offsetTop + cell.clientHeight / 2;
+        notification.style.left = `${centerX}px`;
+        notification.style.top = `${centerY}px`;
+
+        const removeNotification = (): void => {
+            notification.removeEventListener('animationend', removeNotification);
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        };
+        notification.addEventListener('animationend', removeNotification);
+        this.gameEl.appendChild(notification);
+        window.setTimeout(removeNotification, 1200);
+    }
+
     private getRowCol(index: number): { row: number; col: number } {
         return {
             row: Math.floor(index / GRID_SIZE),
