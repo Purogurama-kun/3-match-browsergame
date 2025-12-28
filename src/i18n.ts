@@ -23,6 +23,8 @@ const TRANSLATIONS = {
         'options.deleteProgress.confirm': 'Do you really want to delete all your game progress?',
         'options.deleteProgress.confirmButton': 'Delete progress',
         'options.deleteProgress.cancelButton': 'Cancel',
+        'options.info': 'Information',
+        'options.infoLink.legal': 'Legal notice',
         'options.logout': 'Logout',
         'mainMenu.lead': 'Welcome to',
         'mainMenu.description':
@@ -167,6 +169,8 @@ const TRANSLATIONS = {
         'options.deleteProgress.confirm': 'Möchtest du wirklich deinen gesamten Spielstand löschen?',
         'options.deleteProgress.confirmButton': 'Spielstand löschen',
         'options.deleteProgress.cancelButton': 'Abbrechen',
+        'options.info': 'Info',
+        'options.infoLink.legal': 'Impressum',
         'options.logout': 'Abmelden',
         'mainMenu.lead': 'Willkommen zu',
         'mainMenu.description':

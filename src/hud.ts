@@ -16,7 +16,17 @@ import {
 } from './types.js';
 import { getRequiredElement } from './dom.js';
 import { describeGoal } from './levels.js';
-import { t, Locale } from './i18n.js';
+import { t, Locale, type TranslationKey } from './i18n.js';
+
+type InfoLink = {
+    labelKey: TranslationKey;
+    href: string;
+};
+
+const INFO_LINKS: Record<Locale, InfoLink[]> = {
+    en: [{ labelKey: 'options.infoLink.legal', href: '/html/en/legal-notice.html' }],
+    de: [{ labelKey: 'options.infoLink.legal', href: '/html/de/legal-notice.html' }]
+};
 
 class Hud {
     constructor() {
@@ -39,6 +49,9 @@ class Hud {
         this.optionsToggle = this.getOptionsToggle();
         this.optionsClose = this.getOptionsClose();
         this.optionsModal = this.getOptionsModal();
+        this.infoButton = this.getInfoButton();
+        this.infoPanel = this.getInfoPanel();
+        this.infoPanelList = this.getInfoPanelList();
         this.audioToggle = this.getAudioToggle();
         this.performanceToggle = getRequiredElement('performance-toggle') as HTMLButtonElement;
         this.cellShapeSelect = this.getCellShapeSelect();
@@ -76,6 +89,9 @@ class Hud {
     private optionsClose: HTMLButtonElement;
     private optionsModal: HTMLElement;
     private audioToggle: HTMLButtonElement;
+    private infoButton: HTMLButtonElement;
+    private infoPanel: HTMLElement;
+    private infoPanelList: HTMLElement;
     private difficultyLabel: HTMLElement;
     private exitButton: HTMLButtonElement;
     private deleteProgressButton: HTMLButtonElement;
@@ -95,6 +111,19 @@ class Hud {
     private toolbarBlocked = false;
     private lastPowerupInventory: PowerupInventory | null = null;
     private pendingPowerupType: TacticalPowerup | null = null;
+    private currentLocale: Locale = 'en';
+    private readonly handleDocumentClick = (event: MouseEvent): void => {
+        if (this.infoPanel.hasAttribute('hidden')) {
+            return;
+        }
+        const target = event.target as Node | null;
+        if (target && (this.infoPanel.contains(target) || this.infoButton.contains(target))) {
+            return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        this.hideInfoPanel();
+    };
 
     render(state: GameState): void {
         const isTimeMode = state.mode === 'time';
@@ -133,6 +162,8 @@ class Hud {
 
     setLanguage(locale: Locale): void {
         this.languageSelect.value = locale;
+        this.currentLocale = locale;
+        this.updateInfoLinks(locale);
     }
 
     onTacticalPowerup(handler: (type: TacticalPowerup) => void): void {
@@ -157,6 +188,14 @@ class Hud {
             }
         });
 
+        this.infoButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            this.toggleInfoPanel();
+        });
+
+        this.infoPanel.addEventListener('click', (event) => event.stopPropagation());
+
         this.optionsClose.addEventListener('click', () => this.hideOptionsModal());
 
         document.addEventListener('keydown', (event) => {
@@ -170,6 +209,31 @@ class Hud {
                 this.hideOptionsModal();
             }
         });
+
+        document.addEventListener('click', this.handleDocumentClick, true);
+    }
+
+    private toggleInfoPanel(): void {
+        if (this.infoPanel.hasAttribute('hidden')) {
+            this.showInfoPanel();
+            return;
+        }
+        this.hideInfoPanel();
+    }
+
+    private showInfoPanel(): void {
+        this.infoPanel.removeAttribute('hidden');
+        this.infoPanel.setAttribute('aria-hidden', 'false');
+        this.infoButton.setAttribute('aria-expanded', 'true');
+    }
+
+    private hideInfoPanel(): void {
+        if (this.infoPanel.hasAttribute('hidden')) {
+            return;
+        }
+        this.infoPanel.setAttribute('hidden', 'true');
+        this.infoPanel.setAttribute('aria-hidden', 'true');
+        this.infoButton.setAttribute('aria-expanded', 'false');
     }
 
     setAudioEnabled(enabled: boolean): void {
@@ -179,6 +243,25 @@ class Hud {
     applyLocale(): void {
         this.setAudioToggleState(this.audioEnabled);
         this.refreshPowerupButtons();
+        this.infoButton.setAttribute('aria-label', t('options.info'));
+        this.updateInfoLinks(this.currentLocale);
+    }
+
+    private updateInfoLinks(locale: Locale): void {
+        const links = INFO_LINKS[locale] ?? INFO_LINKS['en'];
+        this.infoPanelList.innerHTML = '';
+        links.forEach((link) => {
+            const item = document.createElement('li');
+            item.className = 'options-info-panel__list-item';
+            const anchor = document.createElement('a');
+            anchor.className = 'options-info-panel__link';
+            anchor.textContent = t(link.labelKey);
+            anchor.href = link.href;
+            anchor.target = '_blank';
+            anchor.rel = 'noreferrer noopener';
+            item.appendChild(anchor);
+            this.infoPanelList.appendChild(item);
+        });
     }
 
     setCellShapeMode(mode: CellShapeMode): void {
@@ -272,6 +355,22 @@ class Hud {
 
     private getOptionsModal(): HTMLElement {
         return getRequiredElement('options-modal');
+    }
+
+    private getInfoButton(): HTMLButtonElement {
+        const element = getRequiredElement('options-info');
+        if (!(element instanceof HTMLButtonElement)) {
+            throw new Error('Options info button is not a button');
+        }
+        return element;
+    }
+
+    private getInfoPanel(): HTMLElement {
+        return getRequiredElement('options-info-panel');
+    }
+
+    private getInfoPanelList(): HTMLElement {
+        return getRequiredElement('options-info-list');
     }
 
     private getAudioToggle(): HTMLButtonElement {
@@ -503,6 +602,7 @@ class Hud {
         this.optionsToggle.setAttribute('aria-expanded', 'false');
         this.optionsToggle.setAttribute('aria-pressed', 'false');
         this.optionsToggle.focus();
+        this.hideInfoPanel();
     }
 
     private setAudioToggleState(enabled: boolean): void {
