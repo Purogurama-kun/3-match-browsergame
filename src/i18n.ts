@@ -25,6 +25,7 @@ const TRANSLATIONS = {
         'options.deleteProgress.cancelButton': 'Cancel',
         'options.info': 'Information',
         'options.infoLink.legal': 'Legal notice',
+        'options.infoLink.privacy': 'Privacy policy',
         'options.logout': 'Logout',
         'mainMenu.lead': 'Welcome to',
         'mainMenu.description':
@@ -171,6 +172,7 @@ const TRANSLATIONS = {
         'options.deleteProgress.cancelButton': 'Abbrechen',
         'options.info': 'Info',
         'options.infoLink.legal': 'Impressum',
+        'options.infoLink.privacy': 'Datenschutzerklärung',
         'options.logout': 'Abmelden',
         'mainMenu.lead': 'Willkommen zu',
         'mainMenu.description':

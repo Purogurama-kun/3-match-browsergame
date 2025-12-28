@@ -24,8 +24,14 @@ type InfoLink = {
 };
 
 const INFO_LINKS: Record<Locale, InfoLink[]> = {
-    en: [{ labelKey: 'options.infoLink.legal', href: '/html/en/legal-notice.html' }],
-    de: [{ labelKey: 'options.infoLink.legal', href: '/html/de/legal-notice.html' }]
+    en: [
+        { labelKey: 'options.infoLink.legal', href: '/html/en/legal-notice.html' },
+        { labelKey: 'options.infoLink.privacy', href: '/html/en/privacy-policy.html' }
+    ],
+    de: [
+        { labelKey: 'options.infoLink.legal', href: '/html/de/legal-notice.html' },
+        { labelKey: 'options.infoLink.privacy', href: '/html/de/privacy-policy.html' }
+    ]
 };
 
 class Hud {
