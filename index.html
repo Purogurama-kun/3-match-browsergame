@@ -119,36 +119,72 @@
         </div>
     </div>
     <div id="leaderboard" class="leaderboard" hidden>
-        <div class="leaderboard__card">
-            <div class="leaderboard__header">
-                <div class="leaderboard__titles">
-                    <div class="leaderboard__lead" data-i18n-key="leaderboard.lead">Overview</div>
-                    <h2 class="leaderboard__title" data-i18n-key="leaderboard.title">Leaderboard</h2>
-                    <p id="leaderboard-subtitle" class="leaderboard__subtitle">Compare level progress, blocker high scores, and time bests.</p>
+        <div class="leaderboard__panel">
+            <div class="leaderboard__sticky-top">
+                <div class="leaderboard__top-bar">
+                    <button
+                        id="leaderboard-back"
+                        class="leaderboard__back-button"
+                        type="button"
+                        aria-labelledby="leaderboard-back-label"
+                    >
+                        <svg
+                            class="leaderboard__back-icon"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M15 7l-6 5.5L15 18" />
+                        </svg>
+                        <span
+                            id="leaderboard-back-label"
+                            class="leaderboard__assistive-text"
+                            data-i18n-key="leaderboard.back"
+                        >
+                            Back to menu
+                        </span>
+                    </button>
+                    <div class="leaderboard__top-title" data-i18n-key="leaderboard.title">Leaderboard</div>
+                    <div class="leaderboard__top-spacer" aria-hidden="true"></div>
                 </div>
-                <button id="leaderboard-back" class="leaderboard__action" type="button" data-i18n-key="leaderboard.back">
-                    Back to menu
-                </button>
+                <p id="leaderboard-subtitle" class="leaderboard__path-line">Level Mode → Global → 0 entries</p>
             </div>
-            <div class="leaderboard__controls" role="group" aria-label="Bestenlisten-Filter">
-                <div class="leaderboard__control-group">
-                    <button id="leaderboard-mode-level" class="leaderboard__chip leaderboard__chip--active" type="button">
+            <div class="leaderboard__filters">
+                <nav class="leaderboard__mode-navigation" role="tablist" aria-label="Leaderboard modes">
+                    <button class="leaderboard__chip leaderboard__chip--active" type="button" id="leaderboard-mode-level" role="tab">
                         Level Mode
                     </button>
-                    <button id="leaderboard-mode-blocker" class="leaderboard__chip leaderboard__chip--secondary" type="button">
+                    <button class="leaderboard__chip leaderboard__chip--secondary" type="button" id="leaderboard-mode-blocker" role="tab">
                         Blocker Mode
                     </button>
-                    <button id="leaderboard-mode-time" class="leaderboard__chip leaderboard__chip--secondary" type="button">
+                    <button class="leaderboard__chip leaderboard__chip--secondary" type="button" id="leaderboard-mode-time" role="tab">
                         Time Mode
                     </button>
-                </div>
-                <div class="leaderboard__control-group">
-                    <button id="leaderboard-scope-global" class="leaderboard__chip leaderboard__chip--active" type="button">
-                        Global
-                    </button>
-                    <button id="leaderboard-scope-personal" class="leaderboard__chip leaderboard__chip--secondary" type="button">
-                        Personal
-                    </button>
+                </nav>
+                <div class="leaderboard__scope-group">
+                    <label class="leaderboard__scope-label" for="leaderboard-scope-select" data-i18n-key="leaderboard.scope.label">Scope</label>
+                    <div class="leaderboard__scope-select-wrap">
+                        <select id="leaderboard-scope-select" class="leaderboard__scope-select">
+                            <option
+                                id="leaderboard-scope-global-option"
+                                value="global"
+                                data-i18n-key="leaderboard.scope.global"
+                            >
+                                Global
+                            </option>
+                            <option
+                                id="leaderboard-scope-personal-option"
+                                value="personal"
+                                data-i18n-key="leaderboard.scope.personal"
+                            >
+                                Personal
+                            </option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <ul id="leaderboard-list" class="leaderboard__list"></ul>

@@ -24,7 +24,8 @@ class LeaderboardState implements GameModeState {
     private subtitle: HTMLElement;
     private backButton: HTMLButtonElement;
     private modeButtons: Record<LeaderboardMode, HTMLButtonElement>;
-    private scopeButtons: Record<LeaderboardScope, HTMLButtonElement>;
+    private scopeSelect: HTMLSelectElement;
+    private scopeOptions: Record<LeaderboardScope, HTMLOptionElement>;
     private currentMode: LeaderboardMode = 'level';
     private currentScope: LeaderboardScope = 'global';
     private dataset: Record<LeaderboardMode, Record<LeaderboardScope, LeaderboardEntry[]>>;
@@ -45,9 +46,10 @@ class LeaderboardState implements GameModeState {
             blocker: this.getButton('leaderboard-mode-blocker'),
             time: this.getButton('leaderboard-mode-time')
         };
-        this.scopeButtons = {
-            global: this.getButton('leaderboard-scope-global'),
-            personal: this.getButton('leaderboard-scope-personal')
+        this.scopeSelect = this.getSelect('leaderboard-scope-select');
+        this.scopeOptions = {
+            global: this.getOption('leaderboard-scope-global-option'),
+            personal: this.getOption('leaderboard-scope-personal-option')
         };
         this.dataset = {
             level: { global: [], personal: [] },
@@ -145,13 +147,8 @@ class LeaderboardState implements GameModeState {
             this.syncActiveButtons();
             this.loadCurrent();
         });
-        this.scopeButtons.global.addEventListener('click', () => {
-            this.currentScope = 'global';
-            this.syncActiveButtons();
-            this.loadCurrent();
-        });
-        this.scopeButtons.personal.addEventListener('click', () => {
-            this.currentScope = 'personal';
+        this.scopeSelect.addEventListener('change', () => {
+            this.currentScope = this.scopeSelect.value as LeaderboardScope;
             this.syncActiveButtons();
             this.loadCurrent();
         });
@@ -285,10 +282,12 @@ class LeaderboardState implements GameModeState {
                 : this.currentMode === 'blocker'
                     ? t('leaderboard.mode.blocker')
                     : t('leaderboard.mode.time');
+        const countLabelKey = count === 1 ? 'leaderboard.subtitle.countOne' : 'leaderboard.subtitle.countOther';
+        const countLabel = t(countLabelKey, { count });
         this.subtitle.textContent = t('leaderboard.subtitleTemplate', {
             scope: scopeLabel,
             mode: modeLabel,
-            count
+            countLabel
         });
     }
 
@@ -336,13 +335,12 @@ class LeaderboardState implements GameModeState {
         this.modeButtons.level.textContent = t('leaderboard.mode.level');
         this.modeButtons.blocker.textContent = t('leaderboard.mode.blocker');
         this.modeButtons.time.textContent = t('leaderboard.mode.time');
-        this.scopeButtons.global.textContent = t('leaderboard.scope.global');
-        this.scopeButtons.personal.textContent = t('leaderboard.scope.personal');
+        this.scopeSelect.value = this.currentScope;
+        this.scopeOptions.global.textContent = t('leaderboard.scope.global');
+        this.scopeOptions.personal.textContent = t('leaderboard.scope.personal');
         this.setActive(this.modeButtons.level, this.currentMode === 'level');
         this.setActive(this.modeButtons.blocker, this.currentMode === 'blocker');
         this.setActive(this.modeButtons.time, this.currentMode === 'time');
-        this.setActive(this.scopeButtons.global, this.currentScope === 'global');
-        this.setActive(this.scopeButtons.personal, this.currentScope === 'personal');
     }
 
     private setActive(button: HTMLButtonElement, isActive: boolean): void {
@@ -355,6 +353,22 @@ class LeaderboardState implements GameModeState {
         const element = getRequiredElement('leaderboard-list');
         if (!(element instanceof HTMLUListElement)) {
             throw new Error('Leaderboard list element is not a list');
+        }
+        return element;
+    }
+
+    private getSelect(id: string): HTMLSelectElement {
+        const element = getRequiredElement(id);
+        if (!(element instanceof HTMLSelectElement)) {
+            throw new Error(id + ' is not a select');
+        }
+        return element;
+    }
+
+    private getOption(id: string): HTMLOptionElement {
+        const element = getRequiredElement(id);
+        if (!(element instanceof HTMLOptionElement)) {
+            throw new Error(id + ' is not an option');
         }
         return element;
     }
