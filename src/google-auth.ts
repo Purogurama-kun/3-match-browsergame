@@ -39,6 +39,7 @@ type GoogleId = {
                 use_fedcm_for_prompt?: boolean;
             }): void;
             renderButton(element: HTMLElement, options: GoogleButtonOptions): void;
+            disableAutoSelect?(): void;
         };
     };
 };
@@ -154,6 +155,14 @@ class GoogleAuth {
         this.statusLabel.textContent = t('auth.status.notSignedIn');
         this.setProgress({ level, blockerHighScore, timeSurvival });
         this.enableLogin();
+    }
+
+    signOut(): void {
+        try {
+            window.google?.accounts?.id?.disableAutoSelect?.();
+        } catch (error) {
+            console.warn('Failed to disable auto-select after logout', error);
+        }
     }
 
     private initializeGoogle(): void {

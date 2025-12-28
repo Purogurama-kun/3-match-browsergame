@@ -46,6 +46,7 @@ class Hud {
         this.difficultyLabel = this.getDifficultyLabel();
         this.exitButton = this.getExitButton();
         this.deleteProgressButton = this.getDeleteProgressButton();
+        this.logoutButton = this.getLogoutButton();
         this.setAudioToggleState(true);
         this.setLanguage('en');
         this.setPerformanceModeEnabled(false);
@@ -57,6 +58,7 @@ class Hud {
                 this.performanceModeHandler(nextState);
             }
         });
+        this.setLogoutVisible(false);
     }
 
     private score: HTMLElement;
@@ -77,6 +79,7 @@ class Hud {
     private difficultyLabel: HTMLElement;
     private exitButton: HTMLButtonElement;
     private deleteProgressButton: HTMLButtonElement;
+    private logoutButton: HTMLButtonElement;
     private timeHint: HTMLElement;
     private cellShapeSelect: HTMLSelectElement;
     private languageSelect: HTMLSelectElement;
@@ -210,6 +213,21 @@ class Hud {
         this.deleteProgressButton.addEventListener('click', () => {
             handler();
         });
+    }
+
+    onLogout(handler: () => void): void {
+        this.logoutButton.addEventListener('click', () => {
+            this.hideOptionsModal();
+            handler();
+        });
+    }
+
+    setLogoutVisible(visible: boolean): void {
+        if (visible) {
+            this.logoutButton.removeAttribute('hidden');
+        } else {
+            this.logoutButton.setAttribute('hidden', 'true');
+        }
     }
 
     closeOptions(): void {
@@ -350,6 +368,14 @@ class Hud {
         const element = getRequiredElement('exit-game');
         if (!(element instanceof HTMLButtonElement)) {
             throw new Error('Exit game button is not a button');
+        }
+        return element;
+    }
+
+    private getLogoutButton(): HTMLButtonElement {
+        const element = getRequiredElement('logout-button');
+        if (!(element instanceof HTMLButtonElement)) {
+            throw new Error('Logout button is not a button');
         }
         return element;
     }

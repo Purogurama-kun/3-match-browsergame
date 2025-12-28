@@ -23,6 +23,7 @@ const TRANSLATIONS = {
         'options.deleteProgress.confirm': 'Do you really want to delete all your game progress?',
         'options.deleteProgress.confirmButton': 'Delete progress',
         'options.deleteProgress.cancelButton': 'Cancel',
+        'options.logout': 'Logout',
         'mainMenu.lead': 'Welcome to',
         'mainMenu.description':
             'Combine colorful candies, trigger explosions, and beat the level targets. Jump into Level Mode, chase a new high score in Blocker Mode, or test the speeding-up Time Mode.',
@@ -166,6 +167,7 @@ const TRANSLATIONS = {
         'options.deleteProgress.confirm': 'Möchtest du wirklich deinen gesamten Spielstand löschen?',
         'options.deleteProgress.confirmButton': 'Spielstand löschen',
         'options.deleteProgress.cancelButton': 'Abbrechen',
+        'options.logout': 'Abmelden',
         'mainMenu.lead': 'Willkommen zu',
         'mainMenu.description':
             'Kombiniere farbige Süßigkeiten, löse Explosionen aus und knacke die Levelziele. Starte im Level Modus, sichere dir im Blocker Modus einen neuen Highscore oder teste den neuen Zeit Modus mit stetig schneller werdender Uhr.',

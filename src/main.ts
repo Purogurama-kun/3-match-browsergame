@@ -51,6 +51,7 @@ class GameApp {
         this.confirmDialog = new ConfirmDialog();
 
         this.loadLocalProgress();
+        this.game.setLogoutVisible(false);
 
         this.startLevelButton.addEventListener('click', () => this.startLevelGame());
         this.startBlockerButton.addEventListener('click', () => this.startBlockerGame());
@@ -60,6 +61,9 @@ class GameApp {
         this.game.onExitGameRequested(() => this.returnToMenu());
         this.game.onDeleteProgressRequested(() => {
             void this.handleDeleteProgress();
+        });
+        this.game.onLogoutRequested(() => {
+            this.handleLogout();
         });
         this.game.onProgressChange((level) => this.saveProgress(level));
         this.game.onBlockerHighScore((score) => this.saveBlockerHighScore(score));
@@ -251,6 +255,7 @@ class GameApp {
         const localProgress = this.progress;
         this.isProgressLoading = true;
         this.currentUser = user;
+        this.game.setLogoutVisible(true);
         this.googleAuth.clearError();
         this.googleAuth.showProgressLoading();
         this.coinLabel.textContent = t('auth.progress.coins.loading');
@@ -471,6 +476,26 @@ class GameApp {
             console.error('Failed to delete progress', error);
             this.googleAuth.showError(t('auth.error.progressDelete'));
         }
+    }
+
+    private handleLogout(): void {
+        if (!this.currentUser) {
+            return;
+        }
+        this.game.closeOptions();
+        this.progress = this.localProgress.save(this.progress);
+        this.currentUser = null;
+        this.googleAuth.signOut();
+        this.googleAuth.setLoggedOut(
+            this.progress.highestLevel,
+            this.progress.blockerHighScore,
+            this.progress.timeSurvival
+        );
+        this.game.setLogoutVisible(false);
+        this.isProgressLoading = false;
+        this.updateSugarCoinDisplay();
+        this.updateShopState();
+        this.updateStartButtonState();
     }
 
     private handleShopPurchase(type: TacticalPowerup): void {
