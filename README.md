@@ -34,6 +34,7 @@ This project uses ES modules and TypeScript, so you need to build it and run a l
 npm init -y
 npm install --save-dev typescript
 npm install --save-dev jsdoc
+npm install --save-dev pwa-asset-generator
 npm run build
 npm run server
 ```
@@ -55,6 +56,9 @@ The PHP server exposes `backend/progress.php`, which persists user progress to `
 - `npm run codex` ➔ `codex --model gpt-5.1-codex-mini` (is very token cheap)
 - `npm run codex:exec` ➔ `codex exec --model gpt-5.1-codex-mini`
 - `npm run codex:apply` ➔ `codex apply` (modify files after `codex exec` based on the diff. Afterwards you can use `git add .`)
+
+**Additionally:**
+- `npx pwa-asset-generator <mein-logo.png> <mein-output-pfad>` | Create different icon sizes for your PWA (Progressive Web App)
 
 ## Setup php
 
