@@ -90,7 +90,9 @@ class ShopView {
         if (!this.currentState) return;
         const coins = Math.max(0, Math.floor(this.currentState.coins));
         this.clearFeedback();
-        this.coinLabel.textContent = t('auth.progress.coins', { coins });
+        const coinAnnouncement = t('auth.progress.coins', { coins });
+        this.coinLabel.textContent = String(coins);
+        this.coinLabel.setAttribute('aria-label', coinAnnouncement);
         const powerupTypes = Object.keys(TACTICAL_POWERUPS) as TacticalPowerup[];
         powerupTypes.forEach((type) => {
             const meta = TACTICAL_POWERUPS[type];
