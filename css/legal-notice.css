@@ -1,0 +1,87 @@
+.legal {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #05060c;
+    color: #f8fafc;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    padding: 2rem;
+}
+
+@media (max-width: 780px) {
+    .legal {
+        padding: 0.5rem;
+    }
+}
+
+.legal__card {
+    width: min(720px, 100%);
+    background: linear-gradient(180deg, rgba(15, 18, 32, 0.95), rgba(5, 6, 12, 0.97));
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 0 30px 80px rgba(3, 5, 10, 0.7);
+}
+
+@media (max-width: 780px) {
+    .legal__card {
+        padding: 1rem;
+    }
+}
+
+.legal__title {
+    margin: 0 0 0.5rem;
+    font-size: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+.legal__lead {
+    margin: 0 0 1.25rem;
+    color: rgba(248, 250, 255, 0.8);
+}
+
+.legal__details {
+    display: grid;
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+}
+
+.legal__details dt {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.legal__details dd {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.legal__section {
+    margin-top: 1.75rem;
+}
+
+.legal__section h2 {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.legal__section p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(248, 250, 255, 0.85);
+}
+
+.legal__details a {
+    color: #8df5ff;
+    text-decoration: none;
+}
+
+.legal__details a:hover {
+    text-decoration: underline;
+}
