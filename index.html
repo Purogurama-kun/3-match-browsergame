@@ -275,44 +275,73 @@
     </div>
 
     <div id="options-modal" class="options-modal" hidden>
-        <div class="options-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="options-modal-title">
-                <div class="options-modal__header">
-                    <h2 id="options-modal-title" class="options-modal__title" data-i18n-key="options.title">Options</h2>
-                <button id="options-close" class="options-modal__close" type="button" aria-label="Menü schließen">
-                    <span class="options-modal__close-icon" aria-hidden="true">×</span>
-                </button>
-            </div>
-            <div class="options-modal__body">
-                <div class="options-modal__group">
-                    <label class="options-modal__label" for="language-select" data-i18n-key="options.language.label">Language</label>
-                    <select id="language-select" class="options-modal__select">
-                        <option value="en" data-i18n-key="options.language.english" selected>English</option>
-                        <option value="de" data-i18n-key="options.language.german">Deutsch</option>
-                    </select>
-                </div>
-                <div class="options-modal__group">
-                    <label class="options-modal__label" for="cell-shape-mode" data-i18n-key="options.cellShape.label">Cell shapes</label>
-                    <select id="cell-shape-mode" class="options-modal__select">
-                        <option value="square" selected data-i18n-key="options.cellShape.square">All squares</option>
-                        <option value="shaped" data-i18n-key="options.cellShape.shaped">Color-specific shapes</option>
-                    </select>
-                </div>
-                <div class="options-modal__group">
-                    <span class="options-modal__label" data-i18n-key="options.audio.label">Audio</span>
-                    <button id="audio-toggle" class="options-modal__action" type="button" aria-pressed="true">
-                        Audio on
+        <div class="options-modal__card" role="dialog" aria-modal="true" aria-labelledby="options-modal-title">
+            <div class="options-modal__scroll">
+                <div class="options-modal__top-bar">
+                    <button
+                        id="options-close"
+                        class="options-modal__back-button"
+                        type="button"
+                        aria-labelledby="options-back-label"
+                    >
+                        <svg
+                            class="options-modal__back-icon"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M15 7l-6 5.5L15 18" />
+                        </svg>
+                        <span
+                            id="options-back-label"
+                            class="options-modal__assistive-text"
+                            data-i18n-key="button.back"
+                        >
+                            Back
+                        </span>
                     </button>
+                    <h2 class="options-modal__top-title" id="options-modal-title" data-i18n-key="options.title">Options</h2>
+                    <div class="options-modal__top-spacer" aria-hidden="true"></div>
                 </div>
-                <div class="options-modal__group">
-                    <span class="options-modal__label" data-i18n-key="options.performance.label">Animations</span>
-                    <button id="performance-toggle" class="options-modal__action" type="button" aria-pressed="false">
-                        Full effects
-                    </button>
-                </div>
-                <div class="options-modal__group">
-                    <button id="exit-game" class="options-modal__action options-modal__action--danger" type="button" data-i18n-key="options.exit">
-                        Exit game
-                    </button>
+                <p class="options-modal__lead" data-i18n-key="options.lead">
+                    Configure the experience to suit your play style.
+                </p>
+                <div class="options-modal__body">
+                    <div class="options-modal__group">
+                        <label class="options-modal__label" for="language-select" data-i18n-key="options.language.label">Language</label>
+                        <select id="language-select" class="options-modal__select">
+                            <option value="en" data-i18n-key="options.language.english" selected>English</option>
+                            <option value="de" data-i18n-key="options.language.german">Deutsch</option>
+                        </select>
+                    </div>
+                    <div class="options-modal__group">
+                        <label class="options-modal__label" for="cell-shape-mode" data-i18n-key="options.cellShape.label">Cell shapes</label>
+                        <select id="cell-shape-mode" class="options-modal__select">
+                            <option value="square" selected data-i18n-key="options.cellShape.square">All squares</option>
+                            <option value="shaped" data-i18n-key="options.cellShape.shaped">Color-specific shapes</option>
+                        </select>
+                    </div>
+                    <div class="options-modal__group">
+                        <span class="options-modal__label" data-i18n-key="options.audio.label">Audio</span>
+                        <button id="audio-toggle" class="options-modal__action" type="button" aria-pressed="true">
+                            Audio on
+                        </button>
+                    </div>
+                    <div class="options-modal__group">
+                        <span class="options-modal__label" data-i18n-key="options.performance.label">Animations</span>
+                        <button id="performance-toggle" class="options-modal__action" type="button" aria-pressed="false">
+                            Full effects
+                        </button>
+                    </div>
+                    <div class="options-modal__group">
+                        <button id="exit-game" class="options-modal__action options-modal__action--danger" type="button" data-i18n-key="options.exit">
+                            Exit game
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
