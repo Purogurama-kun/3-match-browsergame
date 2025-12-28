@@ -155,6 +155,7 @@ class GoogleAuth {
         this.statusLabel.textContent = t('auth.status.notSignedIn');
         this.setProgress({ level, blockerHighScore, timeSurvival });
         this.enableLogin();
+        this.setLoginVisible(true);
     }
 
     signOut(): void {
@@ -206,6 +207,7 @@ class GoogleAuth {
         this.statusLabel.textContent = t('auth.status.signedIn', { name: user.name });
         this.onLogin(user);
         this.disableLogin();
+        this.setLoginVisible(false);
     }
 
     private decodeCredential(credential: string): GoogleJwtPayload | null {
@@ -244,6 +246,14 @@ class GoogleAuth {
     private enableLogin(): void {
         this.loginContainer.classList.remove('auth__button--disabled');
         this.loginContainer.removeAttribute('aria-disabled');
+    }
+
+    private setLoginVisible(visible: boolean): void {
+        if (visible) {
+            this.loginContainer.removeAttribute('hidden');
+        } else {
+            this.loginContainer.setAttribute('hidden', 'true');
+        }
     }
 
     private getLoginContainer(id: string): HTMLElement {
