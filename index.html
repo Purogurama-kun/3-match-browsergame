@@ -72,9 +72,34 @@
                             <span id="auth-coin-count" class="auth__coins-count">Sugar coins: 0</span>
                         </div>
                     </div>
-                    <div class="auth__actions">
-                        <div id="google-login" class="auth__button">
-                            <span class="auth__button-text" data-i18n-key="auth.loginButton">Sign in with Google</span>
+                    <div class="auth__actions auth__actions--login">
+                        <div class="auth__login-row">
+                            <div id="google-login" class="auth__button">
+                                <span class="auth__button-text" data-i18n-key="auth.loginButton">Sign in with Google</span>
+                            </div>
+                            <div class="auth__info-wrapper">
+                                <button
+                                    id="google-login-info"
+                                    class="auth__info-button"
+                                    type="button"
+                                    aria-label="Google Login Information"
+                                    aria-expanded="false"
+                                >
+                                    <img src="assets/images/info.svg" alt="" aria-hidden="true" />
+                                </button>
+                                <div id="auth-info-tooltip" class="auth__tooltip" hidden role="tooltip">
+                                    <p class="auth__tooltip-text">
+                                        <span id="auth-info-tooltip-prefix"></span>
+                                        <a
+                                            id="auth-info-tooltip-link"
+                                            class="auth__tooltip-link"
+                                            target="_blank"
+                                            rel="noreferrer noopener"
+                                        ></a>
+                                        <span id="auth-info-tooltip-suffix"></span>
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                         <p id="auth-error" class="auth__error" hidden></p>
                     </div>

@@ -42,7 +42,6 @@ class GameApp {
         });
         this.game = new Match3Game();
         this.game.onLanguageChange((locale) => setLocale(locale));
-        onLocaleChange((locale) => this.handleLocaleChange(locale));
 
         this.shopView = new ShopView({
             onBuy: (type) => this.handleShopPurchase(type),
@@ -51,6 +50,12 @@ class GameApp {
         this.confirmDialog = new ConfirmDialog();
 
         this.loadLocalProgress();
+        this.googleLoginInfoButton = this.getGoogleLoginInfoButton();
+        this.googleLoginTooltip = this.getGoogleLoginTooltip();
+        this.googleLoginTooltipPrefix = this.getGoogleLoginTooltipPrefix();
+        this.googleLoginTooltipLink = this.getGoogleLoginTooltipLink();
+        this.googleLoginTooltipSuffix = this.getGoogleLoginTooltipSuffix();
+        this.setupGoogleLoginTooltip();
         this.game.setLogoutVisible(false);
 
         this.startLevelButton.addEventListener('click', () => this.startLevelGame());
@@ -71,6 +76,7 @@ class GameApp {
         this.game.onSugarCoinsEarned((amount) => this.grantSugarCoins(amount));
         this.game.onPowerupInventoryChange((inventory) => this.handlePowerupInventoryChange(inventory));
 
+        onLocaleChange((locale) => this.handleLocaleChange(locale));
         this.showMainMenu();
     }
 
@@ -93,6 +99,11 @@ class GameApp {
     private isProgressLoading = false;
     private progress: StoredProgress;
     private game: Match3Game;
+    private googleLoginInfoButton: HTMLButtonElement;
+    private googleLoginTooltip: HTMLElement;
+    private googleLoginTooltipPrefix: HTMLElement;
+    private googleLoginTooltipLink: HTMLAnchorElement;
+    private googleLoginTooltipSuffix: HTMLElement;
 
     private startLevelGame(): void {
         if (this.isProgressLoading) return;
@@ -152,6 +163,7 @@ class GameApp {
         this.googleAuth.applyLocale();
         this.updateSugarCoinDisplay();
         this.game.handleLocaleChange(locale);
+        this.updateGoogleLoginTooltip(locale);
     }
 
     private showMainMenu(): void {
@@ -249,6 +261,34 @@ class GameApp {
             throw new Error('Sugar coin label is not an element');
         }
         return element;
+    }
+
+    private getGoogleLoginInfoButton(): HTMLButtonElement {
+        const element = getRequiredElement('google-login-info');
+        if (!(element instanceof HTMLButtonElement)) {
+            throw new Error('Google login info button is not a button');
+        }
+        return element;
+    }
+
+    private getGoogleLoginTooltip(): HTMLElement {
+        return getRequiredElement('auth-info-tooltip');
+    }
+
+    private getGoogleLoginTooltipPrefix(): HTMLElement {
+        return getRequiredElement('auth-info-tooltip-prefix');
+    }
+
+    private getGoogleLoginTooltipLink(): HTMLAnchorElement {
+        const element = getRequiredElement('auth-info-tooltip-link');
+        if (!(element instanceof HTMLAnchorElement)) {
+            throw new Error('Google login tooltip link is not an anchor');
+        }
+        return element;
+    }
+
+    private getGoogleLoginTooltipSuffix(): HTMLElement {
+        return getRequiredElement('auth-info-tooltip-suffix');
     }
 
     private handleLogin(user: GoogleUser): void {
@@ -403,6 +443,50 @@ class GameApp {
         this.coinLabel.textContent = label;
         this.coinIcon.src = coins === 1 ? 'assets/images/sugar_coin.png' : 'assets/images/sugar_coin_icon.png';
         this.coinIcon.alt = label;
+    }
+
+    private setupGoogleLoginTooltip(): void {
+        this.googleLoginInfoButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            this.toggleGoogleLoginTooltip();
+        });
+        this.googleLoginTooltip.addEventListener('click', (event) => {
+            event.stopPropagation();
+        });
+        document.addEventListener('click', () => this.hideGoogleLoginTooltip());
+    }
+
+    private toggleGoogleLoginTooltip(): void {
+        if (this.googleLoginTooltip.hasAttribute('hidden')) {
+            this.showGoogleLoginTooltip();
+            return;
+        }
+        this.hideGoogleLoginTooltip();
+    }
+
+    private showGoogleLoginTooltip(): void {
+        this.googleLoginTooltip.removeAttribute('hidden');
+        this.googleLoginInfoButton.setAttribute('aria-expanded', 'true');
+    }
+
+    private hideGoogleLoginTooltip(): void {
+        if (this.googleLoginTooltip.hasAttribute('hidden')) {
+            return;
+        }
+        this.googleLoginTooltip.setAttribute('hidden', 'true');
+        this.googleLoginInfoButton.setAttribute('aria-expanded', 'false');
+    }
+
+    private updateGoogleLoginTooltip(locale: Locale): void {
+        const prefix = t('auth.googleInfo.prefix');
+        const linkText = t('auth.googleInfo.link');
+        const suffix = t('auth.googleInfo.suffix');
+        const href = locale === 'de' ? '/html/de/privacy-policy.html' : '/html/en/privacy-policy.html';
+        this.googleLoginTooltipPrefix.textContent = prefix + ' ';
+        this.googleLoginTooltipLink.textContent = linkText;
+        this.googleLoginTooltipLink.href = href;
+        this.googleLoginTooltipSuffix.textContent = suffix;
     }
 
     private mergeProgress(current: StoredProgress, incoming: StoredProgress): StoredProgress {

@@ -53,6 +53,78 @@
     gap: 0.5rem;
 }
 
+.auth__actions--login {
+    position: relative;
+}
+
+.auth__login-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.auth__info-wrapper {
+    position: relative;
+}
+
+.auth__info-button {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.auth__info-button:hover {
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.auth__info-button img {
+    width: 18px;
+    height: 18px;
+}
+
+.auth__tooltip {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: min(260px, 90vw);
+    padding: 0.75rem;
+    border-radius: 12px;
+    background: rgba(3, 4, 10, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    margin-top: 0.5rem;
+    z-index: 30;
+}
+
+.auth__tooltip[hidden] {
+    display: none;
+}
+
+.auth__tooltip-text {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(248, 250, 255, 0.9);
+}
+
+.auth__tooltip-link {
+    display: inline-block;
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+    color: #8df5ff;
+}
+
+.auth__tooltip-link:hover {
+    text-decoration: underline;
+}
 .auth__actions [hidden] {
     display: none !important;
 }
