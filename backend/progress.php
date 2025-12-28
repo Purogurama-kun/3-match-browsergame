@@ -31,6 +31,8 @@ try {
         }
     } elseif ($method === 'POST') {
         handlePost($database);
+    } elseif ($method === 'DELETE') {
+        handleDelete($database);
     } else {
         respond(405, ['error' => 'Method not allowed.']);
     }
@@ -292,6 +294,24 @@ function handlePost(PDO $database): void
             'powerups' => $bestPowerups
         ]
     ]);
+}
+
+function handleDelete(PDO $database): void
+{
+    $userId = requireUserId($_GET['userId'] ?? null);
+    deleteUserProgress($database, $userId);
+    respond(200, ['deleted' => true]);
+}
+
+function deleteUserProgress(PDO $database, string $userId): void
+{
+    $statement = $database->prepare('DELETE FROM run_results WHERE user_id = :user_id');
+    $statement->bindValue(':user_id', $userId, PDO::PARAM_STR);
+    $statement->execute();
+
+    $statement = $database->prepare('DELETE FROM user_progress WHERE user_id = :user_id');
+    $statement->bindValue(':user_id', $userId, PDO::PARAM_STR);
+    $statement->execute();
 }
 
 function fetchProgress(PDO $database, string $userId): array

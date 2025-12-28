@@ -1,4 +1,5 @@
 import { Match3Game } from './match3-game.js';
+import { ConfirmDialog } from './confirm-dialog.js';
 import { getRequiredElement } from './dom.js';
 import { GoogleAuth, GoogleUser } from './google-auth.js';
 import { ProgressStore, StoredProgress } from './progress-store.js';
@@ -47,6 +48,7 @@ class GameApp {
             onBuy: (type) => this.handleShopPurchase(type),
             onClose: () => this.showMainMenu()
         });
+        this.confirmDialog = new ConfirmDialog();
 
         this.loadLocalProgress();
 
@@ -56,6 +58,9 @@ class GameApp {
         this.startLeaderboardButton.addEventListener('click', () => this.showLeaderboard());
         this.shopButton.addEventListener('click', () => this.showShop());
         this.game.onExitGameRequested(() => this.returnToMenu());
+        this.game.onDeleteProgressRequested(() => {
+            void this.handleDeleteProgress();
+        });
         this.game.onProgressChange((level) => this.saveProgress(level));
         this.game.onBlockerHighScore((score) => this.saveBlockerHighScore(score));
         this.game.onTimeBest((time) => this.saveTimeBest(time));
@@ -76,6 +81,7 @@ class GameApp {
     private coinLabel: HTMLElement;
     private shopButton: HTMLButtonElement;
     private shopView: ShopView;
+    private confirmDialog: ConfirmDialog;
     private googleAuth: GoogleAuth;
     private progressStore: ProgressStore;
     private localProgress: LocalProgressStore;
@@ -435,6 +441,36 @@ class GameApp {
         const minutes = Math.floor(safeSeconds / 60);
         const seconds = safeSeconds % 60;
         return minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+    }
+
+    private async handleDeleteProgress(): Promise<void> {
+        const confirmed = await this.confirmDialog.show({
+            title: t('options.deleteProgress'),
+            message: t('options.deleteProgress.confirm'),
+            confirmText: t('options.deleteProgress.confirmButton'),
+            cancelText: t('options.deleteProgress.cancelButton')
+        });
+        if (!confirmed) {
+            return;
+        }
+        this.game.closeOptions();
+        this.localProgress.clear();
+        this.progress = this.localProgress.load();
+        this.googleAuth.setProgress(this.progress);
+        this.updateSugarCoinDisplay();
+        this.updateShopState();
+        this.game.setPowerupInventory(this.progress.powerups);
+        this.updateStartButtonState();
+        if (!this.currentUser) {
+            return;
+        }
+        try {
+            await this.progressStore.delete(this.currentUser.id);
+            this.googleAuth.clearError();
+        } catch (error) {
+            console.error('Failed to delete progress', error);
+            this.googleAuth.showError(t('auth.error.progressDelete'));
+        }
     }
 
     private handleShopPurchase(type: TacticalPowerup): void {

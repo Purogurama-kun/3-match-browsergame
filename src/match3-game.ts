@@ -158,6 +158,10 @@ class Match3Game implements ModeContext {
         this.hud.onExitGame(handler);
     }
 
+    onDeleteProgressRequested(handler: () => void): void {
+        this.hud.onDeleteProgress(handler);
+    }
+
     onLanguageChange(handler: (locale: Locale) => void): void {
         this.hud.onLanguageChange(handler);
     }

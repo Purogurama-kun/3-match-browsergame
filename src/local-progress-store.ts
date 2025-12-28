@@ -32,6 +32,18 @@ class LocalProgressStore {
         return normalized;
     }
 
+    clear(): void {
+        const storage = this.getStorage();
+        if (!storage) return;
+
+        try {
+            storage.removeItem(this.progressKey);
+            storage.removeItem(this.legacyLevelKey);
+        } catch (error) {
+            console.warn('Could not clear local progress', error);
+        }
+    }
+
     private readStoredProgress(): Partial<StoredProgress> {
         const storage = this.getStorage();
         if (!storage) return this.defaultProgress;

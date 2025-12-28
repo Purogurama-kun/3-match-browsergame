@@ -98,6 +98,21 @@ class ProgressStore {
         return this.normalizeProgress(serverPayload, normalized);
     }
 
+    async delete(userId: string): Promise<void> {
+        const normalizedUserId = this.requireUserId(userId);
+        const query = new URLSearchParams({ userId: normalizedUserId });
+        const response = await fetch(`${this.endpoint}?${query.toString()}`, {
+            method: 'DELETE',
+            headers: {
+                Accept: 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete progress: ' + response.status);
+        }
+    }
+
     private async fetchProgress(userId: string, localLevel: number, localCoins: number): Promise<ProgressResponse> {
         const response = await fetch(
             this.endpoint +

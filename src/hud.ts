@@ -45,6 +45,7 @@ class Hud {
         this.languageSelect = this.getLanguageSelect();
         this.difficultyLabel = this.getDifficultyLabel();
         this.exitButton = this.getExitButton();
+        this.deleteProgressButton = this.getDeleteProgressButton();
         this.setAudioToggleState(true);
         this.setLanguage('en');
         this.setPerformanceModeEnabled(false);
@@ -75,6 +76,7 @@ class Hud {
     private audioToggle: HTMLButtonElement;
     private difficultyLabel: HTMLElement;
     private exitButton: HTMLButtonElement;
+    private deleteProgressButton: HTMLButtonElement;
     private timeHint: HTMLElement;
     private cellShapeSelect: HTMLSelectElement;
     private languageSelect: HTMLSelectElement;
@@ -200,6 +202,12 @@ class Hud {
     onExitGame(handler: () => void): void {
         this.exitButton.addEventListener('click', () => {
             this.hideOptionsModal();
+            handler();
+        });
+    }
+
+    onDeleteProgress(handler: () => void): void {
+        this.deleteProgressButton.addEventListener('click', () => {
             handler();
         });
     }
@@ -342,6 +350,14 @@ class Hud {
         const element = getRequiredElement('exit-game');
         if (!(element instanceof HTMLButtonElement)) {
             throw new Error('Exit game button is not a button');
+        }
+        return element;
+    }
+
+    private getDeleteProgressButton(): HTMLButtonElement {
+        const element = getRequiredElement('delete-progress');
+        if (!(element instanceof HTMLButtonElement)) {
+            throw new Error('Delete progress button is not a button');
         }
         return element;
     }
