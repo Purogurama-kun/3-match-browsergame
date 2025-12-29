@@ -55,6 +55,8 @@ class GameApp {
         this.googleLoginTooltipPrefix = this.getGoogleLoginTooltipPrefix();
         this.googleLoginTooltipLink = this.getGoogleLoginTooltipLink();
         this.googleLoginTooltipSuffix = this.getGoogleLoginTooltipSuffix();
+        this.googleLoginInfoWrapper = this.getGoogleLoginInfoWrapper();
+        this.setGoogleLoginInfoVisible(true);
         this.setupGoogleLoginTooltip();
         this.game.setLogoutVisible(false);
 
@@ -104,6 +106,7 @@ class GameApp {
     private googleLoginTooltipPrefix: HTMLElement;
     private googleLoginTooltipLink: HTMLAnchorElement;
     private googleLoginTooltipSuffix: HTMLElement;
+    private googleLoginInfoWrapper: HTMLElement;
 
     private startLevelGame(): void {
         if (this.isProgressLoading) return;
@@ -291,11 +294,28 @@ class GameApp {
         return getRequiredElement('auth-info-tooltip-suffix');
     }
 
+    private getGoogleLoginInfoWrapper(): HTMLElement {
+        const element = getRequiredElement('google-login-info-wrapper');
+        if (!(element instanceof HTMLElement)) {
+            throw new Error('Google login info wrapper is not an element');
+        }
+        return element;
+    }
+
+    private setGoogleLoginInfoVisible(visible: boolean): void {
+        if (visible) {
+            this.googleLoginInfoWrapper.removeAttribute('hidden');
+            return;
+        }
+        this.googleLoginInfoWrapper.setAttribute('hidden', 'true');
+    }
+
     private handleLogin(user: GoogleUser): void {
         const localProgress = this.progress;
         this.isProgressLoading = true;
         this.currentUser = user;
         this.game.setLogoutVisible(true);
+        this.setGoogleLoginInfoVisible(false);
         this.googleAuth.clearError();
         this.googleAuth.showProgressLoading();
         this.coinLabel.textContent = t('auth.progress.coins.loading');
@@ -576,6 +596,7 @@ class GameApp {
             this.progress.timeSurvival
         );
         this.game.setLogoutVisible(false);
+        this.setGoogleLoginInfoVisible(true);
         this.isProgressLoading = false;
         this.updateSugarCoinDisplay();
         this.updateShopState();
