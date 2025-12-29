@@ -118,6 +118,9 @@
     gap: 0.65rem;
     backdrop-filter: blur(18px);
     border: 1px solid white;
+    /* keep the tooltip stacking above the icon buttons */
+    position: relative;
+    z-index: 1;
 }
 
 .main-menu__icon-actions {
