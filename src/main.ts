@@ -725,7 +725,7 @@ new GameApp();
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         void navigator.serviceWorker
-            .register('/dist/service-worker.js', { scope: '/' })
+            .register('/service-worker.js', { scope: '/' })
             .catch((error) => {
                 console.error('Service worker registration failed', error);
             });
