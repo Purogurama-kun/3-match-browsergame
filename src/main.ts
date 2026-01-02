@@ -39,6 +39,9 @@ class GameApp {
         this.profileState.onNameSave((value) => {
             void this.handleProfileNameSave(value);
         });
+        this.profileState.onDeleteAccount(() => {
+            void this.handleDeleteAccount();
+        });
         this.googleAuth = new GoogleAuth({
             loginButtonId: 'google-login',
             errorId: 'auth-error',
@@ -642,6 +645,35 @@ class GameApp {
             console.error('Failed to delete progress', error);
             this.googleAuth.showError(t('auth.error.progressDelete'));
         }
+    }
+
+    private async handleDeleteAccount(): Promise<void> {
+        if (!this.currentUser) {
+            return;
+        }
+        const confirmed = await this.confirmDialog.show({
+            title: t('account.deleteAccount'),
+            message: t('account.deleteAccount.confirm'),
+            confirmText: t('account.deleteAccount.confirmButton'),
+            cancelText: t('options.deleteProgress.cancelButton')
+        });
+        if (!confirmed) {
+            return;
+        }
+        try {
+            await this.progressStore.deleteAccount(this.currentUser.id);
+            this.googleAuth.clearError();
+        } catch (error) {
+            console.error('Failed to delete account', error);
+            this.googleAuth.showError(t('auth.error.accountDelete'));
+            return;
+        }
+        this.localProgress.clear();
+        this.progress = this.localProgress.load();
+        this.game.setPowerupInventory(this.progress.powerups);
+        this.handleLogout();
+        this.game.setPowerupInventory(this.progress.powerups);
+        this.handleAccountExit();
     }
 
     private handleLogout(): void {

@@ -18,10 +18,12 @@ class ProfileState {
     private readonly statusElement: HTMLElement;
     private readonly backButton: HTMLButtonElement;
     private readonly saveButton: HTMLButtonElement;
+    private readonly deleteAccountButton: HTMLButtonElement;
     private readonly feedbackElement: HTMLElement;
     private currentProfile: AccountProfileData = { name: '', source: 'guest' };
     private readonly onExit: () => void;
     private nameSaveHandler: ((value: string) => void) | null = null;
+    private deleteAccountHandler: (() => void) | null = null;
 
     constructor(options: ProfileStateOptions) {
         this.root = getRequiredElement('account');
@@ -29,6 +31,7 @@ class ProfileState {
         this.statusElement = getRequiredElement('account-status');
         this.backButton = this.getButton('account-back');
         this.saveButton = this.getButton('account-save-name');
+        this.deleteAccountButton = this.getButton('delete-account');
         this.feedbackElement = getRequiredElement('account-feedback');
         this.onExit = options.onExit;
         this.backButton.addEventListener('click', () => {
@@ -44,6 +47,12 @@ class ProfileState {
             }
         });
         this.applyLocale();
+        this.deleteAccountButton.addEventListener('click', () => {
+            this.deleteAccountHandler?.();
+        });
+        const initialDeleteEnabled = this.currentProfile.source === 'google';
+        this.deleteAccountButton.disabled = !initialDeleteEnabled;
+        this.deleteAccountButton.setAttribute('aria-disabled', initialDeleteEnabled ? 'false' : 'true');
     }
 
     enter(profile: AccountProfileData): void {
@@ -75,6 +84,9 @@ class ProfileState {
             this.currentProfile.source === 'google'
                 ? t('account.status.google')
                 : t('account.status.guest');
+        const deleteEnabled = this.currentProfile.source === 'google';
+        this.deleteAccountButton.disabled = !deleteEnabled;
+        this.deleteAccountButton.setAttribute('aria-disabled', deleteEnabled ? 'false' : 'true');
     }
 
     applyLocale(): void {
@@ -83,6 +95,7 @@ class ProfileState {
             this.currentProfile.source === 'google'
                 ? t('account.status.google')
                 : t('account.status.guest');
+        this.deleteAccountButton.textContent = t('account.deleteAccount');
     }
 
     onNameSave(handler: (value: string) => void): void {
@@ -105,6 +118,10 @@ class ProfileState {
         } else if (type === 'success') {
             this.feedbackElement.classList.add('account__feedback--success');
         }
+    }
+
+    onDeleteAccount(handler: () => void): void {
+        this.deleteAccountHandler = handler;
     }
 
     clearFeedback(): void {

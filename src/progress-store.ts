@@ -99,8 +99,19 @@ class ProgressStore {
     }
 
     async delete(userId: string): Promise<void> {
+        await this.sendDeleteRequest(userId, 'progress');
+    }
+
+    async deleteAccount(userId: string): Promise<void> {
+        await this.sendDeleteRequest(userId, 'account');
+    }
+
+    private async sendDeleteRequest(userId: string, scope: 'progress' | 'account'): Promise<void> {
         const normalizedUserId = this.requireUserId(userId);
         const query = new URLSearchParams({ userId: normalizedUserId });
+        if (scope === 'account') {
+            query.set('scope', 'account');
+        }
         const response = await fetch(`${this.endpoint}?${query.toString()}`, {
             method: 'DELETE',
             headers: {
@@ -109,7 +120,11 @@ class ProgressStore {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to delete progress: ' + response.status);
+            const message =
+                scope === 'account'
+                    ? 'Failed to delete account: '
+                    : 'Failed to delete progress: ';
+            throw new Error(`${message}${response.status}`);
         }
     }
 

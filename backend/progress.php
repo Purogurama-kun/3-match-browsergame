@@ -181,7 +181,12 @@ function handlePost(PDO $database): void
 function handleDelete(PDO $database): void
 {
     $googleId = requireUserId($_GET['userId'] ?? null);
-    deleteUserProgress($database, $googleId);
+    $scope = $_GET['scope'] ?? 'progress';
+    if ($scope === 'account') {
+        deleteUser($database, $googleId);
+    } else {
+        deleteUserProgress($database, $googleId);
+    }
     respond(200, ['deleted' => true]);
 }
 
@@ -194,6 +199,13 @@ function deleteUserProgress(PDO $database, string $googleId): void
 
     $statement = $database->prepare('DELETE FROM "GameProgress" WHERE userID = :user_id');
     $statement->bindValue(':user_id', (int) $user['id'], PDO::PARAM_INT);
+    $statement->execute();
+}
+
+function deleteUser(PDO $database, string $googleId): void
+{
+    $statement = $database->prepare('DELETE FROM "User" WHERE googleID = :token');
+    $statement->bindValue(':token', $googleId, PDO::PARAM_STR);
     $statement->execute();
 }
 
