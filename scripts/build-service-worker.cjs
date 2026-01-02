@@ -46,7 +46,7 @@ const files = new Set([
 [
     ...listFiles('html', { extensions: ['.html'], recursive: true, prefix: 'html' }),
     ...listFiles('css', { extensions: ['.css'], recursive: false, prefix: 'css' }),
-    ...listFiles('assets', { extensions: ['.svg', '.png', '.jpg', '.jpeg', '.ogg', '.mp3', '.wav'], recursive: true, prefix: 'assets' }),
+    ...listFiles('assets', { extensions: ['.svg', '.png', '.jpg', '.jpeg', '.webp', '.ogg', '.mp3', '.wav'], recursive: true, prefix: 'assets' }),
     ...listFiles('dist', { extensions: ['.js'], recursive: true, prefix: 'dist' })
 ].forEach((file) => files.add(file));
 

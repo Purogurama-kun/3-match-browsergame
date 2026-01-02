@@ -337,7 +337,7 @@ class Renderer {
             cell.classList.add('board__cell--sugar-chest');
             cell.style.setProperty(
                 '--sugar-chest-image',
-                `url(/assets/images/sugar-chest-${stageIndex}.png)`
+                `url(/assets/images/sugar-chest-${stageIndex}.webp)`
             );
             return;
         }
@@ -473,7 +473,7 @@ class Renderer {
 
         const icon = document.createElement('img');
         icon.className = 'board__sugar-notification-icon';
-        icon.src = '/assets/images/sugar_coin.png';
+        icon.src = '/assets/images/sugar_coin.webp';
         icon.alt = '';
         icon.setAttribute('aria-hidden', 'true');
 
