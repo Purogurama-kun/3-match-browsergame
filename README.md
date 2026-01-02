@@ -47,6 +47,8 @@ The PHP server exposes `backend/progress.php`, which persists user progress to `
 - `action=history&mode=LevelMode|BlockerMode|TimeMode&userId=<id>` (GET) returns the requesting user’s past runs ordered best-first.
 - POST requests still accept progress updates and now record completed runs for all modes when supplied.
 
+**Run db manager in browser:** http://localhost:5500/backend/db-manager/phpliteadmin.php 
+
 ### NPM run commands
 
 - `npm run build` ➔ `tsc`
