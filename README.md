@@ -91,6 +91,7 @@ The project uses the following concepts:
 - Nach erfolgreicher Anmeldung wird dein Name im Menü angezeigt.
 - Der höchste freigeschaltete Level, dein Blocker-Highscore und deine Zeit-Modus-Bestzeit werden serverseitig in einer SQLite-Datenbank gespeichert. Beim Login wird der Fortschritt anhand deiner Google-User-ID geladen, sodass er geräteunabhängig verfügbar ist.
 - Fortschritt ohne Login wird lokal gespeichert (localStorage). Meldest du dich später an, wird der lokale Fortschritt inklusive Highscore mit deinem Konto synchronisiert.
+- The "Delete game progress" button inside the profile/account view removes everything stored in `localStorage` under `match3-progress` and `match3-highest-level` (highest level, Blocker/Time bests, sugar coins, and tactical powerups). It also triggers the backend `DELETE /backend/progress.php` call for your Google ID, which wipes the matching `GameProgress` row in `backend/progress.sqlite`, so your server-side level, score, coin, and powerup records are reset to their defaults.
 
 ## Git workflow
 
