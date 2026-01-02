@@ -67,6 +67,14 @@ Use `http://127.0.0.1:5500/backend/phpinfo.php` to see the php.ini location.
 - php.ini must have: extension=pdo_sqlite, extension=sqlite3.
 - `sudo apt-get install php-sqlite3`
 
+## Setup phpliteadmin
+
+1. Download the "Current development version" from here: https://bitbucket.org/phpliteadmin/public/wiki/DownloadLinks . You have to download the newest unstable version, because the stable version is not compatible with PHP 8 (causes an "MicroTimer" error).
+2. Move the extracted directory to your project.
+3. `phpliteadmin.php` is the important file and theoretically you can run the program with only this file alone. `phpliteadmin.config.php` this file can be used to set the configuration, but the configuration can also be set by modifying `phpliteadmin.php`.
+4. Modify $password, $directory and $databases like needed. Here are some infos to those variables: https://bitbucket.org/phpliteadmin/public/wiki/Installation .
+5. Use themes (default theme is ugly). You can copy a CSS file to your phpliteadmin.php file or you can put all your downloaded themes to themes/ and specify which theme you want to use.
+
 ## Technical details
 
 The project uses the following concepts:
