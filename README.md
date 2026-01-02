@@ -13,6 +13,7 @@ Small Match-3 browser game with boosters, goals, and sound feedback, written in 
 - Blocker-Modus mit zunehmender Härte, Highscore-Speicherung und automatischer Niederlage, sobald keine gültigen Züge mehr existieren.
 - Zeit-Modus mit Echtzeit-Timer, Geschwindigkeits-Anstieg, Zeitboni durch Matches und Ziele sowie persistenter Bestzeit.
 - Require-match swap mode, plus swipe and click controls.
+- Progressive Web App shell with a manifest and service worker that caches static assets for offline use.
 - Combo multiplier scoring with HUD feedback.
 - Sound effects, optional audio toggle, and screen shake on impactful actions.
 - English and German UI text with a language selector in the options menu.
@@ -42,6 +43,9 @@ npm run server
 
 Then open `http://localhost:5500` in your browser.
 
+Running the server after `npm run build` lets the manifest and service worker register automatically, so a single visit caches the core shell for offline use.
+The precache manifest is auto-generated during build by scanning `css/`, `dist/`, `html/`, and `assets/` directories.
+
 The PHP server exposes `backend/progress.php`, which persists user progress to `backend/progress.sqlite`. The schema now relies on two tables (`User` and `GameProgress`) so each account keeps its googleID, username, nationality and aggregated stats (scores, coins, powerups, level) with `GameProgress.userID` referencing `User.id`. New accounts start with the username `Player#[id]` instead of the raw googleID and the SQLite file is created automatically on first write.
 
 - `action=leaderboard&mode=LevelMode|BlockerMode|TimeMode` (GET) returns paged global entries ordered by best result.
@@ -52,8 +56,9 @@ The PHP server exposes `backend/progress.php`, which persists user progress to `
 
 ### NPM run commands
 
-- `npm run build` ➔ `tsc`
-- `npm run watch` ➔ `tsc -w`
+- `npm run build` ➔ runs `prebuild` then `tsc`
+- `npm run prebuild` ➔ `node scripts/generate-precache.cjs` (auto-generates `src/precache-manifest.ts`)
+- `npm run watch` ➔ generates precache manifest then `tsc --watch`
 - `npm run server` ➔ `php -c backend/php.ini -S 0.0.0.0:5500 -t .`
 - `npm run docs` ➔ `jsdoc -c jsdoc.json`
 - `npm run codex` ➔ `codex --model gpt-5.1-codex-mini` (is very token cheap)

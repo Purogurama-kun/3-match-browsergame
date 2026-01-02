@@ -1,0 +1,25 @@
+{
+    "name": "Explosive Candy",
+    "short_name": "Explosive Candy",
+    "description": "A lightweight match-3 browser game with boosters, goals, and persistent progress.",
+    "start_url": ".",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#ffffff",
+    "theme_color": "#ff0000",
+    "icons": [
+        {
+            "src": "assets/images/game-thumbnail.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "assets/images/game-thumbnail.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": ["games", "puzzle"]
+}
