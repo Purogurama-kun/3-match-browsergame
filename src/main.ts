@@ -329,6 +329,10 @@ class GameApp {
         return getRequiredElement('auth-info-tooltip-suffix');
     }
 
+    private getGoogleLoginInfoWrapper(): HTMLElement {
+        return getRequiredElement('google-login-info-wrapper');
+    }
+
     private handleLogin(user: GoogleUser): void {
         const localProgress = this.progress;
         this.isProgressLoading = true;
@@ -336,6 +340,7 @@ class GameApp {
         this.refreshProfileView();
         this.game.setLogoutVisible(true);
         this.googleAuth.clearError();
+        this.getGoogleLoginInfoWrapper().hidden = true;
         this.updateStartButtonState();
         void this.loadProgress(user.id, localProgress);
     }
@@ -584,6 +589,7 @@ class GameApp {
         this.currentUser = null;
         this.googleAuth.signOut();
         this.googleAuth.setLoggedOut();
+        this.getGoogleLoginInfoWrapper().hidden = false;
         this.game.setLogoutVisible(false);
         this.isProgressLoading = false;
         this.updateShopState();
