@@ -19,8 +19,6 @@ class GameApp {
         this.startTimeButton = this.getTimeButton();
         this.startLeaderboardButton = this.getLeaderboardButton();
         this.leaderboard = getRequiredElement('leaderboard');
-        this.coinIcon = this.getCoinIcon();
-        this.coinLabel = this.getCoinLabel();
         this.shopButton = this.getShopButton();
         this.progress = {
             highestLevel: 1,
@@ -33,10 +31,6 @@ class GameApp {
         this.localProgress = new LocalProgressStore();
         this.googleAuth = new GoogleAuth({
             loginButtonId: 'google-login',
-            statusId: 'auth-status',
-            progressId: 'auth-progress',
-            blockerProgressId: 'auth-progress-blocker',
-            timeProgressId: 'auth-progress-time',
             errorId: 'auth-error',
             onLogin: (user) => this.handleLogin(user)
         });
@@ -55,8 +49,6 @@ class GameApp {
         this.googleLoginTooltipPrefix = this.getGoogleLoginTooltipPrefix();
         this.googleLoginTooltipLink = this.getGoogleLoginTooltipLink();
         this.googleLoginTooltipSuffix = this.getGoogleLoginTooltipSuffix();
-        this.googleLoginInfoWrapper = this.getGoogleLoginInfoWrapper();
-        this.setGoogleLoginInfoVisible(true);
         this.setupGoogleLoginTooltip();
         this.game.setLogoutVisible(false);
 
@@ -89,8 +81,6 @@ class GameApp {
     private startTimeButton: HTMLButtonElement;
     private startLeaderboardButton: HTMLButtonElement;
     private leaderboard: HTMLElement;
-    private coinIcon: HTMLImageElement;
-    private coinLabel: HTMLElement;
     private shopButton: HTMLButtonElement;
     private shopView: ShopView;
     private confirmDialog: ConfirmDialog;
@@ -106,7 +96,6 @@ class GameApp {
     private googleLoginTooltipPrefix: HTMLElement;
     private googleLoginTooltipLink: HTMLAnchorElement;
     private googleLoginTooltipSuffix: HTMLElement;
-    private googleLoginInfoWrapper: HTMLElement;
 
     private startLevelGame(): void {
         if (this.isProgressLoading) return;
@@ -164,7 +153,6 @@ class GameApp {
     private handleLocaleChange(locale: Locale): void {
         this.updateStartButtonState();
         this.googleAuth.applyLocale();
-        this.updateSugarCoinDisplay();
         this.game.handleLocaleChange(locale);
         this.updateGoogleLoginTooltip(locale);
     }
@@ -199,12 +187,7 @@ class GameApp {
     private loadLocalProgress(): void {
         const stored = this.localProgress.load();
         this.progress = this.mergeProgress(this.progress, stored);
-        this.googleAuth.setLoggedOut(
-            this.progress.highestLevel,
-            this.progress.blockerHighScore,
-            this.progress.timeSurvival
-        );
-        this.updateSugarCoinDisplay();
+        this.googleAuth.setLoggedOut();
         this.updateStartButtonState();
         this.game.setPowerupInventory(this.progress.powerups);
         this.updateShopState();
@@ -250,22 +233,6 @@ class GameApp {
         return element;
     }
 
-    private getCoinIcon(): HTMLImageElement {
-        const element = getRequiredElement('auth-coin-icon');
-        if (!(element instanceof HTMLImageElement)) {
-            throw new Error('Sugar coin icon is not an image');
-        }
-        return element;
-    }
-
-    private getCoinLabel(): HTMLElement {
-        const element = getRequiredElement('auth-coin-count');
-        if (!(element instanceof HTMLElement)) {
-            throw new Error('Sugar coin label is not an element');
-        }
-        return element;
-    }
-
     private getGoogleLoginInfoButton(): HTMLButtonElement {
         const element = getRequiredElement('google-login-info');
         if (!(element instanceof HTMLButtonElement)) {
@@ -294,33 +261,12 @@ class GameApp {
         return getRequiredElement('auth-info-tooltip-suffix');
     }
 
-    private getGoogleLoginInfoWrapper(): HTMLElement {
-        const element = getRequiredElement('google-login-info-wrapper');
-        if (!(element instanceof HTMLElement)) {
-            throw new Error('Google login info wrapper is not an element');
-        }
-        return element;
-    }
-
-    private setGoogleLoginInfoVisible(visible: boolean): void {
-        if (visible) {
-            this.googleLoginInfoWrapper.removeAttribute('hidden');
-            return;
-        }
-        this.googleLoginInfoWrapper.setAttribute('hidden', 'true');
-    }
-
     private handleLogin(user: GoogleUser): void {
         const localProgress = this.progress;
         this.isProgressLoading = true;
         this.currentUser = user;
         this.game.setLogoutVisible(true);
-        this.setGoogleLoginInfoVisible(false);
         this.googleAuth.clearError();
-        this.googleAuth.showProgressLoading();
-        this.coinLabel.textContent = t('auth.progress.coins.loading');
-        this.coinIcon.src = 'assets/images/sugar_coin_icon.png';
-        this.coinIcon.alt = t('auth.progress.coins.loading');
         this.updateStartButtonState();
         void this.loadProgress(user.id, localProgress);
     }
@@ -331,9 +277,7 @@ class GameApp {
             if (!this.isCurrentUser(userId)) return;
             const mergedProgress = this.mergeProgress(localProgress, stored);
             this.progress = mergedProgress;
-            this.googleAuth.setProgress(mergedProgress);
             this.googleAuth.clearError();
-            this.updateSugarCoinDisplay();
             this.game.setPowerupInventory(this.progress.powerups);
             this.updateShopState();
             if (this.shouldPersistMergedProgress(stored, mergedProgress)) {
@@ -344,8 +288,6 @@ class GameApp {
             if (this.isCurrentUser(userId)) {
                 this.progress = localProgress;
                 this.googleAuth.showError(t('auth.error.progressLoad'));
-                this.googleAuth.setProgress(this.progress);
-                this.updateSugarCoinDisplay();
             }
         } finally {
             if (this.isCurrentUser(userId)) {
@@ -363,12 +305,10 @@ class GameApp {
             sugarCoins: this.progress.sugarCoins,
             powerups: this.progress.powerups
         });
-        this.googleAuth.setProgress(this.progress);
         this.updateStartButtonState();
         this.progress = this.localProgress.save(this.progress);
         if (!this.currentUser) return;
         void this.persistProgress(this.currentUser.id, this.progress, 'level');
-        this.updateSugarCoinDisplay();
     }
 
     private saveBlockerHighScore(score: number): void {
@@ -380,11 +320,9 @@ class GameApp {
             sugarCoins: this.progress.sugarCoins,
             powerups: this.progress.powerups
         });
-        this.googleAuth.setProgress(this.progress);
         this.progress = this.localProgress.save(this.progress);
         if (!this.currentUser) return;
         void this.persistProgress(this.currentUser.id, this.progress, 'blocker');
-        this.updateSugarCoinDisplay();
     }
 
     private saveTimeBest(time: number): void {
@@ -396,11 +334,9 @@ class GameApp {
             sugarCoins: this.progress.sugarCoins,
             powerups: this.progress.powerups
         });
-        this.googleAuth.setProgress(this.progress);
         this.progress = this.localProgress.save(this.progress);
         if (!this.currentUser) return;
         void this.persistProgress(this.currentUser.id, this.progress, 'time');
-        this.updateSugarCoinDisplay();
     }
 
     private async persistProgress(
@@ -412,9 +348,7 @@ class GameApp {
             const stored = await this.progressStore.save(userId, progress, mode, this.getIdentity());
             if (!this.isCurrentUser(userId)) return;
             this.progress = this.mergeProgress(this.progress, stored);
-            this.googleAuth.setProgress(this.progress);
             this.googleAuth.clearError();
-            this.updateSugarCoinDisplay();
             this.game.setPowerupInventory(this.progress.powerups);
             this.updateShopState();
         } catch (error) {
@@ -455,14 +389,6 @@ class GameApp {
             return;
         }
         this.startLevelButton.textContent = t('mainMenu.start.levelAt', { level: labelLevel });
-    }
-
-    private updateSugarCoinDisplay(): void {
-        const coins = Math.max(0, Math.floor(Number.isFinite(this.progress.sugarCoins) ? this.progress.sugarCoins : 0));
-        const label = t('auth.progress.coins', { coins });
-        this.coinLabel.textContent = label;
-        this.coinIcon.src = coins === 1 ? 'assets/images/sugar_coin.png' : 'assets/images/sugar_coin_icon.png';
-        this.coinIcon.alt = label;
     }
 
     private setupGoogleLoginTooltip(): void {
@@ -565,8 +491,6 @@ class GameApp {
         this.game.closeOptions();
         this.localProgress.clear();
         this.progress = this.localProgress.load();
-        this.googleAuth.setProgress(this.progress);
-        this.updateSugarCoinDisplay();
         this.updateShopState();
         this.game.setPowerupInventory(this.progress.powerups);
         this.updateStartButtonState();
@@ -590,15 +514,9 @@ class GameApp {
         this.progress = this.localProgress.save(this.progress);
         this.currentUser = null;
         this.googleAuth.signOut();
-        this.googleAuth.setLoggedOut(
-            this.progress.highestLevel,
-            this.progress.blockerHighScore,
-            this.progress.timeSurvival
-        );
+        this.googleAuth.setLoggedOut();
         this.game.setLogoutVisible(false);
-        this.setGoogleLoginInfoVisible(true);
         this.isProgressLoading = false;
-        this.updateSugarCoinDisplay();
         this.updateShopState();
         this.updateStartButtonState();
     }
@@ -622,7 +540,6 @@ class GameApp {
             sugarCoins: nextCoins,
             powerups: updatedPowerups
         });
-        this.updateSugarCoinDisplay();
         this.game.setPowerupInventory(this.progress.powerups);
         this.updateShopState();
         if (this.currentUser) {
@@ -646,7 +563,6 @@ class GameApp {
         if (rounded === 0) return;
         const nextCoins = Math.max(0, this.progress.sugarCoins + rounded);
         this.progress = this.localProgress.save({ ...this.progress, sugarCoins: nextCoins });
-        this.updateSugarCoinDisplay();
         this.updateShopState();
         if (!this.currentUser) return;
         void this.persistProgress(this.currentUser.id, this.progress, 'both');

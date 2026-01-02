@@ -15,13 +15,9 @@
     width: 100%;
     max-width: 100%;
     border-radius: 32px;
-    /*background: rgba(9, 12, 30, 0.32);*/
-    /*border: 1px solid rgba(255, 255, 255, 0.16);*/
-    /*box-shadow:
-        0 30px 60px rgba(4, 5, 10, 0.65),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);*/
     padding: clamp(1.5rem, 3vw, 2.75rem);
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 1.25rem;
     backdrop-filter: blur(0px);
     box-sizing: border-box;
@@ -108,19 +104,14 @@
     min-width: 0;
 }
 
-.main-menu__auth {
-    flex: 1 1 240px;
-    min-width: 0;
-    padding: 0.75rem 1rem;
-    border-radius: 20px;
-    background: rgba(0, 0, 0, 0.4);
-    display: grid;
-    gap: 0.65rem;
-    backdrop-filter: blur(18px);
-    border: 1px solid white;
-    /* keep the tooltip stacking above the icon buttons */
-    position: relative;
-    z-index: 1;
+.main-menu__auth-footer {
+    margin: auto 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    width: 100%;
+    text-align: center;
 }
 
 .main-menu__icon-actions {
@@ -161,6 +152,11 @@
     border-color: rgba(93, 155, 255, 0.8);
 }
 
+.main-menu__icon-button--auth-info {
+    width: 38px !important;
+    height: 38px !important;
+    border-color: rgba(255, 255, 255, 0.8);
+}
 
 @media (max-width: 720px) {
     .main-menu__utility {

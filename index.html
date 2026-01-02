@@ -52,58 +52,6 @@
                 <button id="start-time" class="main-menu__button main-menu__button--secondary" type="button">Zeit Modus</button>
             </div>
             <div class="main-menu__utility">
-                <div class="auth main-menu__auth" aria-live="polite">
-                    <div class="auth__summary">
-                        <div class="auth__label" data-i18n-key="auth.label">Google Login</div>
-                        <div id="auth-status" class="auth__status" data-i18n-key="auth.status.notSignedIn">Not signed in</div>
-                    </div>
-                    <div style="display:none;" hidden>
-                        <div id="auth-progress" class="auth__progress" data-i18n-key="auth.progress.level">
-                            Progress: Level 1
-                        </div>
-                        <div id="auth-progress-blocker" class="auth__progress" data-i18n-key="auth.progress.blocker">
-                            Blocker high score: 0
-                        </div>
-                        <div id="auth-progress-time" class="auth__progress" data-i18n-key="auth.progress.time">
-                            Time mode best: 00:00
-                        </div>
-                        <div class="auth__coins">
-                            <img id="auth-coin-icon" class="auth__coins-icon" src="assets/images/sugar_coin_icon.png" alt="Sugar coins">
-                            <span id="auth-coin-count" class="auth__coins-count">Sugar coins: 0</span>
-                        </div>
-                    </div>
-                    <div class="auth__actions auth__actions--login">
-                        <div class="auth__login-row">
-                            <div id="google-login" class="auth__button">
-                                <span class="auth__button-text" data-i18n-key="auth.loginButton">Sign in with Google</span>
-                            </div>
-                            <div id="google-login-info-wrapper" class="auth__info-wrapper">
-                                <button
-                                    id="google-login-info"
-                                    class="auth__info-button"
-                                    type="button"
-                                    aria-label="Google Login Information"
-                                    aria-expanded="false"
-                                >
-                                    <img src="assets/images/info.svg" alt="" aria-hidden="true" />
-                                </button>
-                                <div id="auth-info-tooltip" class="auth__tooltip" hidden role="tooltip">
-                                    <p class="auth__tooltip-text">
-                                        <span id="auth-info-tooltip-prefix"></span>
-                                        <a
-                                            id="auth-info-tooltip-link"
-                                            class="auth__tooltip-link"
-                                            target="_blank"
-                                            rel="noreferrer noopener"
-                                        ></a>
-                                        <span id="auth-info-tooltip-suffix"></span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <p id="auth-error" class="auth__error" hidden></p>
-                    </div>
-                </div>
                 <div class="main-menu__icon-actions">
                     <button
                         id="open-shop"
@@ -121,6 +69,39 @@
                     >
                         <img src="assets/images/leaderboard.svg" alt="" aria-hidden="true" />
                     </button>
+                </div>
+            </div>
+            <div class="main-menu__auth-footer" aria-live="polite">
+                <div class="auth__actions auth__actions--login">
+                    <div class="auth__login-row">
+                        <div id="google-login" class="auth__button">
+                            <span class="auth__button-text" data-i18n-key="auth.loginButton">Sign in with Google</span>
+                        </div>
+                        <div id="google-login-info-wrapper" class="auth__info-wrapper">
+                            <button
+                                id="google-login-info"
+                                class="main-menu__icon-button main-menu__icon-button--auth-info"
+                                type="button"
+                                aria-label="Google Login Information"
+                                aria-expanded="false"
+                            >
+                                <img src="assets/images/info.svg" alt="" aria-hidden="true" />
+                            </button>
+                            <div id="auth-info-tooltip" class="auth__tooltip" hidden role="tooltip">
+                                <p class="auth__tooltip-text">
+                                    <span id="auth-info-tooltip-prefix"></span>
+                                    <a
+                                        id="auth-info-tooltip-link"
+                                        class="auth__tooltip-link"
+                                        target="_blank"
+                                        rel="noreferrer noopener"
+                                    ></a>
+                                    <span id="auth-info-tooltip-suffix"></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <p id="auth-error" class="auth__error" hidden></p>
                 </div>
             </div>
         </div>
