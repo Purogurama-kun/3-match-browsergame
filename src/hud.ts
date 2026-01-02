@@ -16,23 +16,8 @@ import {
 } from './types.js';
 import { getRequiredElement } from './dom.js';
 import { describeGoal } from './levels.js';
-import { t, Locale, type TranslationKey } from './i18n.js';
-
-type InfoLink = {
-    labelKey: TranslationKey;
-    href: string;
-};
-
-const INFO_LINKS: Record<Locale, InfoLink[]> = {
-    en: [
-        { labelKey: 'options.infoLink.legal', href: '/html/en/legal-notice.html' },
-        { labelKey: 'options.infoLink.privacy', href: '/html/en/privacy-policy.html' }
-    ],
-    de: [
-        { labelKey: 'options.infoLink.legal', href: '/html/de/legal-notice.html' },
-        { labelKey: 'options.infoLink.privacy', href: '/html/de/privacy-policy.html' }
-    ]
-};
+import { t, Locale } from './i18n.js';
+import { OptionsMenu } from './options-menu.js';
 
 class Hud {
     constructor() {
@@ -52,32 +37,8 @@ class Hud {
         this.powerupButtons = {} as Record<TacticalPowerup, HTMLButtonElement>;
         this.powerupCountNodes = {} as Record<TacticalPowerup, HTMLElement>;
         this.initPowerupButtons();
-        this.optionsToggle = this.getOptionsToggle();
-        this.optionsClose = this.getOptionsClose();
-        this.optionsModal = this.getOptionsModal();
-        this.infoButton = this.getInfoButton();
-        this.infoPanel = this.getInfoPanel();
-        this.infoPanelList = this.getInfoPanelList();
-        this.audioToggle = this.getAudioToggle();
-        this.performanceToggle = getRequiredElement('performance-toggle') as HTMLButtonElement;
-        this.cellShapeSelect = this.getCellShapeSelect();
-        this.languageSelect = this.getLanguageSelect();
+        this.optionsMenu = new OptionsMenu();
         this.difficultyLabel = this.getDifficultyLabel();
-        this.exitButton = this.getExitButton();
-        this.deleteProgressButton = this.getDeleteProgressButton();
-        this.logoutButton = this.getLogoutButton();
-        this.setAudioToggleState(true);
-        this.setLanguage('en');
-        this.setPerformanceModeEnabled(false);
-        this.hideOptionsModal();
-        this.performanceToggle.addEventListener('click', () => {
-            const nextState = this.performanceToggle.getAttribute('aria-pressed') !== 'true';
-            this.setPerformanceModeEnabled(nextState);
-            if (this.performanceModeHandler) {
-                this.performanceModeHandler(nextState);
-            }
-        });
-        this.setLogoutVisible(false);
     }
 
     private score: HTMLElement;
@@ -91,24 +52,9 @@ class Hud {
     private statusText: HTMLElement;
     private statusIcon: HTMLElement;
     private goalsList: HTMLUListElement;
-    private optionsToggle: HTMLButtonElement;
-    private optionsClose: HTMLButtonElement;
-    private optionsModal: HTMLElement;
-    private audioToggle: HTMLButtonElement;
-    private infoButton: HTMLButtonElement;
-    private infoPanel: HTMLElement;
-    private infoPanelList: HTMLElement;
     private difficultyLabel: HTMLElement;
-    private exitButton: HTMLButtonElement;
-    private deleteProgressButton: HTMLButtonElement;
-    private logoutButton: HTMLButtonElement;
     private timeHint: HTMLElement;
-    private cellShapeSelect: HTMLSelectElement;
-    private languageSelect: HTMLSelectElement;
-    private performanceToggle: HTMLButtonElement;
-    private performanceModeEnabled = false;
-    private performanceModeHandler: ((enabled: boolean) => void) | null = null;
-    private audioEnabled = true;
+    private readonly optionsMenu: OptionsMenu;
     private cellShapeMode: CellShapeMode = 'square';
     private tacticalToolbar: HTMLElement;
     private powerupButtons: Record<TacticalPowerup, HTMLButtonElement>;
@@ -117,20 +63,6 @@ class Hud {
     private toolbarBlocked = false;
     private lastPowerupInventory: PowerupInventory | null = null;
     private pendingPowerupType: TacticalPowerup | null = null;
-    private currentLocale: Locale = 'en';
-    private readonly handleDocumentClick = (event: MouseEvent): void => {
-        if (this.infoPanel.hasAttribute('hidden')) {
-            return;
-        }
-        const target = event.target as Node | null;
-        if (target && (this.infoPanel.contains(target) || this.infoButton.contains(target))) {
-            return;
-        }
-        event.preventDefault();
-        event.stopPropagation();
-        this.hideInfoPanel();
-    };
-
     render(state: GameState): void {
         const isTimeMode = state.mode === 'time';
         const shouldShowMovesCard = state.mode === 'level';
@@ -155,21 +87,15 @@ class Hud {
     }
 
     onCellShapeModeChange(handler: (mode: CellShapeMode) => void): void {
-        this.cellShapeSelect.addEventListener('change', () => {
-            handler(this.cellShapeSelect.value as CellShapeMode);
-        });
+        this.optionsMenu.onCellShapeModeChange(handler);
     }
 
     onLanguageChange(handler: (locale: Locale) => void): void {
-        this.languageSelect.addEventListener('change', () => {
-            handler(this.languageSelect.value as Locale);
-        });
+        this.optionsMenu.onLanguageChange(handler);
     }
 
     setLanguage(locale: Locale): void {
-        this.languageSelect.value = locale;
-        this.currentLocale = locale;
-        this.updateInfoLinks(locale);
+        this.optionsMenu.setLanguage(locale);
     }
 
     onTacticalPowerup(handler: (type: TacticalPowerup) => void): void {
@@ -177,102 +103,25 @@ class Hud {
     }
 
     onAudioToggle(handler: (enabled: boolean) => void): void {
-        this.audioToggle.addEventListener('click', () => {
-            const nextState = this.audioToggle.getAttribute('aria-pressed') !== 'true';
-            this.setAudioToggleState(nextState);
-            handler(nextState);
-        });
+        this.optionsMenu.onAudioToggle(handler);
     }
 
     initOptionsMenu(): void {
-        this.optionsToggle.addEventListener('click', () => {
-            const isExpanded = this.optionsToggle.getAttribute('aria-expanded') === 'true';
-            if (isExpanded) {
-                this.hideOptionsModal();
-            } else {
-                this.showOptionsModal();
-            }
-        });
-
-        this.infoButton.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            this.toggleInfoPanel();
-        });
-
-        this.infoPanel.addEventListener('click', (event) => event.stopPropagation());
-
-        this.optionsClose.addEventListener('click', () => this.hideOptionsModal());
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') {
-                this.hideOptionsModal();
-            }
-        });
-
-        this.optionsModal.addEventListener('click', (event) => {
-            if (event.target === this.optionsModal) {
-                this.hideOptionsModal();
-            }
-        });
-
-        document.addEventListener('click', this.handleDocumentClick, true);
-    }
-
-    private toggleInfoPanel(): void {
-        if (this.infoPanel.hasAttribute('hidden')) {
-            this.showInfoPanel();
-            return;
-        }
-        this.hideInfoPanel();
-    }
-
-    private showInfoPanel(): void {
-        this.infoPanel.removeAttribute('hidden');
-        this.infoPanel.setAttribute('aria-hidden', 'false');
-        this.infoButton.setAttribute('aria-expanded', 'true');
-    }
-
-    private hideInfoPanel(): void {
-        if (this.infoPanel.hasAttribute('hidden')) {
-            return;
-        }
-        this.infoPanel.setAttribute('hidden', 'true');
-        this.infoPanel.setAttribute('aria-hidden', 'true');
-        this.infoButton.setAttribute('aria-expanded', 'false');
+        this.optionsMenu.initialize();
     }
 
     setAudioEnabled(enabled: boolean): void {
-        this.setAudioToggleState(enabled);
+        this.optionsMenu.setAudioEnabled(enabled);
     }
 
     applyLocale(): void {
-        this.setAudioToggleState(this.audioEnabled);
         this.refreshPowerupButtons();
-        this.infoButton.setAttribute('aria-label', t('options.info'));
-        this.updateInfoLinks(this.currentLocale);
-    }
-
-    private updateInfoLinks(locale: Locale): void {
-        const links = INFO_LINKS[locale] ?? INFO_LINKS['en'];
-        this.infoPanelList.innerHTML = '';
-        links.forEach((link) => {
-            const item = document.createElement('li');
-            item.className = 'options-info-panel__list-item';
-            const anchor = document.createElement('a');
-            anchor.className = 'options-info-panel__link';
-            anchor.textContent = t(link.labelKey);
-            anchor.href = link.href;
-            anchor.target = '_blank';
-            anchor.rel = 'noreferrer noopener';
-            item.appendChild(anchor);
-            this.infoPanelList.appendChild(item);
-        });
+        this.optionsMenu.applyLocale();
     }
 
     setCellShapeMode(mode: CellShapeMode): void {
         this.cellShapeMode = mode;
-        this.cellShapeSelect.value = mode;
+        this.optionsMenu.setCellShapeMode(mode);
     }
 
     setPowerupToolbarBlocked(blocked: boolean): void {
@@ -292,119 +141,39 @@ class Hud {
     }
 
     onExitGame(handler: () => void): void {
-        this.exitButton.addEventListener('click', () => {
-            this.hideOptionsModal();
-            handler();
-        });
+        this.optionsMenu.onExitGame(handler);
     }
 
     onDeleteProgress(handler: () => void): void {
-        this.deleteProgressButton.addEventListener('click', () => {
-            handler();
-        });
+        this.optionsMenu.onDeleteProgress(handler);
     }
 
     onLogout(handler: () => void): void {
-        this.logoutButton.addEventListener('click', () => {
-            this.hideOptionsModal();
-            handler();
-        });
+        this.optionsMenu.onLogout(handler);
     }
 
     setLogoutVisible(visible: boolean): void {
-        if (visible) {
-            this.logoutButton.removeAttribute('hidden');
-        } else {
-            this.logoutButton.setAttribute('hidden', 'true');
-        }
+        this.optionsMenu.setLogoutVisible(visible);
     }
 
     closeOptions(): void {
-        this.hideOptionsModal();
+        this.optionsMenu.close();
     }
 
     resetStatus(): void {
         this.setStatus(t('hud.status.ready'), '✨');
     }
 
-    private getCellShapeSelect(): HTMLSelectElement {
-        const element = getRequiredElement('cell-shape-mode');
-        if (!(element instanceof HTMLSelectElement)) {
-            throw new Error('Cell shape mode element is not a select');
-        }
-        return element;
-    }
-
-    private getLanguageSelect(): HTMLSelectElement {
-        const element = getRequiredElement('language-select');
-        if (!(element instanceof HTMLSelectElement)) {
-            throw new Error('Language select is not a select');
-        }
-        return element;
-    }
-
-    private getOptionsToggle(): HTMLButtonElement {
-        const element = getRequiredElement('options-toggle');
-        if (!(element instanceof HTMLButtonElement)) {
-            throw new Error('Options toggle is not a button');
-        }
-        return element;
-    }
-
-    private getOptionsClose(): HTMLButtonElement {
-        const element = getRequiredElement('options-close');
-        if (!(element instanceof HTMLButtonElement)) {
-            throw new Error('Options close is not a button');
-        }
-        return element;
-    }
-
-    private getOptionsModal(): HTMLElement {
-        return getRequiredElement('options-modal');
-    }
-
-    private getInfoButton(): HTMLButtonElement {
-        const element = getRequiredElement('options-info');
-        if (!(element instanceof HTMLButtonElement)) {
-            throw new Error('Options info button is not a button');
-        }
-        return element;
-    }
-
-    private getInfoPanel(): HTMLElement {
-        return getRequiredElement('options-info-panel');
-    }
-
-    private getInfoPanelList(): HTMLElement {
-        return getRequiredElement('options-info-list');
-    }
-
-    private getAudioToggle(): HTMLButtonElement {
-        const element = getRequiredElement('audio-toggle');
-        if (!(element instanceof HTMLButtonElement)) {
-            throw new Error('Audio toggle is not a button');
-        }
-        return element;
-    }
-
     private getGoalsListElement(): HTMLUListElement {
-        const element = getRequiredElement('goals-list');
-        if (!(element instanceof HTMLUListElement)) {
-            throw new Error('Goals list element is not a list');
-        }
-        return element;
+        return getRequiredElement<HTMLUListElement>('goals-list');
     }
 
     private getTimeHintElement(): HTMLElement {
-        const element = getRequiredElement('hud-time-hint');
-        if (!(element instanceof HTMLElement)) {
-            throw new Error('Time hint element is not an element');
-        }
-        return element;
+        return getRequiredElement<HTMLElement>('hud-time-hint');
     }
 
     private getTacticalToolbar(): HTMLElement {
-        return getRequiredElement('tactical-toolbar');
+        return getRequiredElement<HTMLElement>('tactical-toolbar');
     }
 
     private initPowerupButtons(): void {
@@ -454,43 +223,19 @@ class Hud {
     }
 
     private getLevelCard(): HTMLElement {
-        return getRequiredElement('level-card');
+        return getRequiredElement<HTMLElement>('level-card');
     }
 
     private getMovesLabel(): HTMLElement {
-        return getRequiredElement('moves-label');
+        return getRequiredElement<HTMLElement>('moves-label');
     }
 
     private getMovesCard(): HTMLElement {
-        return getRequiredElement('moves-card');
+        return getRequiredElement<HTMLElement>('moves-card');
     }
 
     private getDifficultyLabel(): HTMLElement {
-        return getRequiredElement('difficulty');
-    }
-
-    private getExitButton(): HTMLButtonElement {
-        const element = getRequiredElement('exit-game');
-        if (!(element instanceof HTMLButtonElement)) {
-            throw new Error('Exit game button is not a button');
-        }
-        return element;
-    }
-
-    private getLogoutButton(): HTMLButtonElement {
-        const element = getRequiredElement('logout-button');
-        if (!(element instanceof HTMLButtonElement)) {
-            throw new Error('Logout button is not a button');
-        }
-        return element;
-    }
-
-    private getDeleteProgressButton(): HTMLButtonElement {
-        const element = getRequiredElement('delete-progress');
-        if (!(element instanceof HTMLButtonElement)) {
-            throw new Error('Delete progress button is not a button');
-        }
-        return element;
+        return getRequiredElement<HTMLElement>('difficulty');
     }
 
     private updateProgress(state: GameState): void {
@@ -594,39 +339,12 @@ class Hud {
         });
     }
 
-    private showOptionsModal(): void {
-        this.optionsModal.removeAttribute('hidden');
-        this.optionsModal.setAttribute('aria-hidden', 'false');
-        this.optionsToggle.setAttribute('aria-expanded', 'true');
-        this.optionsToggle.setAttribute('aria-pressed', 'true');
-        this.optionsClose.focus();
-    }
-
-    private hideOptionsModal(): void {
-        this.optionsModal.setAttribute('hidden', 'true');
-        this.optionsModal.setAttribute('aria-hidden', 'true');
-        this.optionsToggle.setAttribute('aria-expanded', 'false');
-        this.optionsToggle.setAttribute('aria-pressed', 'false');
-        this.optionsToggle.focus();
-        this.hideInfoPanel();
-    }
-
-    private setAudioToggleState(enabled: boolean): void {
-        this.audioEnabled = enabled;
-        this.audioToggle.setAttribute('aria-pressed', String(enabled));
-        this.audioToggle.textContent = enabled ? t('hud.audio.on') : t('hud.audio.off');
-    }
-
     setPerformanceModeEnabled(enabled: boolean): void {
-        this.performanceModeEnabled = enabled;
-        this.performanceToggle.setAttribute('aria-pressed', enabled ? 'true' : 'false');
-        this.performanceToggle.textContent = enabled
-            ? t('options.performance.low')
-            : t('options.performance.high');
+        this.optionsMenu.setPerformanceModeEnabled(enabled);
     }
 
     onPerformanceModeChange(handler: (enabled: boolean) => void): void {
-        this.performanceModeHandler = handler;
+        this.optionsMenu.onPerformanceModeChange(handler);
     }
 
     private createGoalVisual(goal: GoalProgress): HTMLElement {
