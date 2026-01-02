@@ -136,6 +136,7 @@ git restore .
 - `src/types.ts` shared types
 - `dist/` compiled JavaScript output
 - `assets/sounds/` sound effects, including match and booster variants
+- Use WebP assets for the large hero and background images (`assets/images/main-menu-bg-landscape.webp`, `assets/images/main-menu-background.webp`, etc.) and reference those in `css/match-app.css`; WebP support drastically cuts the LCP refresh cost while keeping the visual fidelity.
 
 ## Google OAuth setup steps
 
