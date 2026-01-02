@@ -21,6 +21,7 @@ Small Match-3 browser game with boosters, goals, and sound feedback, written in 
 - Sugar chest and sugar coins
 - Shop with available boosters
 - Blocker generator
+- silent login to google account if the user logged in once.
 
 ## Known errors
 

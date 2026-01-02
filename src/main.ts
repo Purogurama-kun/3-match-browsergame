@@ -42,13 +42,13 @@ class GameApp {
         this.profileState.onDeleteAccount(() => {
             void this.handleDeleteAccount();
         });
+        this.game = new Match3Game();
+        this.game.onLanguageChange((locale) => setLocale(locale));
         this.googleAuth = new GoogleAuth({
             loginButtonId: 'google-login',
             errorId: 'auth-error',
             onLogin: (user) => this.handleLogin(user)
         });
-        this.game = new Match3Game();
-        this.game.onLanguageChange((locale) => setLocale(locale));
 
         this.shopView = new ShopView({
             onBuy: (type) => this.handleShopPurchase(type),
@@ -64,6 +64,7 @@ class GameApp {
         this.googleLoginTooltipSuffix = this.getGoogleLoginTooltipSuffix();
         this.setupGoogleLoginTooltip();
         this.game.setLogoutEnabled(false);
+        this.googleAuth.trySilentLogin();
 
         this.startLevelButton.addEventListener('click', () => this.startLevelGame());
         this.startBlockerButton.addEventListener('click', () => this.startBlockerGame());

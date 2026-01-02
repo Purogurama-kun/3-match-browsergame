@@ -67,6 +67,7 @@ class GoogleAuth {
         onLocaleChange((locale) => this.handleLocaleChange(locale));
     }
 
+    private readonly credentialStorageKey = 'match3-google-credential';
     private readonly clientId =
         '276995857018-9foeghnr835nqq9kc2dpbl5j9ibljodg.apps.googleusercontent.com';
     private loginContainer: HTMLElement;
@@ -91,6 +92,7 @@ class GoogleAuth {
         } catch (error) {
             console.warn('Failed to disable auto-select after logout', error);
         }
+        this.storeCredential(null);
     }
 
     private initializeGoogle(): void {
@@ -135,20 +137,7 @@ class GoogleAuth {
     }
 
     private handleCredential(response: GoogleCredentialResponse): void {
-        const payload = this.decodeCredential(response.credential);
-        if (!payload) {
-            this.showError(t('auth.error.loginFailed'));
-            return;
-        }
-        this.clearError();
-        const user: GoogleUser = {
-            id: payload.sub,
-            name: payload.name || payload.email || 'Spieler',
-            ...(payload.email ? { email: payload.email } : {})
-        };
-        this.onLogin(user);
-        this.disableLogin();
-        this.setLoginVisible(false);
+        this.processCredential(response.credential, false);
     }
 
     private decodeCredential(credential: string): GoogleJwtPayload | null {
@@ -203,6 +192,65 @@ class GoogleAuth {
             throw new Error('Google login container is not an element');
         }
         return element;
+    }
+
+    trySilentLogin(): void {
+        this.attemptSilentLogin();
+    }
+
+    private attemptSilentLogin(): void {
+        const stored = this.readStoredCredential();
+        if (!stored) {
+            return;
+        }
+        this.disableLogin();
+        this.setLoginVisible(false);
+        this.processCredential(stored, true);
+    }
+
+    private processCredential(credential: string, silent: boolean): void {
+        const payload = this.decodeCredential(credential);
+        if (!payload) {
+            if (!silent) {
+                this.showError(t('auth.error.loginFailed'));
+            } else {
+                this.enableLogin();
+                this.setLoginVisible(true);
+            }
+            this.storeCredential(null);
+            return;
+        }
+        this.clearError();
+        this.storeCredential(credential);
+        const user: GoogleUser = {
+            id: payload.sub,
+            name: payload.name || payload.email || 'Spieler',
+            ...(payload.email ? { email: payload.email } : {})
+        };
+        this.onLogin(user);
+        this.disableLogin();
+        this.setLoginVisible(false);
+    }
+
+    private storeCredential(value: string | null): void {
+        try {
+            if (value === null) {
+                window.localStorage.removeItem(this.credentialStorageKey);
+            } else {
+                window.localStorage.setItem(this.credentialStorageKey, value);
+            }
+        } catch (error) {
+            console.warn('Local storage unavailable for Google credential', error);
+        }
+    }
+
+    private readStoredCredential(): string | null {
+        try {
+            return window.localStorage.getItem(this.credentialStorageKey);
+        } catch (error) {
+            console.warn('Local storage unavailable for Google credential', error);
+            return null;
+        }
     }
 }
 
