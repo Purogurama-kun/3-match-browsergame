@@ -71,12 +71,14 @@ function ensureSchema(PDO $database): void
     $database->exec(
         'CREATE TABLE IF NOT EXISTS "User" (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            googleTokenID TEXT NOT NULL UNIQUE,
+            googleID TEXT NOT NULL UNIQUE,
             username TEXT NOT NULL,
             nationality TEXT NULL,
             updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         )'
     );
+
+    ensureUserColumnName($database);
 
     $database->exec(
         'CREATE TABLE IF NOT EXISTS "GameProgress" (
@@ -96,13 +98,25 @@ function ensureSchema(PDO $database): void
     );
 }
 
+function ensureUserColumnName(PDO $database): void
+{
+    $statement = $database->query('PRAGMA table_info("User")');
+    if ($statement === false) {
+        return;
+    }
+    $columns = $statement->fetchAll(PDO::FETCH_COLUMN, 1);
+    if (in_array('googleTokenID', $columns, true)) {
+        $database->exec('ALTER TABLE "User" RENAME COLUMN googleTokenID TO googleID');
+    }
+}
+
 function handleGet(PDO $database): void
 {
-    $userId = requireUserId($_GET['userId'] ?? null);
+    $googleId = requireUserId($_GET['userId'] ?? null);
     $localLevel = clampLevel($_GET['localLevel'] ?? 1);
     $localCoins = clampCoins($_GET['localCoins'] ?? 0);
 
-    $user = resolveUser($database, $userId, null, null);
+    $user = resolveUser($database, $googleId, null, null);
 
     $candidate = [
         'highestLevel' => $localLevel,
@@ -128,7 +142,7 @@ function handleGet(PDO $database): void
 function handlePost(PDO $database): void
 {
     $payload = decodeJsonRequest();
-    $userToken = requireUserId($payload['userId'] ?? null);
+    $googleId = requireUserId($payload['userId'] ?? null);
     $submittedLevel = clampLevel($payload['highestLevel'] ?? 1);
     $mode = isset($payload['mode']) ? requireMode($payload['mode']) : null;
     $data = array_key_exists('data', $payload) && is_array($payload['data']) ? $payload['data'] : [];
@@ -141,7 +155,7 @@ function handlePost(PDO $database): void
     $displayName = sanitizeUsername($payload['displayName'] ?? null);
     $nationality = sanitizeNationality($payload['nationality'] ?? null);
 
-    $user = resolveUser($database, $userToken, $displayName, $nationality);
+    $user = resolveUser($database, $googleId, $displayName, $nationality);
 
     $candidate = [
         'highestLevel' => $submittedLevel,
@@ -166,14 +180,14 @@ function handlePost(PDO $database): void
 
 function handleDelete(PDO $database): void
 {
-    $userId = requireUserId($_GET['userId'] ?? null);
-    deleteUserProgress($database, $userId);
+    $googleId = requireUserId($_GET['userId'] ?? null);
+    deleteUserProgress($database, $googleId);
     respond(200, ['deleted' => true]);
 }
 
-function deleteUserProgress(PDO $database, string $userToken): void
+function deleteUserProgress(PDO $database, string $googleId): void
 {
-    $user = fetchUserByGoogleToken($database, $userToken);
+    $user = fetchUserByGoogleId($database, $googleId);
     if (!$user) {
         return;
     }
@@ -195,12 +209,12 @@ function handleLeaderboardRequest(PDO $database): void
 
 function handleHistoryRequest(PDO $database): void
 {
-    $userToken = requireUserId($_GET['userId'] ?? null);
+    $googleId = requireUserId($_GET['userId'] ?? null);
     $mode = requireMode($_GET['mode'] ?? null);
     $limit = clampLimit($_GET['limit'] ?? DEFAULT_LIMIT);
     $offset = clampOffset($_GET['offset'] ?? 0);
 
-    $entries = fetchHistory($database, $userToken, $mode, $limit, $offset);
+    $entries = fetchHistory($database, $googleId, $mode, $limit, $offset);
     respond(200, ['entries' => $entries]);
 }
 
@@ -219,7 +233,7 @@ function fetchLevelLeaderboard(PDO $database, int $limit, int $offset): array
 {
     $statement = $database->prepare(
         'SELECT
-            u.googleTokenID AS userId,
+            u.googleID AS userId,
             u.username AS displayName,
             u.nationality AS nationality,
             gp.levelMode_level AS bestValue,
@@ -243,7 +257,7 @@ function fetchBlockerLeaderboard(PDO $database, int $limit, int $offset): array
 {
     $statement = $database->prepare(
         'SELECT
-            u.googleTokenID AS userId,
+            u.googleID AS userId,
             u.username AS displayName,
             u.nationality AS nationality,
             gp.blockerMode_highScore AS bestValue,
@@ -267,7 +281,7 @@ function fetchTimeLeaderboard(PDO $database, int $limit, int $offset): array
 {
     $statement = $database->prepare(
         'SELECT
-            u.googleTokenID AS userId,
+            u.googleID AS userId,
             u.username AS displayName,
             u.nationality AS nationality,
             gp.timeMode_survivalTime AS bestValue,
@@ -287,7 +301,7 @@ function fetchTimeLeaderboard(PDO $database, int $limit, int $offset): array
     );
 }
 
-function fetchHistory(PDO $database, string $userToken, string $mode, int $limit, int $offset): array
+function fetchHistory(PDO $database, string $googleId, string $mode, int $limit, int $offset): array
 {
     $statement = $database->prepare(
         'SELECT
@@ -297,10 +311,10 @@ function fetchHistory(PDO $database, string $userToken, string $mode, int $limit
             gp.updated_at
         FROM "GameProgress" gp
         JOIN "User" u ON u.id = gp.userID
-        WHERE u.googleTokenID = :token
+        WHERE u.googleID = :token
         LIMIT :limit OFFSET :offset'
     );
-    $statement->bindValue(':token', $userToken, PDO::PARAM_STR);
+    $statement->bindValue(':token', $googleId, PDO::PARAM_STR);
     $statement->bindValue(':limit', $limit, PDO::PARAM_INT);
     $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
     $statement->execute();
@@ -344,9 +358,9 @@ function formatLeaderboardRow(array $row, string $mode): array
     ];
 }
 
-function resolveUser(PDO $database, string $googleToken, ?string $displayName, ?string $nationality): array
+function resolveUser(PDO $database, string $googleId, ?string $displayName, ?string $nationality): array
 {
-    $user = fetchUserByGoogleToken($database, $googleToken);
+    $user = fetchUserByGoogleId($database, $googleId);
     if ($user) {
         $username = determineUsername($displayName, (int) $user['id'], (string) $user['username']);
         $needsUpdate = $username !== $user['username'] || $nationality !== $user['nationality'];
@@ -360,10 +374,10 @@ function resolveUser(PDO $database, string $googleToken, ?string $displayName, ?
 
     $usernameForInsert = $displayName ?? 'Player';
     $statement = $database->prepare(
-        'INSERT INTO "User" (googleTokenID, username, nationality)
+        'INSERT INTO "User" (googleID, username, nationality)
          VALUES (:token, :username, :nationality)'
     );
-    $statement->bindValue(':token', $googleToken, PDO::PARAM_STR);
+    $statement->bindValue(':token', $googleId, PDO::PARAM_STR);
     $statement->bindValue(':username', $usernameForInsert, PDO::PARAM_STR);
     $nationValue = $nationality === null ? null : $nationality;
     $nationType = $nationality === null ? PDO::PARAM_NULL : PDO::PARAM_STR;
@@ -379,10 +393,10 @@ function resolveUser(PDO $database, string $googleToken, ?string $displayName, ?
     return fetchUserById($database, $userId);
 }
 
-function fetchUserByGoogleToken(PDO $database, string $googleToken): ?array
+function fetchUserByGoogleId(PDO $database, string $googleId): ?array
 {
-    $statement = $database->prepare('SELECT id, googleTokenID, username, nationality FROM "User" WHERE googleTokenID = :token');
-    $statement->bindValue(':token', $googleToken, PDO::PARAM_STR);
+    $statement = $database->prepare('SELECT id, googleID, username, nationality FROM "User" WHERE googleID = :token');
+    $statement->bindValue(':token', $googleId, PDO::PARAM_STR);
     $statement->execute();
     $row = $statement->fetch();
     return $row === false ? null : $row;
@@ -390,7 +404,7 @@ function fetchUserByGoogleToken(PDO $database, string $googleToken): ?array
 
 function fetchUserById(PDO $database, int $userId): array
 {
-    $statement = $database->prepare('SELECT id, googleTokenID, username, nationality FROM "User" WHERE id = :id');
+    $statement = $database->prepare('SELECT id, googleID, username, nationality FROM "User" WHERE id = :id');
     $statement->bindValue(':id', $userId, PDO::PARAM_INT);
     $statement->execute();
     $row = $statement->fetch();
