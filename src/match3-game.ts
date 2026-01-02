@@ -166,8 +166,8 @@ class Match3Game implements ModeContext {
         this.hud.onLogout(handler);
     }
 
-    setLogoutVisible(visible: boolean): void {
-        this.hud.setLogoutVisible(visible);
+    setLogoutEnabled(enabled: boolean): void {
+        this.hud.setLogoutEnabled(enabled);
     }
 
     onLanguageChange(handler: (locale: Locale) => void): void {

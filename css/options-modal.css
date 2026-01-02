@@ -229,6 +229,12 @@
     transform: translateY(-1px);
 }
 
+.options-modal__action:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    filter: grayscale(0.4);
+}
+
 .options-modal__action[aria-pressed="false"] {
     background: rgba(255, 255, 255, 0.02);
     color: rgba(223, 229, 255, 0.8);

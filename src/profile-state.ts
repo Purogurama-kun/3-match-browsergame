@@ -14,21 +14,36 @@ type ProfileStateOptions = {
 
 class ProfileState {
     private readonly root: HTMLElement;
-    private readonly nameElement: HTMLElement;
+    private readonly nameInput: HTMLInputElement;
     private readonly statusElement: HTMLElement;
     private readonly backButton: HTMLButtonElement;
+    private readonly saveButton: HTMLButtonElement;
+    private readonly feedbackElement: HTMLElement;
     private currentProfile: AccountProfileData = { name: '', source: 'guest' };
     private readonly onExit: () => void;
+    private nameSaveHandler: ((value: string) => void) | null = null;
 
     constructor(options: ProfileStateOptions) {
         this.root = getRequiredElement('account');
-        this.nameElement = getRequiredElement('account-name');
+        this.nameInput = getRequiredElement('account-name');
         this.statusElement = getRequiredElement('account-status');
         this.backButton = this.getButton('account-back');
+        this.saveButton = this.getButton('account-save-name');
+        this.feedbackElement = getRequiredElement('account-feedback');
         this.onExit = options.onExit;
         this.backButton.addEventListener('click', () => {
             this.onExit();
         });
+        this.saveButton.addEventListener('click', () => {
+            this.nameSaveHandler?.(this.nameInput.value);
+        });
+        this.nameInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                this.saveButton.click();
+            }
+        });
+        this.applyLocale();
     }
 
     enter(profile: AccountProfileData): void {
@@ -36,7 +51,9 @@ class ProfileState {
         this.render();
         this.root.removeAttribute('hidden');
         this.root.scrollTop = 0;
-        this.backButton.focus();
+        this.clearFeedback();
+        this.saveButton.disabled = false;
+        this.saveButton.focus();
     }
 
     update(profile: AccountProfileData): void {
@@ -52,11 +69,46 @@ class ProfileState {
     }
 
     private render(): void {
-        this.nameElement.textContent = this.currentProfile.name;
+        this.nameInput.value = this.currentProfile.name;
+        this.saveButton.textContent = t('account.name.saveButton');
         this.statusElement.textContent =
             this.currentProfile.source === 'google'
                 ? t('account.status.google')
                 : t('account.status.guest');
+    }
+
+    applyLocale(): void {
+        this.saveButton.textContent = t('account.name.saveButton');
+        this.statusElement.textContent =
+            this.currentProfile.source === 'google'
+                ? t('account.status.google')
+                : t('account.status.guest');
+    }
+
+    onNameSave(handler: (value: string) => void): void {
+        this.nameSaveHandler = handler;
+    }
+
+    setNameSaving(saving: boolean): void {
+        this.saveButton.disabled = saving;
+        this.saveButton.setAttribute('aria-busy', saving ? 'true' : 'false');
+    }
+
+    setFeedback(message: string, type: 'error' | 'success' | 'info' = 'info'): void {
+        this.feedbackElement.textContent = message;
+        this.feedbackElement.classList.remove(
+            'account__feedback--error',
+            'account__feedback--success'
+        );
+        if (type === 'error') {
+            this.feedbackElement.classList.add('account__feedback--error');
+        } else if (type === 'success') {
+            this.feedbackElement.classList.add('account__feedback--success');
+        }
+    }
+
+    clearFeedback(): void {
+        this.setFeedback('', 'info');
     }
 
     private getButton(id: string): HTMLButtonElement {

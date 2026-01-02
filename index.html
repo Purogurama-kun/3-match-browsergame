@@ -272,10 +272,48 @@
             </div>
             <div class="account__content">
                 <div class="account__field">
-                    <span class="account__field-label" data-i18n-key="account.field.name">Name</span>
-                    <span id="account-name" class="account__field-value"></span>
+                    <label class="account__field-label" for="account-name" data-i18n-key="account.field.name">Name</label>
+                    <div class="account__name-row">
+                        <input
+                            id="account-name"
+                            class="account__name-input"
+                            type="text"
+                            maxlength="128"
+                            aria-describedby="account-feedback"
+                            autocomplete="name"
+                            inputmode="text"
+                            spellcheck="false"
+                        />
+                        <button
+                            id="account-save-name"
+                            class="account__save-button"
+                            type="button"
+                            data-i18n-key="account.name.saveButton"
+                        >
+                            Save name
+                        </button>
+                    </div>
+                    <p id="account-feedback" class="account__feedback" aria-live="polite"></p>
                 </div>
                 <p id="account-status" class="account__status"></p>
+                <div class="account__actions">
+                    <button
+                        id="delete-progress"
+                        class="options-modal__action options-modal__action--danger"
+                        type="button"
+                        data-i18n-key="options.deleteProgress"
+                    >
+                        Delete game progress
+                    </button>
+                    <button
+                        id="logout-button"
+                        class="options-modal__action options-modal__action--secondary"
+                        type="button"
+                        data-i18n-key="account.logoutGoogle"
+                    >
+                        Logout from Google
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -428,27 +466,6 @@
                         <span class="options-modal__label" data-i18n-key="options.performance.label">Animations</span>
                         <button id="performance-toggle" class="options-modal__action" type="button" aria-pressed="false">
                             Full effects
-                        </button>
-                    </div>
-                    <div class="options-modal__group">
-                        <button
-                            id="delete-progress"
-                            class="options-modal__action options-modal__action--danger"
-                            type="button"
-                            data-i18n-key="options.deleteProgress"
-                        >
-                            Delete game progress
-                        </button>
-                    </div>
-                    <div class="options-modal__group">
-                        <button
-                            id="logout-button"
-                            class="options-modal__action options-modal__action--secondary"
-                            type="button"
-                            data-i18n-key="options.logout"
-                            hidden
-                        >
-                            Logout
                         </button>
                     </div>
                     <div class="options-modal__group">

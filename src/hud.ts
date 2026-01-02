@@ -152,8 +152,8 @@ class Hud {
         this.optionsMenu.onLogout(handler);
     }
 
-    setLogoutVisible(visible: boolean): void {
-        this.optionsMenu.setLogoutVisible(visible);
+    setLogoutEnabled(enabled: boolean): void {
+        this.optionsMenu.setLogoutEnabled(enabled);
     }
 
     closeOptions(): void {

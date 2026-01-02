@@ -36,6 +36,9 @@ class GameApp {
         this.profileState = new ProfileState({
             onExit: () => this.handleAccountExit()
         });
+        this.profileState.onNameSave((value) => {
+            void this.handleProfileNameSave(value);
+        });
         this.googleAuth = new GoogleAuth({
             loginButtonId: 'google-login',
             errorId: 'auth-error',
@@ -57,7 +60,7 @@ class GameApp {
         this.googleLoginTooltipLink = this.getGoogleLoginTooltipLink();
         this.googleLoginTooltipSuffix = this.getGoogleLoginTooltipSuffix();
         this.setupGoogleLoginTooltip();
-        this.game.setLogoutVisible(false);
+        this.game.setLogoutEnabled(false);
 
         this.startLevelButton.addEventListener('click', () => this.startLevelGame());
         this.startBlockerButton.addEventListener('click', () => this.startBlockerGame());
@@ -97,6 +100,7 @@ class GameApp {
     private localProgress: LocalProgressStore;
     private currentUser: GoogleUser | null = null;
     private isProgressLoading = false;
+    private isProfileNameSaving = false;
     private progress: StoredProgress;
     private game: Match3Game;
     private googleLoginInfoButton: HTMLButtonElement;
@@ -177,6 +181,7 @@ class GameApp {
         this.googleAuth.applyLocale();
         this.game.handleLocaleChange(locale);
         this.updateGoogleLoginTooltip(locale);
+        this.profileState.applyLocale();
         this.refreshProfileView();
     }
 
@@ -215,6 +220,65 @@ class GameApp {
     }
     private refreshProfileView(): void {
         this.profileState.update(this.buildAccountProfile());
+    }
+
+    private async handleProfileNameSave(rawName: string): Promise<void> {
+        if (this.isProfileNameSaving) return;
+        const normalized = this.normalizeProfileName(rawName);
+        if (normalized === '') {
+            this.profileState.setFeedback(t('account.name.error.empty'), 'error');
+            return;
+        }
+        this.profileState.clearFeedback();
+        this.profileState.setNameSaving(true);
+        this.isProfileNameSaving = true;
+        try {
+            if (this.currentUser) {
+                await this.persistGoogleDisplayName(normalized);
+                this.currentUser.name = normalized;
+            } else {
+                this.guestProfileStore.save({ name: normalized });
+            }
+            this.refreshProfileView();
+            this.profileState.setFeedback(t('account.name.saved'), 'success');
+        } catch (error) {
+            console.error('Failed to update profile name', error);
+            this.profileState.setFeedback(t('account.name.error.generic'), 'error');
+        } finally {
+            this.isProfileNameSaving = false;
+            this.profileState.setNameSaving(false);
+        }
+    }
+
+    private async persistGoogleDisplayName(name: string): Promise<void> {
+        if (!this.currentUser) {
+            throw new Error('No logged in user.');
+        }
+        const identity = this.getIdentity();
+        const identityWithName =
+            identity !== null
+                ? { ...identity, name }
+                : {
+                      id: this.currentUser.id,
+                      name
+                  };
+        const updatedProgress = await this.progressStore.save(
+            this.currentUser.id,
+            this.progress,
+            'both',
+            identityWithName
+        );
+        this.progress = updatedProgress;
+        this.game.setPowerupInventory(this.progress.powerups);
+        this.updateShopState();
+    }
+
+    private normalizeProfileName(rawName: string): string {
+        const trimmed = rawName.trim();
+        if (trimmed.length <= 128) {
+            return trimmed;
+        }
+        return trimmed.substring(0, 128);
     }
 
     private buildAccountProfile(): AccountProfileData {
@@ -338,7 +402,7 @@ class GameApp {
         this.isProgressLoading = true;
         this.currentUser = user;
         this.refreshProfileView();
-        this.game.setLogoutVisible(true);
+        this.game.setLogoutEnabled(true);
         this.googleAuth.clearError();
         this.getGoogleLoginInfoWrapper().hidden = true;
         this.updateStartButtonState();
@@ -590,7 +654,7 @@ class GameApp {
         this.googleAuth.signOut();
         this.googleAuth.setLoggedOut();
         this.getGoogleLoginInfoWrapper().hidden = false;
-        this.game.setLogoutVisible(false);
+        this.game.setLogoutEnabled(false);
         this.isProgressLoading = false;
         this.updateShopState();
         this.updateStartButtonState();

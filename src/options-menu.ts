@@ -38,7 +38,7 @@ class OptionsMenu {
         this.setLanguage('en');
         this.setPerformanceModeEnabled(false);
         this.hideOptionsModal();
-        this.setLogoutVisible(false);
+        this.setLogoutEnabled(false);
     }
 
     private readonly optionsToggle: HTMLButtonElement;
@@ -118,6 +118,7 @@ class OptionsMenu {
         this.setPerformanceModeEnabled(this.performanceModeEnabled);
         this.infoButton.setAttribute('aria-label', t('options.info'));
         this.updateInfoLinks(this.currentLocale);
+        this.logoutButton.textContent = t('account.logoutGoogle');
     }
 
     setCellShapeMode(mode: CellShapeMode): void {
@@ -184,12 +185,9 @@ class OptionsMenu {
         });
     }
 
-    setLogoutVisible(visible: boolean): void {
-        if (visible) {
-            this.logoutButton.removeAttribute('hidden');
-        } else {
-            this.logoutButton.setAttribute('hidden', 'true');
-        }
+    setLogoutEnabled(enabled: boolean): void {
+        this.logoutButton.disabled = !enabled;
+        this.logoutButton.setAttribute('aria-disabled', enabled ? 'false' : 'true');
     }
 
     close(): void {
