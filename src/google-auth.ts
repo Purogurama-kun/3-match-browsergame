@@ -184,9 +184,9 @@ class GoogleAuth {
             size: 'large',
             shape: 'pill',
             text: 'continue_with',
-            locale: 'de',
+            locale: 'en',
             logo_alignment: 'left',
-            width: 320
+            width: 200
         });
         this.enableLogin();
     }

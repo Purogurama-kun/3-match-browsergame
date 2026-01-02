@@ -62,14 +62,14 @@
     align-items: center;
     gap: 0.35rem;
 }
-
+/* Google auth button width is set with JS - see google-auth.ts 
 @media (max-width: 780px) {
     .auth__login-row {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.35rem;
     }
-}
+}*/
 
 .auth__info-wrapper {
     position: relative;
