@@ -1,0 +1,133 @@
+.account {
+    width: min(48rem, 100%);
+    margin: clamp(1.5rem, 6vh, 3.5rem) auto;
+    padding: 0 1rem;
+    box-sizing: border-box;
+}
+
+.account__panel {
+    width: 100%;
+    border-radius: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(13, 16, 24, 0.95), rgba(4, 5, 10, 0.98));
+    box-shadow:
+        0 30px 60px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.account__sticky-top {
+    display: flex;
+    flex-direction: column;
+    z-index: 4;
+}
+
+.account__top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    height: 64px;
+    display: grid;
+    grid-template-columns: 52px 1fr 52px;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(4, 5, 10, 0.95);
+    backdrop-filter: blur(16px);
+}
+
+.account__top-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-align: center;
+    color: #f8f9ff;
+}
+
+.account__top-spacer {
+    width: 52px;
+    height: 1px;
+}
+
+.account__back-button {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.02);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.account__back-button:hover {
+    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateY(-1px);
+}
+
+.account__back-button:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
+}
+
+.account__back-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.account__back-icon {
+    color: white;
+}
+
+.account__assistive-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    border: 0;
+}
+
+.account__content {
+    padding: 1rem 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.account__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.account__field-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.account__field-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #f8f9ff;
+    word-break: break-word;
+}
+
+.account__status {
+    margin: 0;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.65);
+    letter-spacing: 0.05em;
+}

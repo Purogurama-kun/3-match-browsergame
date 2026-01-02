@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="css/options-modal.css" />
     <link rel="stylesheet" href="css/confirm-modal.css" />
     <link rel="stylesheet" href="css/shop.css" />
+    <link rel="stylesheet" href="css/account.css" />
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script type="module" src="dist/main.js"></script>
 </head>
@@ -68,6 +69,19 @@
                         aria-label="Open leaderboard"
                     >
                         <img src="assets/images/leaderboard.svg" alt="" aria-hidden="true" />
+                    </button>
+                    <button
+                        id="open-account"
+                        class="main-menu__icon-button main-menu__icon-button--profile"
+                        type="button"
+                        aria-labelledby="main-menu-account-label"
+                    >
+                        <img src="assets/images/account-icon.svg" alt="" aria-hidden="true" />
+                        <span
+                            id="main-menu-account-label"
+                            class="main-menu__icon-button__assistive"
+                            data-i18n-key="button.account"
+                        ></span>
                     </button>
                 </div>
             </div>
@@ -221,6 +235,48 @@
                 </div>
             </div>
             <ul id="leaderboard-list" class="leaderboard__list"></ul>
+        </div>
+    </div>
+    <div id="account" class="account" hidden>
+        <div class="account__panel">
+            <div class="account__sticky-top">
+                <div class="account__top-bar">
+                    <button
+                        id="account-back"
+                        class="account__back-button"
+                        type="button"
+                        aria-labelledby="account-back-label"
+                    >
+                        <svg
+                            class="account__back-icon"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M15 7l-6 5.5L15 18" />
+                        </svg>
+                        <span
+                            id="account-back-label"
+                            class="account__assistive-text"
+                            data-i18n-key="button.back"
+                        >
+                            Back
+                        </span>
+                    </button>
+                    <div class="account__top-title" data-i18n-key="account.title">My Account</div>
+                </div>
+            </div>
+            <div class="account__content">
+                <div class="account__field">
+                    <span class="account__field-label" data-i18n-key="account.field.name">Name</span>
+                    <span id="account-name" class="account__field-value"></span>
+                </div>
+                <p id="account-status" class="account__status"></p>
+            </div>
         </div>
     </div>
     <div id="hud" class="hud">

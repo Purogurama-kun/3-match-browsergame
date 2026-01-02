@@ -6,6 +6,8 @@ import { ProgressStore, StoredProgress } from './progress-store.js';
 import { LocalProgressStore } from './local-progress-store.js';
 import { ShopView, getNextPowerupPrice, type ShopState } from './shop.js';
 import { createFreshPowerupInventory, MAX_TACTICAL_POWERUP_STOCK, TACTICAL_POWERUPS, type TacticalPowerup } from './constants.js';
+import { GuestProfileStore } from './profile-store.js';
+import { ProfileState, type AccountProfileData } from './profile-state.js';
 import { onLocaleChange, setLocale, t } from './i18n.js';
 import type { Locale } from './i18n.js';
 import type { LeaderboardIdentity, LeaderboardMode, PowerupInventory } from './types.js';
@@ -20,6 +22,7 @@ class GameApp {
         this.startLeaderboardButton = this.getLeaderboardButton();
         this.leaderboard = getRequiredElement('leaderboard');
         this.shopButton = this.getShopButton();
+        this.profileButton = this.getProfileButton();
         this.progress = {
             highestLevel: 1,
             blockerHighScore: 0,
@@ -29,6 +32,10 @@ class GameApp {
         };
         this.progressStore = new ProgressStore();
         this.localProgress = new LocalProgressStore();
+        this.guestProfileStore = new GuestProfileStore();
+        this.profileState = new ProfileState({
+            onExit: () => this.handleAccountExit()
+        });
         this.googleAuth = new GoogleAuth({
             loginButtonId: 'google-login',
             errorId: 'auth-error',
@@ -57,6 +64,7 @@ class GameApp {
         this.startTimeButton.addEventListener('click', () => this.startTimeGame());
         this.startLeaderboardButton.addEventListener('click', () => this.showLeaderboard());
         this.shopButton.addEventListener('click', () => this.showShop());
+        this.profileButton.addEventListener('click', () => this.showProfile());
         this.game.onExitGameRequested(() => this.returnToMenu());
         this.game.onDeleteProgressRequested(() => {
             void this.handleDeleteProgress();
@@ -96,6 +104,10 @@ class GameApp {
     private googleLoginTooltipPrefix: HTMLElement;
     private googleLoginTooltipLink: HTMLAnchorElement;
     private googleLoginTooltipSuffix: HTMLElement;
+    private profileButton: HTMLButtonElement;
+    private guestProfileStore: GuestProfileStore;
+    private profileState: ProfileState;
+    private isProfileVisible = false;
 
     private startLevelGame(): void {
         if (this.isProgressLoading) return;
@@ -132,6 +144,16 @@ class GameApp {
         this.shopView.open(this.buildShopState());
     }
 
+    private showProfile(): void {
+        if (this.isProgressLoading) return;
+        this.hideLeaderboard();
+        this.shopView.hide();
+        this.hideMainMenu();
+        this.body.classList.add('match-app--account');
+        this.isProfileVisible = true;
+        this.profileState.enter(this.buildAccountProfile());
+    }
+
     private buildShopState(): ShopState {
         return {
             coins: Math.max(0, Math.floor(this.progress.sugarCoins)),
@@ -155,11 +177,13 @@ class GameApp {
         this.googleAuth.applyLocale();
         this.game.handleLocaleChange(locale);
         this.updateGoogleLoginTooltip(locale);
+        this.refreshProfileView();
     }
 
     private showMainMenu(): void {
         this.shopView.hide();
         this.hideLeaderboard();
+        this.hideProfile();
         this.body.classList.add('match-app--menu');
         this.mainMenu.removeAttribute('hidden');
         this.game.closeOptions();
@@ -174,6 +198,42 @@ class GameApp {
     private hideLeaderboard(): void {
         this.body.classList.remove('match-app--leaderboard');
         this.leaderboard.setAttribute('hidden', 'true');
+    }
+
+    private hideProfile(): void {
+        if (!this.isProfileVisible) {
+            return;
+        }
+        this.isProfileVisible = false;
+        this.profileState.exit();
+        this.body.classList.remove('match-app--account');
+    }
+
+    private handleAccountExit(): void {
+        this.hideProfile();
+        this.showMainMenu();
+    }
+    private refreshProfileView(): void {
+        this.profileState.update(this.buildAccountProfile());
+    }
+
+    private buildAccountProfile(): AccountProfileData {
+        if (this.currentUser) {
+            const name = this.currentUser.name.trim();
+            return {
+                source: 'google',
+                name: name || t('account.guestDefaultName')
+            };
+        }
+        const guest = this.guestProfileStore.load();
+        const guestName = guest.name.trim();
+        const defaultNames = ['Guest', 'Gast'];
+        const displayName =
+            guestName && !defaultNames.includes(guestName) ? guestName : t('account.guestDefaultName');
+        return {
+            source: 'guest',
+            name: displayName
+        };
     }
 
     private getIdentity(): LeaderboardIdentity | null {
@@ -233,6 +293,14 @@ class GameApp {
         return element;
     }
 
+    private getProfileButton(): HTMLButtonElement {
+        const element = getRequiredElement('open-account');
+        if (!(element instanceof HTMLButtonElement)) {
+            throw new Error('Account button is not a button');
+        }
+        return element;
+    }
+
     private getGoogleLoginInfoButton(): HTMLButtonElement {
         const element = getRequiredElement('google-login-info');
         if (!(element instanceof HTMLButtonElement)) {
@@ -265,6 +333,7 @@ class GameApp {
         const localProgress = this.progress;
         this.isProgressLoading = true;
         this.currentUser = user;
+        this.refreshProfileView();
         this.game.setLogoutVisible(true);
         this.googleAuth.clearError();
         this.updateStartButtonState();
@@ -519,6 +588,7 @@ class GameApp {
         this.isProgressLoading = false;
         this.updateShopState();
         this.updateStartButtonState();
+        this.refreshProfileView();
     }
 
     private handleShopPurchase(type: TacticalPowerup): void {
