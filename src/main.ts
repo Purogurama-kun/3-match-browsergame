@@ -506,31 +506,15 @@ class GameApp {
     }
 
     private updateStartButtonState(): void {
-        const isAuthenticated = Boolean(this.currentUser);
         const isLoading = this.isProgressLoading;
         this.startLevelButton.disabled = isLoading;
         this.startBlockerButton.disabled = isLoading;
         this.startTimeButton.disabled = isLoading;
         this.startLeaderboardButton.disabled = isLoading;
         this.shopButton.disabled = isLoading;
-        const labelLevel = Math.max(1, this.progress.highestLevel);
-        const blockerScore = Math.max(0, this.progress.blockerHighScore);
-        const timeBest = Math.max(0, this.progress.timeSurvival);
-        this.startTimeButton.textContent = isLoading
-            ? t('mainMenu.start.timeLoading')
-            : t('mainMenu.start.timeBest', { time: this.formatTime(timeBest) });
-        this.startBlockerButton.textContent = isLoading
-            ? t('mainMenu.start.blockerLoading')
-            : t('mainMenu.start.blockerBest', { score: blockerScore });
-        if (!isAuthenticated) {
-            this.startLevelButton.textContent = t('mainMenu.start.levelGuest');
-            return;
-        }
-        if (isLoading) {
-            this.startLevelButton.textContent = t('mainMenu.start.progressLoading');
-            return;
-        }
-        this.startLevelButton.textContent = t('mainMenu.start.levelAt', { level: labelLevel });
+        this.startLevelButton.textContent = t('button.levelMode');
+        this.startBlockerButton.textContent = t('button.blockerMode');
+        this.startTimeButton.textContent = t('button.timeMode');
     }
 
     private setupGoogleLoginTooltip(): void {
@@ -611,13 +595,6 @@ class GameApp {
     private hasMorePowerups(stored: StoredProgress, merged: StoredProgress): boolean {
         const powerupTypes = Object.keys(TACTICAL_POWERUPS) as TacticalPowerup[];
         return powerupTypes.some((type) => (merged.powerups[type] ?? 0) > (stored.powerups[type] ?? 0));
-    }
-
-    private formatTime(totalSeconds: number): string {
-        const safeSeconds = Math.max(0, Math.floor(Number.isFinite(totalSeconds) ? totalSeconds : 0));
-        const minutes = Math.floor(safeSeconds / 60);
-        const seconds = safeSeconds % 60;
-        return minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
     }
 
     private async handleDeleteProgress(): Promise<void> {
