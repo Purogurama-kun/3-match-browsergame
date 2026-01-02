@@ -10,6 +10,10 @@
     flex-direction: column;
 }
 
+.main-menu[hidden] {
+    display: none;
+}
+
 @media (max-width: 780px) {
     .main-menu {
         padding-top: clamp(6rem, 32vh, 20rem);
