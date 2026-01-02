@@ -1,5 +1,5 @@
 import { getRequiredElement } from './dom.js';
-import { t } from './i18n.js';
+import { Locale, onLocaleChange, t } from './i18n.js';
 
 type GoogleJwtPayload = {
     sub: string;
@@ -72,6 +72,7 @@ class GoogleAuth {
         this.onLogin = config.onLogin;
         this.disableLogin();
         this.initializeGoogle();
+        onLocaleChange((locale) => this.handleLocaleChange(locale));
     }
 
     private readonly clientId =
@@ -86,6 +87,7 @@ class GoogleAuth {
     private progressState = { level: 1, blockerHighScore: 0, timeSurvival: 0 };
     private isProgressLoading = false;
     private currentUserName: string | null = null;
+    private currentLocale: Locale = 'en';
 
     setProgress(progress: {
         level?: number;
@@ -178,17 +180,33 @@ class GoogleAuth {
             use_fedcm_for_prompt: true,
             callback: (response) => this.handleCredential(response)
         });
-        this.loginContainer.textContent = '';
+        this.renderGoogleButton();
+        this.enableLogin();
+    }
+
+    private renderGoogleButton(): void {
+        if (!window.google?.accounts?.id) {
+            return;
+        }
+        this.loginContainer.innerHTML = '';
+        // see all options for the GsiButtonConfiguration: https://developers.google.com/identity/gsi/web/reference/js-reference#type
         window.google.accounts.id.renderButton(this.loginContainer, {
+            type: 'standard',
             theme: 'outline',
             size: 'large',
             shape: 'pill',
-            text: 'continue_with',
-            locale: 'en',
+            text: 'signin',
+            locale: this.currentLocale,
             logo_alignment: 'left',
-            width: 200
+            width: 150
         });
-        this.enableLogin();
+        //console.log("INFO: render google auth btn (locale: " + this.currentLocale + ")");
+    }
+
+    private handleLocaleChange(locale: Locale): void {
+        if (locale === this.currentLocale) return;
+        this.currentLocale = locale;
+        this.renderGoogleButton();
     }
 
     private handleCredential(response: GoogleCredentialResponse): void {
