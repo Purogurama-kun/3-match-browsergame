@@ -41,11 +41,11 @@ npm run server
 
 Then open `http://localhost:5500` in your browser.
 
-The PHP server exposes `backend/progress.php`, which persists user progress to `backend/progress.sqlite`. The database file is created automatically on first write and now also stores leaderboard runs:
+The PHP server exposes `backend/progress.php`, which persists user progress to `backend/progress.sqlite`. The schema now relies on two tables (`User` and `GameProgress`) so each account keeps its googleTokenID, username, nationality and aggregated stats (scores, coins, powerups, level) with `GameProgress.userID` referencing `User.id`. New accounts start with the username `Player#[id]` instead of the raw googleTokenID and the SQLite file is created automatically on first write.
 
 - `action=leaderboard&mode=LevelMode|BlockerMode|TimeMode` (GET) returns paged global entries ordered by best result.
-- `action=history&mode=LevelMode|BlockerMode|TimeMode&userId=<id>` (GET) returns the requesting user’s past runs ordered best-first.
-- POST requests still accept progress updates and now record completed runs for all modes when supplied.
+- `action=history&mode=LevelMode|BlockerMode|TimeMode&userId=<id>` (GET) returns the requesting user’s best aggregated result for the requested mode.
+- POST requests still accept progress updates and now refresh the aggregated stats that drive the leaderboard entries.
 
 **Run db manager in browser:** http://localhost:5500/backend/db-manager/phpliteadmin.php 
 

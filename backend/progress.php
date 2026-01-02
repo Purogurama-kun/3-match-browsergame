@@ -54,118 +54,46 @@ function openDatabase(): PDO
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
         ]
     );
+
     $database->exec('PRAGMA foreign_keys = ON;');
     $database->exec('PRAGMA journal_mode = WAL;');
     ensureSchema($database);
+
     return $database;
 }
 
 function ensureSchema(PDO $database): void
 {
+    $database->exec('DROP TABLE IF EXISTS run_results');
+    $database->exec('DROP TABLE IF EXISTS user_progress');
+    $database->exec('DROP TABLE IF EXISTS users');
+
     $database->exec(
-        'CREATE TABLE IF NOT EXISTS user_progress (
-            user_id TEXT PRIMARY KEY,
-            highest_level INTEGER NOT NULL DEFAULT 1,
-            data TEXT NOT NULL DEFAULT "{}",
+        'CREATE TABLE IF NOT EXISTS "User" (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            googleTokenID TEXT NOT NULL UNIQUE,
+            username TEXT NOT NULL,
+            nationality TEXT NULL,
             updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         )'
     );
 
-    $columns = fetchExistingColumns($database);
-
-    if (!isset($columns['data'])) {
-        $database->exec('ALTER TABLE user_progress ADD COLUMN data TEXT NOT NULL DEFAULT "{}"');
-        $database->exec('UPDATE user_progress SET data = "{}" WHERE data IS NULL');
-    }
-
-    if (!isset($columns['updated_at'])) {
-        $database->exec(
-            'ALTER TABLE user_progress ADD COLUMN updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP'
-        );
-        $database->exec(
-            'UPDATE user_progress SET updated_at = CURRENT_TIMESTAMP WHERE updated_at IS NULL'
-        );
-    }
-
     $database->exec(
-        'CREATE TABLE IF NOT EXISTS users (
-            google_id TEXT PRIMARY KEY,
-            display_name TEXT NOT NULL,
-            nationality TEXT NULL
-        )'
-    );
-
-    $database->exec(
-        'CREATE TABLE IF NOT EXISTS run_results (
+        'CREATE TABLE IF NOT EXISTS "GameProgress" (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT NOT NULL,
-            mode TEXT NOT NULL,
-            highest_level INTEGER NULL,
-            score INTEGER NULL,
-            completed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(user_id) REFERENCES users(google_id) ON DELETE CASCADE,
-            CHECK(mode IN ("' . MODE_LEVEL . '", "' . MODE_BLOCKER . '", "' . MODE_TIME . '"))
+            userID INTEGER NOT NULL,
+            blockerMode_highScore INTEGER NOT NULL DEFAULT 0,
+            timeMode_survivalTime INTEGER NOT NULL DEFAULT 0,
+            levelMode_level INTEGER NOT NULL DEFAULT 1,
+            sugarCoin INTEGER NOT NULL DEFAULT 0,
+            shufflePowerup INTEGER NOT NULL DEFAULT 0,
+            switchPowerup INTEGER NOT NULL DEFAULT 0,
+            bombPowerup INTEGER NOT NULL DEFAULT 0,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(userID) REFERENCES "User"(id) ON DELETE CASCADE,
+            UNIQUE(userID)
         )'
     );
-
-    $database->exec('CREATE INDEX IF NOT EXISTS idx_run_results_user_mode ON run_results(user_id, mode)');
-    $database->exec('CREATE INDEX IF NOT EXISTS idx_run_results_mode_value ON run_results(mode, highest_level, score)');
-
-    migrateRunResultsForTimeMode($database);
-    migrateLegacyProgress($database);
-}
-
-function migrateRunResultsForTimeMode(PDO $database): void
-{
-    $tableSql = fetchTableSql($database, 'run_results');
-    if ($tableSql === null || str_contains($tableSql, MODE_TIME)) {
-        return;
-    }
-
-    $database->exec('DROP TABLE IF EXISTS run_results_legacy');
-    $database->exec('ALTER TABLE run_results RENAME TO run_results_legacy');
-    $database->exec(
-        'CREATE TABLE run_results (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT NOT NULL,
-            mode TEXT NOT NULL,
-            highest_level INTEGER NULL,
-            score INTEGER NULL,
-            completed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(user_id) REFERENCES users(google_id) ON DELETE CASCADE,
-            CHECK(mode IN ("' . MODE_LEVEL . '", "' . MODE_BLOCKER . '", "' . MODE_TIME . '"))
-        )'
-    );
-    $database->exec(
-        'INSERT INTO run_results (user_id, mode, highest_level, score, completed_at)
-         SELECT user_id, mode, highest_level, score, completed_at FROM run_results_legacy'
-    );
-    $database->exec('DROP TABLE run_results_legacy');
-    $database->exec('CREATE INDEX IF NOT EXISTS idx_run_results_user_mode ON run_results(user_id, mode)');
-    $database->exec('CREATE INDEX IF NOT EXISTS idx_run_results_mode_value ON run_results(mode, highest_level, score)');
-}
-
-function fetchExistingColumns(PDO $database): array
-{
-    $statement = $database->query('PRAGMA table_info(user_progress)');
-    $columns = [];
-
-    foreach ($statement->fetchAll() as $column) {
-        if (isset($column['name'])) {
-            $columns[(string) $column['name']] = true;
-        }
-    }
-
-    return $columns;
-}
-
-function fetchTableSql(PDO $database, string $table): ?string
-{
-    $statement = $database->prepare('SELECT sql FROM sqlite_master WHERE type = "table" AND name = :name');
-    $statement->bindValue(':name', $table, PDO::PARAM_STR);
-    $statement->execute();
-    $row = $statement->fetch();
-    return $row !== false && isset($row['sql']) ? (string) $row['sql'] : null;
 }
 
 function handleGet(PDO $database): void
@@ -173,125 +101,65 @@ function handleGet(PDO $database): void
     $userId = requireUserId($_GET['userId'] ?? null);
     $localLevel = clampLevel($_GET['localLevel'] ?? 1);
     $localCoins = clampCoins($_GET['localCoins'] ?? 0);
-    $progress = fetchProgress($database, $userId);
 
-    if (!$progress) {
-        registerProgress($database, $userId, $localLevel);
-        $progress = fetchProgress($database, $userId);
-    }
+    $user = resolveUser($database, $userId, null, null);
 
-    $existingLevel = isset($progress['highest_level'])
-        ? clampLevel($progress['highest_level'])
-        : $localLevel;
-    $data = decodeData($progress['data'] ?? '{}');
-    $existingScore = clampScore($data['blockerHighScore'] ?? 0);
-    $existingTime = clampTime($data['timeSurvival'] ?? 0);
-    $existingCoins = clampCoins($data['sugarCoins'] ?? 0);
-    $existingPowerups = clampPowerups($data['powerups'] ?? []);
+    $candidate = [
+        'highestLevel' => $localLevel,
+        'blockerHighScore' => 0,
+        'timeSurvival' => 0,
+        'sugarCoins' => $localCoins,
+        'powerups' => []
+    ];
 
-    $bestLevel = max($localLevel, $existingLevel, fetchBestLevelFromRuns($database, $userId));
-    $bestScore = max($existingScore, fetchBestScoreFromRuns($database, $userId, MODE_BLOCKER));
-    $bestTime = max($existingTime, fetchBestScoreFromRuns($database, $userId, MODE_TIME));
-    $bestCoins = max($localCoins, $existingCoins);
-    $bestPowerups = $existingPowerups;
-
-    $data['powerups'] = $existingPowerups;
-    $normalizedData = normalizeData(
-        [
-            'blockerHighScore' => $bestScore,
-            'timeSurvival' => $bestTime,
-            'sugarCoins' => $bestCoins,
-            'powerups' => $bestPowerups
-        ],
-        $data
-    );
-
-    if ($bestLevel !== $existingLevel || $bestScore !== $existingScore || $bestTime !== $existingTime || $bestCoins !== $existingCoins) {
-        saveProgress($database, $userId, $bestLevel, json_encode($normalizedData, JSON_THROW_ON_ERROR));
-    }
+    $metrics = persistUserProgress($database, (int) $user['id'], $candidate);
 
     respond(200, [
-        'highestLevel' => $bestLevel,
-        'data' => $normalizedData
+        'highestLevel' => $metrics['highestLevel'],
+        'data' => [
+            'blockerHighScore' => $metrics['blockerHighScore'],
+            'timeSurvival' => $metrics['timeSurvival'],
+            'sugarCoins' => $metrics['sugarCoins'],
+            'powerups' => $metrics['powerups']
+        ]
     ]);
 }
 
 function handlePost(PDO $database): void
 {
     $payload = decodeJsonRequest();
-    $userId = requireUserId($payload['userId'] ?? null);
+    $userToken = requireUserId($payload['userId'] ?? null);
     $submittedLevel = clampLevel($payload['highestLevel'] ?? 1);
     $mode = isset($payload['mode']) ? requireMode($payload['mode']) : null;
     $data = array_key_exists('data', $payload) && is_array($payload['data']) ? $payload['data'] : [];
+
     $scores = determineScores($data, $payload, $mode);
     $submittedScore = clampScore($scores['blocker']);
     $submittedTime = clampTime($scores['time']);
     $submittedCoins = clampCoins($data['sugarCoins'] ?? 0);
-    $displayName = sanitizeDisplayName($payload['displayName'] ?? $userId);
-    $nationality = sanitizeNationality($payload['nationality'] ?? null);
-    $completedAt = sanitizeCompletedAt($payload['completedAt'] ?? null);
-
-    $progress = fetchProgress($database, $userId);
-    $existingLevel = isset($progress['highest_level']) ? clampLevel($progress['highest_level']) : 1;
-    $existingData = decodeData($progress['data'] ?? '{}');
-    $existingScore = clampScore($existingData['blockerHighScore'] ?? 0);
-    $existingTime = clampTime($existingData['timeSurvival'] ?? 0);
-    $existingCoins = clampCoins($existingData['sugarCoins'] ?? 0);
-    $existingPowerups = clampPowerups($existingData['powerups'] ?? []);
-
-    $highestLevel = max($existingLevel, $submittedLevel);
     $submittedPowerups = clampPowerups($data['powerups'] ?? []);
-    $mergedPowerups = [];
-    foreach (POWERUP_TYPES as $type) {
-        $mergedPowerups[$type] = max($existingPowerups[$type] ?? 0, $submittedPowerups[$type] ?? 0);
-    }
-    $existingDataWithPowerups = $existingData;
-    $existingDataWithPowerups['powerups'] = $existingPowerups;
-    $normalizedData = normalizeData(
-        [
-            'blockerHighScore' => max($existingScore, $submittedScore),
-            'timeSurvival' => max($existingTime, $submittedTime),
-            'sugarCoins' => max($existingCoins, $submittedCoins),
-            'powerups' => $mergedPowerups
-        ],
-        $existingDataWithPowerups
-    );
-    $encodedData = json_encode($normalizedData, JSON_THROW_ON_ERROR);
+    $displayName = sanitizeUsername($payload['displayName'] ?? null);
+    $nationality = sanitizeNationality($payload['nationality'] ?? null);
 
-    saveProgress($database, $userId, $highestLevel, $encodedData);
-    upsertUser($database, $userId, $displayName, $nationality);
+    $user = resolveUser($database, $userToken, $displayName, $nationality);
 
-    if ($mode === MODE_LEVEL) {
-        recordLevelRun($database, $userId, $submittedLevel, $completedAt);
-    } elseif ($mode === MODE_BLOCKER) {
-        recordBlockerRun($database, $userId, $submittedScore, $completedAt);
-    } elseif ($mode === MODE_TIME) {
-        recordTimeRun($database, $userId, $submittedTime, $completedAt);
-    } else {
-        if ($submittedLevel > 0) {
-            recordLevelRun($database, $userId, $submittedLevel, $completedAt);
-        }
-        if ($submittedScore > 0) {
-            recordBlockerRun($database, $userId, $submittedScore, $completedAt);
-        }
-        if ($submittedTime > 0) {
-            recordTimeRun($database, $userId, $submittedTime, $completedAt);
-        }
-    }
+    $candidate = [
+        'highestLevel' => $submittedLevel,
+        'blockerHighScore' => $submittedScore,
+        'timeSurvival' => $submittedTime,
+        'sugarCoins' => $submittedCoins,
+        'powerups' => $submittedPowerups
+    ];
 
-    $bestLevel = max($highestLevel, fetchBestLevelFromRuns($database, $userId));
-    $bestScore = max($normalizedData['blockerHighScore'], fetchBestScoreFromRuns($database, $userId, MODE_BLOCKER));
-    $bestTime = max($normalizedData['timeSurvival'], fetchBestScoreFromRuns($database, $userId, MODE_TIME));
-    $bestCoins = $normalizedData['sugarCoins'];
-    $bestPowerups = $normalizedData['powerups'];
+    $metrics = persistUserProgress($database, (int) $user['id'], $candidate);
 
     respond(200, [
-        'highestLevel' => $bestLevel,
+        'highestLevel' => $metrics['highestLevel'],
         'data' => [
-            'blockerHighScore' => $bestScore,
-            'timeSurvival' => $bestTime,
-            'sugarCoins' => $bestCoins,
-            'powerups' => $bestPowerups
+            'blockerHighScore' => $metrics['blockerHighScore'],
+            'timeSurvival' => $metrics['timeSurvival'],
+            'sugarCoins' => $metrics['sugarCoins'],
+            'powerups' => $metrics['powerups']
         ]
     ]);
 }
@@ -303,50 +171,382 @@ function handleDelete(PDO $database): void
     respond(200, ['deleted' => true]);
 }
 
-function deleteUserProgress(PDO $database, string $userId): void
+function deleteUserProgress(PDO $database, string $userToken): void
 {
-    $statement = $database->prepare('DELETE FROM run_results WHERE user_id = :user_id');
-    $statement->bindValue(':user_id', $userId, PDO::PARAM_STR);
-    $statement->execute();
+    $user = fetchUserByGoogleToken($database, $userToken);
+    if (!$user) {
+        return;
+    }
 
-    $statement = $database->prepare('DELETE FROM user_progress WHERE user_id = :user_id');
-    $statement->bindValue(':user_id', $userId, PDO::PARAM_STR);
+    $statement = $database->prepare('DELETE FROM "GameProgress" WHERE userID = :user_id');
+    $statement->bindValue(':user_id', (int) $user['id'], PDO::PARAM_INT);
     $statement->execute();
 }
 
-function fetchProgress(PDO $database, string $userId): array
+function handleLeaderboardRequest(PDO $database): void
+{
+    $mode = requireMode($_GET['mode'] ?? null);
+    $limit = clampLimit($_GET['limit'] ?? DEFAULT_LIMIT);
+    $offset = clampOffset($_GET['offset'] ?? 0);
+
+    $entries = fetchLeaderboard($database, $mode, $limit, $offset);
+    respond(200, ['entries' => $entries]);
+}
+
+function handleHistoryRequest(PDO $database): void
+{
+    $userToken = requireUserId($_GET['userId'] ?? null);
+    $mode = requireMode($_GET['mode'] ?? null);
+    $limit = clampLimit($_GET['limit'] ?? DEFAULT_LIMIT);
+    $offset = clampOffset($_GET['offset'] ?? 0);
+
+    $entries = fetchHistory($database, $userToken, $mode, $limit, $offset);
+    respond(200, ['entries' => $entries]);
+}
+
+function fetchLeaderboard(PDO $database, string $mode, int $limit, int $offset): array
+{
+    if ($mode === MODE_LEVEL) {
+        return fetchLevelLeaderboard($database, $limit, $offset);
+    }
+    if ($mode === MODE_TIME) {
+        return fetchTimeLeaderboard($database, $limit, $offset);
+    }
+    return fetchBlockerLeaderboard($database, $limit, $offset);
+}
+
+function fetchLevelLeaderboard(PDO $database, int $limit, int $offset): array
 {
     $statement = $database->prepare(
-        'SELECT user_id, highest_level, data FROM user_progress WHERE user_id = :user_id'
+        'SELECT
+            u.googleTokenID AS userId,
+            u.username AS displayName,
+            u.nationality AS nationality,
+            gp.levelMode_level AS bestValue,
+            gp.updated_at AS completedAt
+        FROM "GameProgress" gp
+        JOIN "User" u ON u.id = gp.userID
+        ORDER BY gp.levelMode_level DESC, gp.updated_at ASC
+        LIMIT :limit OFFSET :offset'
     );
-    $statement->bindValue(':user_id', $userId, PDO::PARAM_STR);
+    $statement->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $statement->execute();
+
+    return array_map(
+        static fn(array $row): array => formatLeaderboardRow($row, MODE_LEVEL),
+        $statement->fetchAll()
+    );
+}
+
+function fetchBlockerLeaderboard(PDO $database, int $limit, int $offset): array
+{
+    $statement = $database->prepare(
+        'SELECT
+            u.googleTokenID AS userId,
+            u.username AS displayName,
+            u.nationality AS nationality,
+            gp.blockerMode_highScore AS bestValue,
+            gp.updated_at AS completedAt
+        FROM "GameProgress" gp
+        JOIN "User" u ON u.id = gp.userID
+        ORDER BY gp.blockerMode_highScore DESC, gp.updated_at ASC
+        LIMIT :limit OFFSET :offset'
+    );
+    $statement->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $statement->execute();
+
+    return array_map(
+        static fn(array $row): array => formatLeaderboardRow($row, MODE_BLOCKER),
+        $statement->fetchAll()
+    );
+}
+
+function fetchTimeLeaderboard(PDO $database, int $limit, int $offset): array
+{
+    $statement = $database->prepare(
+        'SELECT
+            u.googleTokenID AS userId,
+            u.username AS displayName,
+            u.nationality AS nationality,
+            gp.timeMode_survivalTime AS bestValue,
+            gp.updated_at AS completedAt
+        FROM "GameProgress" gp
+        JOIN "User" u ON u.id = gp.userID
+        ORDER BY gp.timeMode_survivalTime DESC, gp.updated_at ASC
+        LIMIT :limit OFFSET :offset'
+    );
+    $statement->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $statement->execute();
+
+    return array_map(
+        static fn(array $row): array => formatLeaderboardRow($row, MODE_TIME),
+        $statement->fetchAll()
+    );
+}
+
+function fetchHistory(PDO $database, string $userToken, string $mode, int $limit, int $offset): array
+{
+    $statement = $database->prepare(
+        'SELECT
+            gp.levelMode_level,
+            gp.blockerMode_highScore,
+            gp.timeMode_survivalTime,
+            gp.updated_at
+        FROM "GameProgress" gp
+        JOIN "User" u ON u.id = gp.userID
+        WHERE u.googleTokenID = :token
+        LIMIT :limit OFFSET :offset'
+    );
+    $statement->bindValue(':token', $userToken, PDO::PARAM_STR);
+    $statement->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $statement->execute();
+
+    $row = $statement->fetch();
+    if ($row === false) {
+        return [];
+    }
+
+    if ($mode === MODE_LEVEL) {
+        return [
+            [
+                'highestLevel' => clampLevel($row['levelMode_level'] ?? 1),
+                'completedAt' => (string) $row['updated_at']
+            ]
+        ];
+    }
+
+    $score = $mode === MODE_TIME
+        ? clampTime($row['timeMode_survivalTime'] ?? 0)
+        : clampScore($row['blockerMode_highScore'] ?? 0);
+
+    return [
+        [
+            'score' => $score,
+            'completedAt' => (string) $row['updated_at']
+        ]
+    ];
+}
+
+function formatLeaderboardRow(array $row, string $mode): array
+{
+    return [
+        'userId' => (string) $row['userId'],
+        'displayName' => (string) $row['displayName'],
+        'nationality' => sanitizeNationality($row['nationality'] ?? null),
+        $mode === MODE_LEVEL ? 'highestLevel' : 'score' => $mode === MODE_LEVEL
+            ? clampLevel($row['bestValue'] ?? 1)
+            : ($mode === MODE_TIME ? clampTime($row['bestValue'] ?? 0) : clampScore($row['bestValue'] ?? 0)),
+        'completedAt' => (string) $row['completedAt']
+    ];
+}
+
+function resolveUser(PDO $database, string $googleToken, ?string $displayName, ?string $nationality): array
+{
+    $user = fetchUserByGoogleToken($database, $googleToken);
+    if ($user) {
+        $username = determineUsername($displayName, (int) $user['id'], (string) $user['username']);
+        $needsUpdate = $username !== $user['username'] || $nationality !== $user['nationality'];
+        if ($needsUpdate) {
+            updateUser($database, (int) $user['id'], $username, $nationality);
+            $user['username'] = $username;
+            $user['nationality'] = $nationality;
+        }
+        return $user;
+    }
+
+    $usernameForInsert = $displayName ?? 'Player';
+    $statement = $database->prepare(
+        'INSERT INTO "User" (googleTokenID, username, nationality)
+         VALUES (:token, :username, :nationality)'
+    );
+    $statement->bindValue(':token', $googleToken, PDO::PARAM_STR);
+    $statement->bindValue(':username', $usernameForInsert, PDO::PARAM_STR);
+    $nationValue = $nationality === null ? null : $nationality;
+    $nationType = $nationality === null ? PDO::PARAM_NULL : PDO::PARAM_STR;
+    $statement->bindValue(':nationality', $nationValue, $nationType);
+    $statement->execute();
+
+    $userId = (int) $database->lastInsertId();
+    $username = determineUsername($displayName, $userId, '');
+    if ($username !== $usernameForInsert) {
+        updateUser($database, $userId, $username, $nationality);
+    }
+
+    return fetchUserById($database, $userId);
+}
+
+function fetchUserByGoogleToken(PDO $database, string $googleToken): ?array
+{
+    $statement = $database->prepare('SELECT id, googleTokenID, username, nationality FROM "User" WHERE googleTokenID = :token');
+    $statement->bindValue(':token', $googleToken, PDO::PARAM_STR);
     $statement->execute();
     $row = $statement->fetch();
-
-    return $row ?: [];
+    return $row === false ? null : $row;
 }
 
-function saveProgress(PDO $database, string $userId, int $highestLevel, string $data): void
+function fetchUserById(PDO $database, int $userId): array
+{
+    $statement = $database->prepare('SELECT id, googleTokenID, username, nationality FROM "User" WHERE id = :id');
+    $statement->bindValue(':id', $userId, PDO::PARAM_INT);
+    $statement->execute();
+    $row = $statement->fetch();
+    if ($row === false) {
+        throw new RuntimeException('Failed to load user.');
+    }
+    return $row;
+}
+
+function updateUser(PDO $database, int $userId, string $username, ?string $nationality): void
 {
     $statement = $database->prepare(
-        'INSERT INTO user_progress (user_id, highest_level, data, updated_at)
-         VALUES (:user_id, :highest_level, :data, CURRENT_TIMESTAMP)
-         ON CONFLICT(user_id) DO UPDATE SET
-            highest_level = excluded.highest_level,
-            data = excluded.data,
-            updated_at = excluded.updated_at'
+        'UPDATE "User" SET username = :username, nationality = :nationality, updated_at = CURRENT_TIMESTAMP WHERE id = :id'
     );
-
-    $statement->bindValue(':user_id', $userId, PDO::PARAM_STR);
-    $statement->bindValue(':highest_level', $highestLevel, PDO::PARAM_INT);
-    $statement->bindValue(':data', $data, PDO::PARAM_STR);
+    $statement->bindValue(':username', $username, PDO::PARAM_STR);
+    $nationValue = $nationality === null ? null : $nationality;
+    $nationType = $nationality === null ? PDO::PARAM_NULL : PDO::PARAM_STR;
+    $statement->bindValue(':nationality', $nationValue, $nationType);
+    $statement->bindValue(':id', $userId, PDO::PARAM_INT);
     $statement->execute();
 }
 
-function registerProgress(PDO $database, string $userId, int $localLevel): void
+function persistUserProgress(PDO $database, int $userId, array $candidate): array
 {
-    $data = json_encode(normalizeData([]), JSON_THROW_ON_ERROR);
-    saveProgress($database, $userId, $localLevel, $data);
+    $currentRow = fetchProgress($database, $userId);
+    $currentMetrics = columnsToMetrics($currentRow);
+    $merged = mergeMetrics($currentMetrics, $candidate);
+    $columns = metricsToColumns($merged);
+    saveProgress($database, $userId, $columns);
+    return $merged;
+}
+
+function fetchProgress(PDO $database, int $userId): array
+{
+    $statement = $database->prepare('SELECT * FROM "GameProgress" WHERE userID = :user_id');
+    $statement->bindValue(':user_id', $userId, PDO::PARAM_INT);
+    $statement->execute();
+    $row = $statement->fetch();
+    return $row === false ? [] : $row;
+}
+
+function saveProgress(PDO $database, int $userId, array $columns): void
+{
+    $statement = $database->prepare(
+        'INSERT INTO "GameProgress" (
+            userID,
+            blockerMode_highScore,
+            timeMode_survivalTime,
+            levelMode_level,
+            sugarCoin,
+            shufflePowerup,
+            switchPowerup,
+            bombPowerup
+        ) VALUES (
+            :user_id,
+            :blocker,
+            :time,
+            :level,
+            :coin,
+            :shuffle,
+            :switch,
+            :bomb
+        )
+        ON CONFLICT(userID) DO UPDATE SET
+            blockerMode_highScore = excluded.blockerMode_highScore,
+            timeMode_survivalTime = excluded.timeMode_survivalTime,
+            levelMode_level = excluded.levelMode_level,
+            sugarCoin = excluded.sugarCoin,
+            shufflePowerup = excluded.shufflePowerup,
+            switchPowerup = excluded.switchPowerup,
+            bombPowerup = excluded.bombPowerup,
+            updated_at = CURRENT_TIMESTAMP'
+    );
+    $statement->bindValue(':user_id', $userId, PDO::PARAM_INT);
+    $statement->bindValue(':blocker', $columns['blockerMode_highScore'], PDO::PARAM_INT);
+    $statement->bindValue(':time', $columns['timeMode_survivalTime'], PDO::PARAM_INT);
+    $statement->bindValue(':level', $columns['levelMode_level'], PDO::PARAM_INT);
+    $statement->bindValue(':coin', $columns['sugarCoin'], PDO::PARAM_INT);
+    $statement->bindValue(':shuffle', $columns['shufflePowerup'], PDO::PARAM_INT);
+    $statement->bindValue(':switch', $columns['switchPowerup'], PDO::PARAM_INT);
+    $statement->bindValue(':bomb', $columns['bombPowerup'], PDO::PARAM_INT);
+    $statement->execute();
+}
+
+function columnsToMetrics(array $row): array
+{
+    $powerups = [];
+    foreach (POWERUP_TYPES as $type) {
+        $powerups[$type] = clampPowerup($row[$type . 'Powerup'] ?? 0);
+    }
+
+    return [
+        'highestLevel' => clampLevel($row['levelMode_level'] ?? 1),
+        'blockerHighScore' => clampScore($row['blockerMode_highScore'] ?? 0),
+        'timeSurvival' => clampTime($row['timeMode_survivalTime'] ?? 0),
+        'sugarCoins' => clampCoins($row['sugarCoin'] ?? 0),
+        'powerups' => $powerups
+    ];
+}
+
+function metricsToColumns(array $metrics): array
+{
+    $powerups = clampPowerups($metrics['powerups'] ?? []);
+
+    return [
+        'blockerMode_highScore' => clampScore($metrics['blockerHighScore'] ?? 0),
+        'timeMode_survivalTime' => clampTime($metrics['timeSurvival'] ?? 0),
+        'levelMode_level' => clampLevel($metrics['highestLevel'] ?? 1),
+        'sugarCoin' => clampCoins($metrics['sugarCoins'] ?? 0),
+        'shufflePowerup' => $powerups['shuffle'],
+        'switchPowerup' => $powerups['switch'],
+        'bombPowerup' => $powerups['bomb']
+    ];
+}
+
+function mergeMetrics(array $current, array $candidate): array
+{
+    $result = $current;
+    $result['highestLevel'] = max($current['highestLevel'], $candidate['highestLevel'] ?? 1);
+    $result['blockerHighScore'] = max($current['blockerHighScore'], $candidate['blockerHighScore'] ?? 0);
+    $result['timeSurvival'] = max($current['timeSurvival'], $candidate['timeSurvival'] ?? 0);
+    $result['sugarCoins'] = max($current['sugarCoins'], $candidate['sugarCoins'] ?? 0);
+
+    $result['powerups'] = [];
+    foreach (POWERUP_TYPES as $type) {
+        $result['powerups'][$type] = max(
+            $current['powerups'][$type] ?? 0,
+            $candidate['powerups'][$type] ?? 0
+        );
+    }
+
+    return $result;
+}
+
+function determineScores(array $data, array $payload, ?string $mode): array
+{
+    $blocker = 0;
+    $time = 0;
+
+    if (array_key_exists('blockerHighScore', $data)) {
+        $blocker = clampScore($data['blockerHighScore']);
+    } elseif (isset($payload['blockerHighScore'])) {
+        $blocker = clampScore($payload['blockerHighScore']);
+    } elseif ($mode === MODE_BLOCKER && isset($payload['score'])) {
+        $blocker = clampScore($payload['score']);
+    }
+
+    if (array_key_exists('timeSurvival', $data)) {
+        $time = clampTime($data['timeSurvival']);
+    } elseif (isset($payload['timeSurvival'])) {
+        $time = clampTime($payload['timeSurvival']);
+    } elseif ($mode === MODE_TIME && isset($payload['score'])) {
+        $time = clampTime($payload['score']);
+    }
+
+    return ['blocker' => $blocker, 'time' => $time];
 }
 
 function requireUserId(?string $rawUserId): string
@@ -375,72 +575,6 @@ function clampLevel(mixed $level): int
 
     $normalized = (int) floor((float) $level);
     return max(1, min(MAX_LEVEL, $normalized));
-}
-
-function decodeData(string $data): array
-{
-    try {
-        $decoded = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
-        return is_array($decoded) ? $decoded : [];
-    } catch (Throwable) {
-        return [];
-    }
-}
-
-function decodeJsonRequest(): array
-{
-    $rawBody = file_get_contents('php://input');
-    if ($rawBody === false) {
-        throw new InvalidArgumentException('Failed to read request body.');
-    }
-
-    if ($rawBody === '') {
-        return [];
-    }
-
-    try {
-        $decoded = json_decode($rawBody, true, 512, JSON_THROW_ON_ERROR);
-    } catch (Throwable) {
-        throw new InvalidArgumentException('Invalid JSON payload.');
-    }
-
-    return is_array($decoded) ? $decoded : [];
-}
-
-function respond(int $status, array $payload): void
-{
-    http_response_code($status);
-    echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    exit;
-}
-
-function normalizeData(array $data, array $existing = []): array
-{
-    $currentScore = clampScore($existing['blockerHighScore'] ?? 0);
-    $submittedScore = clampScore($data['blockerHighScore'] ?? 0);
-    $blockerHighScore = max($currentScore, $submittedScore);
-
-    $currentTime = clampTime($existing['timeSurvival'] ?? 0);
-    $submittedTime = clampTime($data['timeSurvival'] ?? 0);
-    $timeSurvival = max($currentTime, $submittedTime);
-
-    $currentCoins = clampCoins($existing['sugarCoins'] ?? 0);
-    $submittedCoins = clampCoins($data['sugarCoins'] ?? 0);
-    $sugarCoins = max($currentCoins, $submittedCoins);
-
-    $currentPowerups = clampPowerups($existing['powerups'] ?? []);
-    $submittedPowerups = clampPowerups($data['powerups'] ?? []);
-    $powerups = [];
-    foreach (POWERUP_TYPES as $type) {
-        $powerups[$type] = max($currentPowerups[$type] ?? 0, $submittedPowerups[$type] ?? 0);
-    }
-
-    return [
-        'blockerHighScore' => $blockerHighScore,
-        'timeSurvival' => $timeSurvival,
-        'sugarCoins' => $sugarCoins,
-        'powerups' => $powerups
-    ];
 }
 
 function clampScore(mixed $score): int
@@ -477,11 +611,11 @@ function clampPowerups(mixed $powerups): array
 {
     $result = [];
     foreach (POWERUP_TYPES as $type) {
-        $candidate = null;
+        $value = null;
         if (is_array($powerups) && array_key_exists($type, $powerups)) {
-            $candidate = $powerups[$type];
+            $value = $powerups[$type];
         }
-        $result[$type] = clampPowerup($candidate);
+        $result[$type] = clampPowerup($value);
     }
     return $result;
 }
@@ -496,13 +630,13 @@ function clampPowerup(mixed $value): int
     return max(0, min(MAX_POWERUP_STOCK, $normalized));
 }
 
-function sanitizeDisplayName(?string $rawDisplayName): string
+function sanitizeUsername(?string $rawDisplayName): ?string
 {
     $normalized = trim((string) ($rawDisplayName ?? ''));
-    $normalized = preg_replace('/[\x00-\x1F\x7F]+/', '', $normalized ?? '') ?? '';
+    $normalized = preg_replace('/[\x00-\x1F\x7F]+/', '', $normalized) ?? '';
 
     if ($normalized === '') {
-        return 'Player';
+        return null;
     }
 
     if (mb_strlen($normalized) > 128) {
@@ -510,6 +644,19 @@ function sanitizeDisplayName(?string $rawDisplayName): string
     }
 
     return $normalized;
+}
+
+function determineUsername(?string $provided, int $userId, string $existing): string
+{
+    if ($provided !== null && $provided !== '') {
+        return $provided;
+    }
+
+    if ($existing !== '') {
+        return $existing;
+    }
+
+    return 'Player#' . $userId;
 }
 
 function sanitizeNationality(mixed $rawNationality): ?string
@@ -528,162 +675,31 @@ function sanitizeNationality(mixed $rawNationality): ?string
     return $normalized === '' ? null : $normalized;
 }
 
-function sanitizeCompletedAt(mixed $rawCompletedAt): string
+function decodeJsonRequest(): array
 {
-    if (is_string($rawCompletedAt)) {
-        try {
-            $timestamp = new DateTimeImmutable($rawCompletedAt);
-            return $timestamp->format(DateTimeInterface::ATOM);
-        } catch (Throwable) {
-            // Fall through to current time when parsing fails.
-        }
+    $rawBody = file_get_contents('php://input');
+    if ($rawBody === false) {
+        throw new InvalidArgumentException('Failed to read request body.');
     }
 
-    return gmdate(DateTimeInterface::ATOM);
-}
-
-function upsertUser(PDO $database, string $userId, string $displayName, ?string $nationality): void
-{
-    $statement = $database->prepare(
-        'INSERT INTO users (google_id, display_name, nationality)
-         VALUES (:google_id, :display_name, :nationality)
-         ON CONFLICT(google_id) DO UPDATE SET
-            display_name = excluded.display_name,
-            nationality = excluded.nationality'
-    );
-
-    $statement->bindValue(':google_id', $userId, PDO::PARAM_STR);
-    $statement->bindValue(':display_name', $displayName, PDO::PARAM_STR);
-    $statement->bindValue(':nationality', $nationality, $nationality === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
-    $statement->execute();
-}
-
-function determineScores(array $data, array $payload, ?string $mode): array
-{
-    $blocker = 0;
-    $time = 0;
-
-    if (array_key_exists('blockerHighScore', $data)) {
-        $blocker = clampScore($data['blockerHighScore']);
-    } elseif (isset($payload['blockerHighScore'])) {
-        $blocker = clampScore($payload['blockerHighScore']);
-    } elseif ($mode === MODE_BLOCKER && isset($payload['score'])) {
-        $blocker = clampScore($payload['score']);
+    if ($rawBody === '') {
+        return [];
     }
 
-    if (array_key_exists('timeSurvival', $data)) {
-        $time = clampTime($data['timeSurvival']);
-    } elseif (isset($payload['timeSurvival'])) {
-        $time = clampTime($payload['timeSurvival']);
-    } elseif ($mode === MODE_TIME && isset($payload['score'])) {
-        $time = clampTime($payload['score']);
+    try {
+        $decoded = json_decode($rawBody, true, 512, JSON_THROW_ON_ERROR);
+    } catch (Throwable) {
+        throw new InvalidArgumentException('Invalid JSON payload.');
     }
 
-    return ['blocker' => $blocker, 'time' => $time];
+    return is_array($decoded) ? $decoded : [];
 }
 
-function recordLevelRun(PDO $database, string $userId, int $highestLevel, string $completedAt): void
+function respond(int $status, array $payload): void
 {
-    if ($highestLevel < 1) {
-        return;
-    }
-
-    $statement = $database->prepare(
-        'INSERT INTO run_results (user_id, mode, highest_level, score, completed_at)
-         VALUES (:user_id, :mode, :highest_level, NULL, :completed_at)'
-    );
-
-    $statement->bindValue(':user_id', $userId, PDO::PARAM_STR);
-    $statement->bindValue(':mode', MODE_LEVEL, PDO::PARAM_STR);
-    $statement->bindValue(':highest_level', $highestLevel, PDO::PARAM_INT);
-    $statement->bindValue(':completed_at', $completedAt, PDO::PARAM_STR);
-    $statement->execute();
-}
-
-function recordBlockerRun(PDO $database, string $userId, int $score, string $completedAt): void
-{
-    if ($score < 1) {
-        return;
-    }
-
-    $statement = $database->prepare(
-        'INSERT INTO run_results (user_id, mode, highest_level, score, completed_at)
-         VALUES (:user_id, :mode, NULL, :score, :completed_at)'
-    );
-
-    $statement->bindValue(':user_id', $userId, PDO::PARAM_STR);
-    $statement->bindValue(':mode', MODE_BLOCKER, PDO::PARAM_STR);
-    $statement->bindValue(':score', $score, PDO::PARAM_INT);
-    $statement->bindValue(':completed_at', $completedAt, PDO::PARAM_STR);
-    $statement->execute();
-}
-
-function recordTimeRun(PDO $database, string $userId, int $timeSurvived, string $completedAt): void
-{
-    if ($timeSurvived < 1) {
-        return;
-    }
-
-    $statement = $database->prepare(
-        'INSERT INTO run_results (user_id, mode, highest_level, score, completed_at)
-         VALUES (:user_id, :mode, NULL, :score, :completed_at)'
-    );
-
-    $statement->bindValue(':user_id', $userId, PDO::PARAM_STR);
-    $statement->bindValue(':mode', MODE_TIME, PDO::PARAM_STR);
-    $statement->bindValue(':score', $timeSurvived, PDO::PARAM_INT);
-    $statement->bindValue(':completed_at', $completedAt, PDO::PARAM_STR);
-    $statement->execute();
-}
-
-function fetchBestLevelFromRuns(PDO $database, string $userId): int
-{
-    $statement = $database->prepare(
-        'SELECT MAX(highest_level) AS best_level FROM run_results WHERE user_id = :user_id AND mode = :mode'
-    );
-    $statement->bindValue(':user_id', $userId, PDO::PARAM_STR);
-    $statement->bindValue(':mode', MODE_LEVEL, PDO::PARAM_STR);
-    $statement->execute();
-
-    $row = $statement->fetch();
-    return isset($row['best_level']) ? clampLevel($row['best_level']) : 1;
-}
-
-function fetchBestScoreFromRuns(PDO $database, string $userId, string $mode): int
-{
-    $statement = $database->prepare(
-        'SELECT MAX(score) AS best_score FROM run_results WHERE user_id = :user_id AND mode = :mode'
-    );
-    $statement->bindValue(':user_id', $userId, PDO::PARAM_STR);
-    $statement->bindValue(':mode', $mode, PDO::PARAM_STR);
-    $statement->execute();
-
-    $row = $statement->fetch();
-    $bestScore = $row['best_score'] ?? 0;
-    return $mode === MODE_TIME ? clampTime($bestScore) : clampScore($bestScore);
-}
-
-function handleLeaderboardRequest(PDO $database): void
-{
-    $mode = requireMode($_GET['mode'] ?? null);
-    $limit = clampLimit($_GET['limit'] ?? DEFAULT_LIMIT);
-    $offset = clampOffset($_GET['offset'] ?? 0);
-
-    $entries = fetchLeaderboard($database, $mode, $limit, $offset);
-
-    respond(200, ['entries' => $entries]);
-}
-
-function handleHistoryRequest(PDO $database): void
-{
-    $userId = requireUserId($_GET['userId'] ?? null);
-    $mode = requireMode($_GET['mode'] ?? null);
-    $limit = clampLimit($_GET['limit'] ?? DEFAULT_LIMIT);
-    $offset = clampOffset($_GET['offset'] ?? 0);
-
-    $entries = fetchHistory($database, $userId, $mode, $limit, $offset);
-
-    respond(200, ['entries' => $entries]);
+    http_response_code($status);
+    echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
 }
 
 function requireMode(?string $rawMode): string
@@ -713,214 +729,4 @@ function clampOffset(mixed $offset): int
 
     $normalized = (int) floor((float) $offset);
     return max(0, $normalized);
-}
-
-function fetchLeaderboard(PDO $database, string $mode, int $limit, int $offset): array
-{
-    if ($mode === MODE_LEVEL) {
-        return fetchLevelLeaderboard($database, $limit, $offset);
-    }
-    if ($mode === MODE_TIME) {
-        return fetchTimeLeaderboard($database, $limit, $offset);
-    }
-
-    return fetchBlockerLeaderboard($database, $limit, $offset);
-}
-
-function fetchLevelLeaderboard(PDO $database, int $limit, int $offset): array
-{
-    $statement = $database->prepare(
-        'WITH best AS (
-            SELECT user_id, MAX(highest_level) AS best_level
-            FROM run_results
-            WHERE mode = :mode
-            GROUP BY user_id
-        ), ranked AS (
-            SELECT
-                b.user_id,
-                b.best_level,
-                MIN(r.completed_at) AS completed_at
-            FROM best b
-            JOIN run_results r ON r.user_id = b.user_id AND r.mode = :mode AND r.highest_level = b.best_level
-            GROUP BY b.user_id, b.best_level
-        )
-        SELECT
-            u.google_id AS userId,
-            u.display_name AS displayName,
-            u.nationality AS nationality,
-            ranked.best_level AS bestValue,
-            ranked.completed_at AS completedAt
-        FROM ranked
-        JOIN users u ON u.google_id = ranked.user_id
-        ORDER BY ranked.best_level DESC, ranked.completed_at ASC
-        LIMIT :limit OFFSET :offset'
-    );
-
-    $statement->bindValue(':mode', MODE_LEVEL, PDO::PARAM_STR);
-    $statement->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
-    $statement->execute();
-
-    $rows = $statement->fetchAll();
-    return array_map(static fn(array $row): array => formatLeaderboardRow($row, MODE_LEVEL), $rows);
-}
-
-function fetchBlockerLeaderboard(PDO $database, int $limit, int $offset): array
-{
-    $statement = $database->prepare(
-        'WITH best AS (
-            SELECT user_id, MAX(score) AS best_score
-            FROM run_results
-            WHERE mode = :mode
-            GROUP BY user_id
-        ), ranked AS (
-            SELECT
-                b.user_id,
-                b.best_score,
-                MIN(r.completed_at) AS completed_at
-            FROM best b
-            JOIN run_results r ON r.user_id = b.user_id AND r.mode = :mode AND r.score = b.best_score
-            GROUP BY b.user_id, b.best_score
-        )
-        SELECT
-            u.google_id AS userId,
-            u.display_name AS displayName,
-            u.nationality AS nationality,
-            ranked.best_score AS bestValue,
-            ranked.completed_at AS completedAt
-        FROM ranked
-        JOIN users u ON u.google_id = ranked.user_id
-        ORDER BY ranked.best_score DESC, ranked.completed_at ASC
-        LIMIT :limit OFFSET :offset'
-    );
-
-    $statement->bindValue(':mode', MODE_BLOCKER, PDO::PARAM_STR);
-    $statement->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
-    $statement->execute();
-
-    $rows = $statement->fetchAll();
-    return array_map(static fn(array $row): array => formatLeaderboardRow($row, MODE_BLOCKER), $rows);
-}
-
-function fetchTimeLeaderboard(PDO $database, int $limit, int $offset): array
-{
-    $statement = $database->prepare(
-        'WITH best AS (
-            SELECT user_id, MAX(score) AS best_score
-            FROM run_results
-            WHERE mode = :mode
-            GROUP BY user_id
-        ), ranked AS (
-            SELECT
-                b.user_id,
-                b.best_score,
-                MIN(r.completed_at) AS completed_at
-            FROM best b
-            JOIN run_results r ON r.user_id = b.user_id AND r.mode = :mode AND r.score = b.best_score
-            GROUP BY b.user_id, b.best_score
-        )
-        SELECT
-            u.google_id AS userId,
-            u.display_name AS displayName,
-            u.nationality AS nationality,
-            ranked.best_score AS bestValue,
-            ranked.completed_at AS completedAt
-        FROM ranked
-        JOIN users u ON u.google_id = ranked.user_id
-        ORDER BY ranked.best_score DESC, ranked.completed_at ASC
-        LIMIT :limit OFFSET :offset'
-    );
-
-    $statement->bindValue(':mode', MODE_TIME, PDO::PARAM_STR);
-    $statement->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
-    $statement->execute();
-
-    $rows = $statement->fetchAll();
-    return array_map(static fn(array $row): array => formatLeaderboardRow($row, MODE_TIME), $rows);
-}
-
-function formatLeaderboardRow(array $row, string $mode): array
-{
-    return [
-        'userId' => (string) $row['userId'],
-        'displayName' => (string) $row['displayName'],
-        'nationality' => sanitizeNationality($row['nationality'] ?? null),
-        $mode === MODE_LEVEL ? 'highestLevel' : 'score' => $mode === MODE_LEVEL
-            ? clampLevel($row['bestValue'])
-            : ($mode === MODE_TIME ? clampTime($row['bestValue']) : clampScore($row['bestValue'])),
-        'completedAt' => (string) $row['completedAt']
-    ];
-}
-
-function fetchHistory(PDO $database, string $userId, string $mode, int $limit, int $offset): array
-{
-    $orderColumn = $mode === MODE_LEVEL ? 'highest_level' : 'score';
-    $statement = $database->prepare(
-        'SELECT highest_level, score, completed_at FROM run_results
-         WHERE user_id = :user_id AND mode = :mode
-         ORDER BY ' . $orderColumn . ' DESC, completed_at ASC
-         LIMIT :limit OFFSET :offset'
-    );
-
-    $statement->bindValue(':user_id', $userId, PDO::PARAM_STR);
-    $statement->bindValue(':mode', $mode, PDO::PARAM_STR);
-    $statement->bindValue(':limit', $limit, PDO::PARAM_INT);
-    $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
-    $statement->execute();
-
-    $rows = $statement->fetchAll();
-
-    return array_map(
-        static function (array $row) use ($mode): array {
-            return $mode === MODE_LEVEL
-                ? [
-                    'highestLevel' => clampLevel($row['highest_level'] ?? 1),
-                    'completedAt' => (string) $row['completed_at']
-                ]
-                : [
-                    'score' => $mode === MODE_TIME ? clampTime($row['score'] ?? 0) : clampScore($row['score'] ?? 0),
-                    'completedAt' => (string) $row['completed_at']
-                ];
-        },
-        $rows
-    );
-}
-
-function migrateLegacyProgress(PDO $database): void
-{
-    $legacyRows = $database->query('SELECT user_id, highest_level, data FROM user_progress');
-    if ($legacyRows === false) {
-        return;
-    }
-
-    foreach ($legacyRows->fetchAll() as $row) {
-        if (!isset($row['user_id'])) {
-            continue;
-        }
-
-        $userId = (string) $row['user_id'];
-        $displayName = sanitizeDisplayName($userId);
-        upsertUser($database, $userId, $displayName, null);
-
-        $existingRuns = $database->prepare(
-            'SELECT COUNT(*) AS run_count FROM run_results WHERE user_id = :user_id'
-        );
-        $existingRuns->bindValue(':user_id', $userId, PDO::PARAM_STR);
-        $existingRuns->execute();
-        $countRow = $existingRuns->fetch();
-        $hasRuns = isset($countRow['run_count']) && (int) $countRow['run_count'] > 0;
-
-        if ($hasRuns) {
-            continue;
-        }
-
-        $legacyLevel = clampLevel($row['highest_level'] ?? 1);
-        recordLevelRun($database, $userId, $legacyLevel, gmdate(DateTimeInterface::ATOM));
-
-        $legacyData = decodeData($row['data'] ?? '{}');
-        $legacyScore = clampScore($legacyData['blockerHighScore'] ?? 0);
-        recordBlockerRun($database, $userId, $legacyScore, gmdate(DateTimeInterface::ATOM));
-    }
 }
