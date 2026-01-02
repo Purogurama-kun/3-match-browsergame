@@ -21,7 +21,7 @@ Small Match-3 browser game with boosters, goals, and sound feedback, written in 
 - Sugar chest and sugar coins
 - Shop with available boosters
 - Blocker generator
-- silent login to google account if the user logged in once.
+- silent re-login with Google when a previously consented account exists (initial Google iframe load may log a harmless 403 while the button renders).
 
 ## Known errors
 
@@ -92,6 +92,7 @@ The project uses the following concepts:
 - Nach erfolgreicher Anmeldung wird dein Name im Menü angezeigt.
 - Der höchste freigeschaltete Level, dein Blocker-Highscore und deine Zeit-Modus-Bestzeit werden serverseitig in einer SQLite-Datenbank gespeichert. Beim Login wird der Fortschritt anhand deiner Google-User-ID geladen, sodass er geräteunabhängig verfügbar ist.
 - Fortschritt ohne Login wird lokal gespeichert (localStorage). Meldest du dich später an, wird der lokale Fortschritt inklusive Highscore mit deinem Konto synchronisiert.
+- Die Seite löst beim Laden automatisch einen stummen Google-Login aus, wenn du bereits autorisiert bist; der Browser kann dabei kurz einen 403 aus dem `gsi/button`-Iframe loggen, aber der Fluss wird intern von Google abgefangen und das Einloggen funktioniert weiterhin.
 - The "Delete game progress" button inside the profile/account view removes everything stored in `localStorage` under `match3-progress` and `match3-highest-level` (highest level, Blocker/Time bests, sugar coins, and tactical powerups). It also triggers the backend `DELETE /backend/progress.php` call for your Google ID, which wipes the matching `GameProgress` row in `backend/progress.sqlite`, so your server-side level, score, coin, and powerup records are reset to their defaults.
 
 ## Git workflow
