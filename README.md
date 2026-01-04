@@ -105,6 +105,36 @@ The project uses the following concepts:
 - Die Seite löst beim Laden automatisch einen stummen Google-Login aus, wenn du bereits autorisiert bist; der Browser kann dabei kurz einen 403 aus dem `gsi/button`-Iframe loggen, aber der Fluss wird intern von Google abgefangen und das Einloggen funktioniert weiterhin.
 - The "Delete game progress" button inside the profile/account view removes everything stored in `localStorage` under `match3-progress` and `match3-highest-level` (highest level, Blocker/Time bests, sugar coins, and tactical powerups). It also triggers the backend `DELETE /backend/progress.php` call for your Google ID, which wipes the matching `GameProgress` row in `backend/progress.sqlite`, so your server-side level, score, coin, and powerup records are reset to their defaults.
 
+## .htaccess rules
+
+### subdomain folder rule
+
+This website (https://explosivecandy.fehrenworks.com/) is a subdomain of https://fehrenworks.com/ . The subdomain is in https://fehrenworks.com/subdomain/, but this folder may not be accessed from outside, so the subdomain/ folder has the following htaccess rule:
+```
+RewriteEngine On
+
+# Deny access to /subdomain/* when accessed through [www.]fehrenworks.com
+RewriteCond %{HTTP_HOST} ^(www\.)?fehrenworks\.com$ [NC]
+RewriteRule ^ - [F]
+```
+
+* `RewriteEngine On`: activate the mod_rewrite module from apache. Without that commands like `RewriteCond` and `RewriteRule` are ignored.
+* `RewriteCond %{HTTP_HOST} ^(www\.)?fehrenworks\.com$ [NC]`: If this rewrite condition is `true`, then the following `RewriteRule` will be executed. In a programming language liek PHP that would be like a regex check: `if (preg_match('/^(www\.)?fehrenworks\.com$/i', $_SERVER['HTTP_HOST'])) { http_response_code(403); exit; }` (i for NC).
+  * `%{HTTP_HOST}`: hostname like fehrenworks.com, www.fehrenworks.com or explosivecandy.fehrenworks.com
+  * `^(www\.)?fehrenworks\.com$`
+    * `^`: start string
+    * `(www\.)?fehrenworks\.com`: string can optionally start with "www." (and the backslash escapse the dot character) and must follow with "fehrenworks.com".
+    * `$`: end string
+  * `[NC]`: no case (`FEHRENWORKS.COM` is allowed as well).
+* `RewriteRule ^ - [F]`:
+  * `^`: Rule is for every request. For example `^admin(/|$)` would match any URL that starts with "admin" (fehrenworks.com/admin, fehrenworks.com/admin/, fehrenworks.com/admin/login), but something like fehrenworks.com/foo/admin would not match.
+  * `-`: no rewrite target - do nothing here. Here you could have linked to a different URL like explosivecandy.fehrenworks.com .
+  * `[F]`: flag for Forbidden. Apache answers with "HTTP/1.1 403 Forbidden".
+
+### backend rule
+
+The folder backend/ is complete blocked with `Require all denied`.
+
 ## Git workflow
 
 Changes to new branch:
