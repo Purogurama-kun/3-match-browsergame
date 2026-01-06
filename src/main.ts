@@ -4,6 +4,7 @@ import { getRequiredElement } from './dom.js';
 import { GoogleAuth, GoogleUser } from './google-auth.js';
 import { ProgressStore, StoredProgress } from './progress-store.js';
 import { LocalProgressStore } from './local-progress-store.js';
+import { LocalAttemptStore } from './local-attempt-store.js';
 import { ShopView, getNextPowerupPrice, type ShopState } from './shop.js';
 import { createFreshPowerupInventory, MAX_TACTICAL_POWERUP_STOCK, TACTICAL_POWERUPS, type TacticalPowerup } from './constants.js';
 import { GuestProfileStore } from './profile-store.js';
@@ -32,6 +33,7 @@ class GameApp {
         };
         this.progressStore = new ProgressStore();
         this.localProgress = new LocalProgressStore();
+        this.localAttemptStore = new LocalAttemptStore();
         this.guestProfileStore = new GuestProfileStore();
         this.profileState = new ProfileState({
             onExit: () => this.handleAccountExit()
@@ -82,6 +84,9 @@ class GameApp {
         this.game.onProgressChange((level) => this.saveProgress(level));
         this.game.onBlockerHighScore((score) => this.saveBlockerHighScore(score));
         this.game.onTimeBest((time) => this.saveTimeBest(time));
+        this.game.onLevelAttempt((level) => this.recordLevelAttempt(level));
+        this.game.onBlockerAttempt((score) => this.recordBlockerAttempt(score));
+        this.game.onTimeAttempt((time) => this.recordTimeAttempt(time));
         this.game.onSugarCoinsEarned((amount) => this.grantSugarCoins(amount));
         this.game.onPowerupInventoryChange((inventory) => this.handlePowerupInventoryChange(inventory));
 
@@ -102,6 +107,7 @@ class GameApp {
     private googleAuth: GoogleAuth;
     private progressStore: ProgressStore;
     private localProgress: LocalProgressStore;
+    private localAttemptStore: LocalAttemptStore;
     private currentUser: GoogleUser | null = null;
     private isProgressLoading = false;
     private isProfileNameSaving = false;
@@ -140,8 +146,16 @@ class GameApp {
         this.hideMainMenu();
         this.body.classList.add('match-app--leaderboard');
         this.leaderboard.removeAttribute('hidden');
+        const guestProfile = this.guestProfileStore.load();
         this.game.showLeaderboard({
             identity: this.getIdentity(),
+            localProgress: {
+                highestLevel: this.progress.highestLevel,
+                blockerHighScore: this.progress.blockerHighScore,
+                timeSurvival: this.progress.timeSurvival
+            },
+            guestName: guestProfile.name,
+            attemptStore: this.localAttemptStore,
             onExit: () => this.returnToMenu()
         });
     }
@@ -481,6 +495,18 @@ class GameApp {
         void this.persistProgress(this.currentUser.id, this.progress, 'time');
     }
 
+    private recordLevelAttempt(level: number): void {
+        this.localAttemptStore.record('level', level);
+    }
+
+    private recordBlockerAttempt(score: number): void {
+        this.localAttemptStore.record('blocker', score);
+    }
+
+    private recordTimeAttempt(time: number): void {
+        this.localAttemptStore.record('time', time);
+    }
+
     private async persistProgress(
         userId: string,
         progress: StoredProgress,
@@ -609,6 +635,7 @@ class GameApp {
         }
         this.game.closeOptions();
         this.localProgress.clear();
+        this.localAttemptStore.clear();
         this.progress = this.localProgress.load();
         this.updateShopState();
         this.game.setPowerupInventory(this.progress.powerups);
@@ -647,6 +674,7 @@ class GameApp {
             return;
         }
         this.localProgress.clear();
+        this.localAttemptStore.clear();
         this.progress = this.localProgress.load();
         this.game.setPowerupInventory(this.progress.powerups);
         this.handleLogout();

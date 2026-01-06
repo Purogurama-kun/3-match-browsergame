@@ -16,6 +16,7 @@ type LeaderboardEntry = {
     level?: number;
     score?: number;
     timeSeconds?: number;
+    isLocalEntry?: boolean;
 };
 
 type LeaderboardIdentity = {

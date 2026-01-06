@@ -115,6 +115,9 @@ class Match3Game implements ModeContext {
     private progressListener: ((level: number) => void) | null = null;
     private blockerHighScoreListener: ((score: number) => void) | null = null;
     private timeBestListener: ((time: number) => void) | null = null;
+    private levelAttemptListener: ((level: number) => void) | null = null;
+    private blockerAttemptListener: ((score: number) => void) | null = null;
+    private timeAttemptListener: ((time: number) => void) | null = null;
     private leaderboardState: LeaderboardState | null = null;
     private generatorMoveCounter = 0;
     private readonly generatorSpreadInterval = 2;
@@ -184,6 +187,18 @@ class Match3Game implements ModeContext {
 
     onTimeBest(handler: (time: number) => void): void {
         this.timeBestListener = handler;
+    }
+
+    onLevelAttempt(handler: (level: number) => void): void {
+        this.levelAttemptListener = handler;
+    }
+
+    onBlockerAttempt(handler: (score: number) => void): void {
+        this.blockerAttemptListener = handler;
+    }
+
+    onTimeAttempt(handler: (time: number) => void): void {
+        this.timeAttemptListener = handler;
     }
 
     onSugarCoinsEarned(handler: (amount: number) => void): void {
@@ -1068,6 +1083,7 @@ class Match3Game implements ModeContext {
         if (result === 'win') {
             this.sounds.play('levelUp');
             this.notifyProgress(nextLevel);
+            this.notifyLevelAttempt(nextLevel);
         } else {
             this.sounds.play('levelFail');
         }
@@ -1095,6 +1111,7 @@ class Match3Game implements ModeContext {
 
     finishBlockerRun(finalScore: number, bestScore: number): void {
         this.sounds.play('levelFail');
+        this.notifyBlockerAttempt(finalScore);
         const isNewBest = finalScore >= bestScore;
         const title = isNewBest ? t('result.blocker.newHighscore') : t('result.blocker.gameOver');
         const text = t('result.blocker.text', { score: finalScore, best: bestScore });
@@ -1111,6 +1128,7 @@ class Match3Game implements ModeContext {
 
     finishTimeRun(finalTime: number, bestTime: number): void {
         this.sounds.play('levelFail');
+        this.notifyTimeAttempt(finalTime);
         const isNewBest = finalTime >= bestTime;
         const finalLabel = this.formatTime(Math.max(0, finalTime));
         const bestLabel = this.formatTime(Math.max(0, bestTime));
@@ -1684,6 +1702,24 @@ class Match3Game implements ModeContext {
     notifyProgress(unlockedLevel: number): void {
         if (this.progressListener) {
             this.progressListener(unlockedLevel);
+        }
+    }
+
+    private notifyLevelAttempt(level: number): void {
+        if (this.levelAttemptListener) {
+            this.levelAttemptListener(level);
+        }
+    }
+
+    private notifyBlockerAttempt(score: number): void {
+        if (this.blockerAttemptListener) {
+            this.blockerAttemptListener(score);
+        }
+    }
+
+    private notifyTimeAttempt(time: number): void {
+        if (this.timeAttemptListener) {
+            this.timeAttemptListener(time);
         }
     }
 }

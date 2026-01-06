@@ -10,11 +10,21 @@ import {
 } from './types.js';
 import { getRequiredElement } from './dom.js';
 import { LeaderboardStore } from './leaderboard-store.js';
+import { LocalAttemptStore, Attempt } from './local-attempt-store.js';
 import { t, onLocaleChange } from './i18n.js';
+
+type LocalProgress = {
+    highestLevel: number;
+    blockerHighScore: number;
+    timeSurvival: number;
+};
 
 type LeaderboardStateOptions = {
     onExit: () => void;
     identity?: LeaderboardIdentity | null;
+    localProgress?: LocalProgress | null;
+    guestName?: string | null;
+    attemptStore?: LocalAttemptStore | null;
 };
 
 class LeaderboardState implements GameModeState {
@@ -32,6 +42,9 @@ class LeaderboardState implements GameModeState {
     private onExit: () => void;
     private store: LeaderboardStore;
     private identity: LeaderboardIdentity | null;
+    private localProgress: LocalProgress | null;
+    private guestName: string | null;
+    private attemptStore: LocalAttemptStore | null;
     private isLoading = false;
     private error: string | null = null;
     private requestId = 0;
@@ -58,6 +71,9 @@ class LeaderboardState implements GameModeState {
         };
         this.store = new LeaderboardStore();
         this.identity = options.identity ?? null;
+        this.localProgress = options.localProgress ?? null;
+        this.guestName = options.guestName ?? null;
+        this.attemptStore = options.attemptStore ?? null;
         this.onExit = options.onExit;
         this.attachHandlers();
         onLocaleChange(() => this.render());
@@ -128,6 +144,9 @@ class LeaderboardState implements GameModeState {
     update(options: LeaderboardStateOptions): void {
         this.onExit = options.onExit;
         this.identity = options.identity ?? null;
+        this.localProgress = options.localProgress ?? null;
+        this.guestName = options.guestName ?? null;
+        this.attemptStore = options.attemptStore ?? null;
         this.loadCurrent();
     }
 
@@ -157,13 +176,47 @@ class LeaderboardState implements GameModeState {
 
     private loadCurrent(): void {
         if (this.currentScope === 'personal' && !this.identity) {
-            this.error = t('leaderboard.loginRequired');
-            this.isLoading = false;
-            this.dataset[this.currentMode][this.currentScope] = [];
-            this.render();
+            this.loadLocalPersonalEntries(this.currentMode);
             return;
         }
         void this.fetchEntries(this.currentMode, this.currentScope);
+    }
+
+    private loadLocalPersonalEntries(mode: LeaderboardMode): void {
+        this.error = null;
+        this.isLoading = false;
+
+        if (!this.attemptStore) {
+            this.dataset[mode].personal = [];
+            this.render();
+            return;
+        }
+
+        const attempts = this.attemptStore.load(mode);
+        const entries = this.convertAttemptsToEntries(attempts, mode);
+        this.dataset[mode].personal = entries;
+        this.render();
+    }
+
+    private convertAttemptsToEntries(attempts: Attempt[], mode: LeaderboardMode): LeaderboardEntry[] {
+        const playerName = this.guestName?.trim() || t('leaderboard.localPlayer');
+
+        return attempts.map((attempt): LeaderboardEntry => {
+            const base: LeaderboardEntry = {
+                playerName,
+                completedAt: attempt.completedAt,
+                nationality: null,
+                isLocalEntry: true
+            };
+
+            if (mode === 'level') {
+                return { ...base, level: attempt.value };
+            }
+            if (mode === 'time') {
+                return { ...base, timeSeconds: attempt.value };
+            }
+            return { ...base, score: attempt.value };
+        });
     }
 
     private async fetchEntries(mode: LeaderboardMode, scope: LeaderboardScope): Promise<void> {
@@ -175,7 +228,8 @@ class LeaderboardState implements GameModeState {
             const entries = await this.store.load(mode, scope, this.identity);
             const sorted = this.sortEntries(entries, mode);
             if (requestId !== this.requestId) return;
-            this.dataset[mode][scope] = sorted;
+            const withLocalEntry = this.injectLocalEntry(sorted, mode, scope);
+            this.dataset[mode][scope] = withLocalEntry;
         } catch (error) {
             console.error('Failed to load leaderboard', error);
             if (requestId !== this.requestId) return;
@@ -186,6 +240,46 @@ class LeaderboardState implements GameModeState {
             this.isLoading = false;
             this.render();
         }
+    }
+
+    private injectLocalEntry(
+        entries: LeaderboardEntry[],
+        mode: LeaderboardMode,
+        scope: LeaderboardScope
+    ): LeaderboardEntry[] {
+        if (scope !== 'global') return entries;
+        if (this.identity) return entries;
+        if (!this.localProgress) return entries;
+
+        const localEntry = this.createLocalEntry(mode);
+        if (!localEntry) return entries;
+
+        const result = [...entries, localEntry];
+        result.sort((a, b) => this.compareEntries(a, b, mode));
+        return result;
+    }
+
+    private createLocalEntry(mode: LeaderboardMode): LeaderboardEntry | null {
+        if (!this.localProgress) return null;
+
+        const playerName = this.guestName?.trim() || t('leaderboard.localPlayer');
+        const base: LeaderboardEntry = {
+            playerName,
+            completedAt: new Date().toISOString(),
+            nationality: null,
+            isLocalEntry: true
+        };
+
+        if (mode === 'level') {
+            if (this.localProgress.highestLevel <= 1) return null;
+            return { ...base, level: this.localProgress.highestLevel };
+        }
+        if (mode === 'time') {
+            if (this.localProgress.timeSurvival <= 0) return null;
+            return { ...base, timeSeconds: this.localProgress.timeSurvival };
+        }
+        if (this.localProgress.blockerHighScore <= 0) return null;
+        return { ...base, score: this.localProgress.blockerHighScore };
     }
 
     private sortEntries(entries: LeaderboardEntry[], mode: LeaderboardMode): LeaderboardEntry[] {
@@ -225,7 +319,9 @@ class LeaderboardState implements GameModeState {
         }
         entries.forEach((entry, index) => {
             const item = document.createElement('li');
-            item.className = 'leaderboard__item';
+            item.className = entry.isLocalEntry
+                ? 'leaderboard__item leaderboard__item--self'
+                : 'leaderboard__item';
 
             const rank = document.createElement('div');
             rank.className = 'leaderboard__rank';

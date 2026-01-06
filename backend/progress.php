@@ -11,6 +11,7 @@ const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
 const POWERUP_TYPES = ['shuffle', 'switch', 'bomb'];
 const MAX_POWERUP_STOCK = 2;
+const MAX_ATTEMPTS_PER_MODE = 10;
 
 header('Content-Type: application/json');
 header('Cache-Control: no-store');
@@ -96,6 +97,21 @@ function ensureSchema(PDO $database): void
             UNIQUE(userID)
         )'
     );
+
+    $database->exec(
+        'CREATE TABLE IF NOT EXISTS "GameAttempts" (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            userID INTEGER NOT NULL,
+            mode TEXT NOT NULL,
+            value INTEGER NOT NULL,
+            completed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(userID) REFERENCES "User"(id) ON DELETE CASCADE
+        )'
+    );
+
+    $database->exec(
+        'CREATE INDEX IF NOT EXISTS idx_attempts_user_mode ON "GameAttempts" (userID, mode)'
+    );
 }
 
 function ensureUserColumnName(PDO $database): void
@@ -156,6 +172,7 @@ function handlePost(PDO $database): void
     $nationality = sanitizeNationality($payload['nationality'] ?? null);
 
     $user = resolveUser($database, $googleId, $displayName, $nationality);
+    $userId = (int) $user['id'];
 
     $candidate = [
         'highestLevel' => $submittedLevel,
@@ -165,7 +182,14 @@ function handlePost(PDO $database): void
         'powerups' => $submittedPowerups
     ];
 
-    $metrics = persistUserProgress($database, (int) $user['id'], $candidate);
+    $metrics = persistUserProgress($database, $userId, $candidate);
+
+    if ($mode !== null) {
+        $attemptValue = determineAttemptValue($mode, $submittedLevel, $submittedScore, $submittedTime);
+        if ($attemptValue > 0 || ($mode === MODE_LEVEL && $attemptValue >= 1)) {
+            recordAttempt($database, $userId, $mode, $attemptValue);
+        }
+    }
 
     respond(200, [
         'highestLevel' => $metrics['highestLevel'],
@@ -176,6 +200,50 @@ function handlePost(PDO $database): void
             'powerups' => $metrics['powerups']
         ]
     ]);
+}
+
+function determineAttemptValue(string $mode, int $level, int $score, int $time): int
+{
+    if ($mode === MODE_LEVEL) {
+        return $level;
+    }
+    if ($mode === MODE_TIME) {
+        return $time;
+    }
+    return $score;
+}
+
+function recordAttempt(PDO $database, int $userId, string $mode, int $value): void
+{
+    $statement = $database->prepare(
+        'INSERT INTO "GameAttempts" (userID, mode, value, completed_at)
+         VALUES (:user_id, :mode, :value, CURRENT_TIMESTAMP)'
+    );
+    $statement->bindValue(':user_id', $userId, PDO::PARAM_INT);
+    $statement->bindValue(':mode', $mode, PDO::PARAM_STR);
+    $statement->bindValue(':value', $value, PDO::PARAM_INT);
+    $statement->execute();
+
+    pruneOldAttempts($database, $userId, $mode);
+}
+
+function pruneOldAttempts(PDO $database, int $userId, string $mode): void
+{
+    $statement = $database->prepare(
+        'DELETE FROM "GameAttempts"
+         WHERE userID = :user_id AND mode = :mode AND id NOT IN (
+             SELECT id FROM "GameAttempts"
+             WHERE userID = :user_id2 AND mode = :mode2
+             ORDER BY value DESC, completed_at DESC
+             LIMIT :max_attempts
+         )'
+    );
+    $statement->bindValue(':user_id', $userId, PDO::PARAM_INT);
+    $statement->bindValue(':mode', $mode, PDO::PARAM_STR);
+    $statement->bindValue(':user_id2', $userId, PDO::PARAM_INT);
+    $statement->bindValue(':mode2', $mode, PDO::PARAM_STR);
+    $statement->bindValue(':max_attempts', MAX_ATTEMPTS_PER_MODE, PDO::PARAM_INT);
+    $statement->execute();
 }
 
 function handleDelete(PDO $database): void
@@ -317,43 +385,50 @@ function fetchHistory(PDO $database, string $googleId, string $mode, int $limit,
 {
     $statement = $database->prepare(
         'SELECT
-            gp.levelMode_level,
-            gp.blockerMode_highScore,
-            gp.timeMode_survivalTime,
-            gp.updated_at
-        FROM "GameProgress" gp
-        JOIN "User" u ON u.id = gp.userID
-        WHERE u.googleID = :token
+            ga.value,
+            ga.completed_at
+        FROM "GameAttempts" ga
+        JOIN "User" u ON u.id = ga.userID
+        WHERE u.googleID = :token AND ga.mode = :mode
+        ORDER BY ga.value DESC, ga.completed_at DESC
         LIMIT :limit OFFSET :offset'
     );
     $statement->bindValue(':token', $googleId, PDO::PARAM_STR);
+    $statement->bindValue(':mode', $mode, PDO::PARAM_STR);
     $statement->bindValue(':limit', $limit, PDO::PARAM_INT);
     $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
     $statement->execute();
 
-    $row = $statement->fetch();
-    if ($row === false) {
+    $rows = $statement->fetchAll();
+    if (empty($rows)) {
         return [];
     }
 
+    return array_map(
+        static fn(array $row): array => formatHistoryRow($row, $mode),
+        $rows
+    );
+}
+
+function formatHistoryRow(array $row, string $mode): array
+{
+    $value = (int) ($row['value'] ?? 0);
+    $completedAt = (string) ($row['completed_at'] ?? '');
+
     if ($mode === MODE_LEVEL) {
         return [
-            [
-                'highestLevel' => clampLevel($row['levelMode_level'] ?? 1),
-                'completedAt' => (string) $row['updated_at']
-            ]
+            'highestLevel' => clampLevel($value),
+            'completedAt' => $completedAt
         ];
     }
 
     $score = $mode === MODE_TIME
-        ? clampTime($row['timeMode_survivalTime'] ?? 0)
-        : clampScore($row['blockerMode_highScore'] ?? 0);
+        ? clampTime($value)
+        : clampScore($value);
 
     return [
-        [
-            'score' => $score,
-            'completedAt' => (string) $row['updated_at']
-        ]
+        'score' => $score,
+        'completedAt' => $completedAt
     ];
 }
 
