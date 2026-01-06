@@ -33,7 +33,7 @@ class LocalAttemptStore {
         const history = this.readHistory();
         const normalized = this.normalizeValue(value, mode);
         if (normalized <= 0 && mode !== 'level') return history[mode];
-        if (mode === 'level' && normalized <= 1) return history[mode];
+        if (mode === 'level' && normalized < 1) return history[mode];
 
         const attempt: Attempt = {
             value: normalized,
@@ -100,7 +100,7 @@ class LocalAttemptStore {
             if (!this.isValidAttempt(item)) continue;
             const normalized = this.normalizeValue(item.value, mode);
             if (normalized <= 0 && mode !== 'level') continue;
-            if (mode === 'level' && normalized <= 1) continue;
+            if (mode === 'level' && normalized < 1) continue;
             valid.push({
                 value: normalized,
                 completedAt: this.normalizeDate(item.completedAt)

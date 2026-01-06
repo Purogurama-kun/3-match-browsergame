@@ -66,6 +66,7 @@ class LevelModeState implements GameModeState {
     }
 
     checkForCompletion(state: GameState, context: ModeContext): void {
+        if (context.isModalVisible()) return;
         if (this.isLevelComplete(state)) {
             context.finishLevel('win', state.level);
             return;

@@ -1083,7 +1083,7 @@ class Match3Game implements ModeContext {
         if (result === 'win') {
             this.sounds.play('levelUp');
             this.notifyProgress(nextLevel);
-            this.notifyLevelAttempt(nextLevel);
+            this.notifyLevelAttempt(completedLevel);
         } else {
             this.sounds.play('levelFail');
         }

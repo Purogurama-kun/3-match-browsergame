@@ -271,8 +271,9 @@ class LeaderboardState implements GameModeState {
         };
 
         if (mode === 'level') {
-            if (this.localProgress.highestLevel <= 1) return null;
-            return { ...base, level: this.localProgress.highestLevel };
+            const completedLevel = this.localProgress.highestLevel - 1;
+            if (completedLevel < 1) return null;
+            return { ...base, level: completedLevel };
         }
         if (mode === 'time') {
             if (this.localProgress.timeSurvival <= 0) return null;
