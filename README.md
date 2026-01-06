@@ -135,6 +135,28 @@ RewriteRule ^ - [F]
 
 The folder backend/ is complete blocked with `Require all denied`.
 
+### password protect subdomain
+
+**1. Create htaccess:**
+```
+# Deny access to .htpasswd
+<Files ".htpasswd">
+    Require all denied
+</Files>
+
+AuthType Basic
+AuthName "Restricted Area"
+AuthUserFile /usr/www/users/udhmny/subdomain/jodoc/.htpasswd
+Require valid-user
+```
+
+Note that the path to `AuthUserFile` must be absolute and to get the real path you have to put a `path.php` file into the directiory where your htpasswd should be and call this file from the browser (<my-path>/path.php). `path.php`: `<?php echo realpath(__DIR__); ?>`.
+
+**2. Create .htpasswd:**
+
+1. Create .htpasswd where your .htaccess is located or somewhere else (may be even outside of public_html/).
+2. Create here a username and password: https://www.htaccess.de/ and copy that into .htpasswd .
+
 ## Git workflow
 
 Changes to new branch:
