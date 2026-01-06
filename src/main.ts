@@ -722,7 +722,10 @@ class GameApp {
 setLocale('en');
 new GameApp();
 
-if ('serviceWorker' in navigator) {
+const isLocalDebugHost = window.location.hostname === 'localhost'
+    || window.location.hostname === '127.0.0.1';
+
+if ('serviceWorker' in navigator && !isLocalDebugHost) {
     window.addEventListener('load', () => {
         void navigator.serviceWorker
             .register('/service-worker.js', { scope: '/' })
