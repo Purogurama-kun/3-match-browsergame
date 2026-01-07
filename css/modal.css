@@ -44,8 +44,13 @@
     color: #cfd5ff;
 }
 
-.modal__button {
+.modal__actions {
     margin-top: 0.5rem;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.modal__button {
     padding: 0.65rem 1.5rem;
     border-radius: 12px;
     background: linear-gradient(90deg, #53c6ff 0%, #7bffb0 100%);
@@ -65,4 +70,21 @@
 .modal__button:active {
     transform: translateY(0);
     box-shadow: 0 8px 18px rgba(83, 198, 255, 0.35);
+}
+
+.modal__button--secondary {
+    background: transparent;
+    color: #cfd5ff;
+    border: 1px solid #3b456b;
+    box-shadow: none;
+}
+
+.modal__button--secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(59, 69, 107, 0.35);
+}
+
+.modal__button--secondary:active {
+    transform: translateY(0);
+    box-shadow: 0 6px 16px rgba(59, 69, 107, 0.28);
 }

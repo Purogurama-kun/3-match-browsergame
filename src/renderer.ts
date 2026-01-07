@@ -20,7 +20,9 @@ type ModalOptions = {
     title: string;
     text: string;
     buttonText: string;
+    secondaryButtonText?: string;
     onClose: () => void;
+    onSecondary?: () => void;
 };
 
 class Renderer {
@@ -30,12 +32,14 @@ class Renderer {
     private readonly modalTitle: HTMLElement;
     private readonly modalText: HTMLElement;
     private readonly modalButton: HTMLButtonElement;
+    private readonly modalSecondaryButton: HTMLButtonElement;
     private readonly moveEvaluationEl: HTMLElement;
     private moveEvaluationTimer: number | null = null;
     private readonly shuffleNoticeEl: HTMLElement;
     private readonly shuffleNoticeTextEl: HTMLElement;
     private shuffleNoticeTimer: number | null = null;
     private modalCallback: (() => void) | null = null;
+    private modalSecondaryCallback: (() => void) | null = null;
     private readonly cells: HTMLDivElement[] = [];
     private selectedIndex: number | null = null;
     private readonly explodingIndices = new Set<number>();
@@ -57,12 +61,14 @@ class Renderer {
         this.modalTitle = getRequiredElement('result-title');
         this.modalText = getRequiredElement('result-text');
         this.modalButton = getRequiredElement('result-button') as HTMLButtonElement;
+        this.modalSecondaryButton = getRequiredElement('result-home-button') as HTMLButtonElement;
         this.moveEvaluationEl = getRequiredElement('move-evaluation');
         this.shuffleNoticeEl = getRequiredElement('shuffle-notice');
         this.shuffleNoticeTextEl = getRequiredElement('shuffle-notice-text');
         this.particleEffect = new ParticleEffect(this.gameEl);
 
         this.modalButton.addEventListener('click', () => this.hideModal());
+        this.modalSecondaryButton.addEventListener('click', () => this.hideModal(false, true));
         this.modalEl.addEventListener('click', (event) => {
             if (event.target === this.modalEl) {
                 this.hideModal();
@@ -281,26 +287,37 @@ class Renderer {
 
     showModal(options: ModalOptions): void {
         this.modalCallback = options.onClose;
+        this.modalSecondaryCallback = options.onSecondary ?? null;
         this.modalTitle.textContent = options.title;
         this.modalText.textContent = options.text;
         this.modalButton.textContent = options.buttonText;
+        if (options.secondaryButtonText && options.onSecondary) {
+            this.modalSecondaryButton.textContent = options.secondaryButtonText;
+            this.modalSecondaryButton.removeAttribute('hidden');
+        } else {
+            this.modalSecondaryButton.setAttribute('hidden', 'true');
+        }
         this.modalEl.classList.add('modal--visible');
         this.modalButton.focus();
     }
 
-    hideModal(triggerCallback = true): void {
+    hideModal(triggerPrimary = true, triggerSecondary = false): void {
         if (!this.modalEl.classList.contains('modal--visible')) {
             this.modalCallback = null;
+            this.modalSecondaryCallback = null;
             return;
         }
         this.modalEl.classList.remove('modal--visible');
-        if (triggerCallback && this.modalCallback) {
-            const callback = this.modalCallback;
-            this.modalCallback = null;
-            callback();
-            return;
-        }
+        const primaryCallback = this.modalCallback;
+        const secondaryCallback = this.modalSecondaryCallback;
         this.modalCallback = null;
+        this.modalSecondaryCallback = null;
+        if (triggerPrimary && primaryCallback) {
+            primaryCallback();
+        }
+        if (triggerSecondary && secondaryCallback) {
+            secondaryCallback();
+        }
     }
 
     isModalVisible(): boolean {

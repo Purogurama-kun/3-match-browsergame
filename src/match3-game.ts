@@ -118,6 +118,7 @@ class Match3Game implements ModeContext {
     private levelAttemptListener: ((level: number) => void) | null = null;
     private blockerAttemptListener: ((score: number) => void) | null = null;
     private timeAttemptListener: ((time: number) => void) | null = null;
+    private exitGameListener: (() => void) | null = null;
     private leaderboardState: LeaderboardState | null = null;
     private generatorMoveCounter = 0;
     private readonly generatorSpreadInterval = 2;
@@ -158,6 +159,7 @@ class Match3Game implements ModeContext {
     }
 
     onExitGameRequested(handler: () => void): void {
+        this.exitGameListener = handler;
         this.hud.onExitGame(handler);
     }
 
@@ -1102,6 +1104,8 @@ class Match3Game implements ModeContext {
             title,
             text,
             buttonText: t('button.continue'),
+            secondaryButtonText: t('button.home'),
+            onSecondary: () => this.requestExitGame(),
             onClose: () => {
                 this.switchMode(new LevelModeState(nextLevel));
                 this.createBoard();
@@ -1119,6 +1123,8 @@ class Match3Game implements ModeContext {
             title,
             text,
             buttonText: t('button.restart'),
+            secondaryButtonText: t('button.home'),
+            onSecondary: () => this.requestExitGame(),
             onClose: () => {
                 this.switchMode(new BlockerModeState(bestScore));
                 this.createBoard();
@@ -1138,11 +1144,17 @@ class Match3Game implements ModeContext {
             title,
             text,
             buttonText: t('button.restart'),
+            secondaryButtonText: t('button.home'),
+            onSecondary: () => this.requestExitGame(),
             onClose: () => {
                 this.switchMode(new TimeModeState(bestTime));
                 this.createBoard();
             }
         });
+    }
+
+    private requestExitGame(): void {
+        this.exitGameListener?.();
     }
 
     private awardScore(basePoints: number): void {
