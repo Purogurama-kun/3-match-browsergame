@@ -13,6 +13,15 @@ type CellState = {
     sugarChestStage?: number;
 };
 
+type ColumnEntry = {
+    color: string;
+    booster: BoosterType;
+    lineOrientation?: LineOrientation | undefined;
+    hard: boolean;
+    generator: boolean;
+    sugarChestStage?: number;
+};
+
 class Board {
     private cellStates: CellState[] = [];
     private blockedIndices: Set<number> = new Set();
@@ -160,6 +169,22 @@ class Board {
         return this.cellStates;
     }
 
+    collapseColumn(col: number): number[] {
+        const emptyIndices: number[] = [];
+        let segmentBottom = GRID_SIZE - 1;
+        for (let row = GRID_SIZE - 1; row >= -1; row--) {
+            const isBoundary = row < 0 || this.isBlockedIndex(row * GRID_SIZE + col);
+            if (isBoundary) {
+                const segmentTop = row + 1;
+                if (segmentTop <= segmentBottom) {
+                    this.collapseColumnSegment(col, segmentTop, segmentBottom, emptyIndices);
+                }
+                segmentBottom = row - 1;
+            }
+        }
+        return emptyIndices;
+    }
+
     private pickColorForIndex(index: number): string {
         const row = Math.floor(index / GRID_SIZE);
         const col = index % GRID_SIZE;
@@ -238,6 +263,74 @@ class Board {
 
     private shouldSpawnSugarChest(): boolean {
         return Math.random() < SUGAR_CHEST_CHANCE;
+    }
+
+    private collapseColumnSegment(col: number, topRow: number, bottomRow: number, emptyIndices: number[]): void {
+        if (topRow > bottomRow) return;
+        const entries: ColumnEntry[] = [];
+        for (let row = topRow; row <= bottomRow; row++) {
+            const index = row * GRID_SIZE + col;
+            const entry = this.captureColumnEntry(index);
+            if (entry) {
+                entries.push(entry);
+            }
+            this.clearCell(index);
+        }
+        let targetRow = bottomRow;
+        while (entries.length > 0) {
+            const entry = entries.pop()!;
+            const index = targetRow * GRID_SIZE + col;
+            this.placeColumnEntry(index, entry);
+            targetRow--;
+        }
+        for (let row = targetRow; row >= topRow; row--) {
+            emptyIndices.push(row * GRID_SIZE + col);
+        }
+    }
+
+    private captureColumnEntry(index: number): ColumnEntry | null {
+        const state = this.getCellState(index);
+        if (state.blocked) return null;
+        if (state.sugarChestStage !== undefined) {
+            return {
+                color: '',
+                booster: BOOSTERS.NONE,
+                hard: false,
+                generator: false,
+                sugarChestStage: state.sugarChestStage
+            };
+        }
+        if (!state.color && state.booster === BOOSTERS.NONE && !state.hard && !state.generator) {
+            return null;
+        }
+        return {
+            color: state.color,
+            booster: state.booster,
+            lineOrientation: state.lineOrientation,
+            hard: state.hard,
+            generator: state.generator
+        };
+    }
+
+    private placeColumnEntry(index: number, entry: ColumnEntry): void {
+        this.clearCell(index);
+        if (entry.sugarChestStage !== undefined) {
+            this.setSugarChestStage(index, entry.sugarChestStage);
+            return;
+        }
+        if (entry.generator) {
+            this.setBlockerGenerator(index, true, entry.hard);
+            return;
+        }
+        const state = this.getCellState(index);
+        state.color = entry.color;
+        state.booster = entry.booster;
+        if (entry.booster === BOOSTERS.LINE) {
+            state.lineOrientation = entry.lineOrientation ?? 'horizontal';
+        } else {
+            delete state.lineOrientation;
+        }
+        state.hard = entry.hard;
     }
 }
 
