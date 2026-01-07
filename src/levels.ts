@@ -120,13 +120,13 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     },
     {
         id: 10,
-        moves: 20,
-        targetScore: 3200,
+        moves: 22,
+        targetScore: 3100,
         difficulty: 12,
         goals: [
-            { type: 'destroy-color', color: 'blue', target: 24 },
-            { type: 'destroy-color', color: 'purple', target: 22 },
-            { type: 'activate-booster', booster: BOOSTERS.LINE, target: 3 },
+            { type: 'destroy-color', color: 'blue', target: 22 },
+            { type: 'destroy-color', color: 'purple', target: 20 },
+            { type: 'activate-booster', booster: BOOSTERS.LINE, target: 2 },
             { type: 'activate-booster', booster: BOOSTERS.BURST_LARGE, target: 1 }
         ],
         hardCandies: INNER_HARD_SHELL
@@ -242,13 +242,13 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     },
     {
         id: 20,
-        moves: 19,
-        targetScore: 7700,
+        moves: 20,
+        targetScore: 7400,
         difficulty: 24,
         goals: [
-            { type: 'destroy-color', color: 'blue', target: 30 },
-            { type: 'destroy-color', color: 'purple', target: 28 },
-            { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 4 },
+            { type: 'destroy-color', color: 'blue', target: 28 },
+            { type: 'destroy-color', color: 'purple', target: 26 },
+            { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 3 },
             { type: 'activate-booster', booster: BOOSTERS.BURST_LARGE, target: 1 }
         ],
         missingCells: STAIR_GAPS,
@@ -369,13 +369,13 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     },
     {
         id: 30,
-        moves: 18,
-        targetScore: 14300,
+        moves: 19,
+        targetScore: 13800,
         difficulty: 36,
         goals: [
-            { type: 'destroy-color', color: 'green', target: 36 },
-            { type: 'destroy-color', color: 'purple', target: 34 },
-            { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 5 },
+            { type: 'destroy-color', color: 'green', target: 34 },
+            { type: 'destroy-color', color: 'purple', target: 32 },
+            { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 4 },
             { type: 'activate-booster', booster: BOOSTERS.BURST_LARGE, target: 1 }
         ],
         missingCells: [...CENTER_GAPS, ...CORNER_GAPS],
@@ -500,14 +500,14 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     },
     {
         id: 40,
-        moves: 16,
-        targetScore: 22400,
+        moves: 17,
+        targetScore: 21600,
         difficulty: 48,
         goals: [
-            { type: 'destroy-color', color: 'blue', target: 42 },
-            { type: 'destroy-color', color: 'red', target: 40 },
-            { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 6 },
-            { type: 'activate-booster', booster: BOOSTERS.BURST_LARGE, target: 2 }
+            { type: 'destroy-color', color: 'blue', target: 40 },
+            { type: 'destroy-color', color: 'red', target: 38 },
+            { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 5 },
+            { type: 'activate-booster', booster: BOOSTERS.BURST_LARGE, target: 1 }
         ],
         missingCells: [...CENTER_GAPS, ...EDGE_GAPS, ...CORNER_GAPS],
         hardCandies: [...FINAL_HARD_RING, ...EDGE_HARD_GUARDS]
@@ -631,14 +631,14 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     },
     {
         id: 50,
-        moves: 15,
-        targetScore: 32000,
+        moves: 16,
+        targetScore: 30800,
         difficulty: 60,
         goals: [
-            { type: 'destroy-color', color: 'amber', target: 48 },
-            { type: 'destroy-color', color: 'green', target: 46 },
-            { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 7 },
-            { type: 'activate-booster', booster: BOOSTERS.BURST_LARGE, target: 2 }
+            { type: 'destroy-color', color: 'amber', target: 46 },
+            { type: 'destroy-color', color: 'green', target: 44 },
+            { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 6 },
+            { type: 'activate-booster', booster: BOOSTERS.BURST_LARGE, target: 1 }
         ],
         missingCells: [...CENTER_GAPS, ...CORNER_GAPS, ...EDGE_GAPS],
         hardCandies: [...FINAL_HARD_RING, ...EDGE_HARD_GUARDS]
