@@ -143,6 +143,9 @@ class LevelSelectView {
     }
 
     private scrollToSelected(): void {
+        if (window.matchMedia('(max-width: 900px)').matches) {
+            return;
+        }
         const button = this.levelButtons[this.selectedLevel - 1];
         if (!button) return;
         button.scrollIntoView({ block: 'center' });
