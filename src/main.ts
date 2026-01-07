@@ -478,7 +478,7 @@ class GameApp {
         });
         this.progress = this.localProgress.save(this.progress);
         if (!this.currentUser) return;
-        void this.persistProgress(this.currentUser.id, this.progress, 'blocker');
+        void this.persistProgress(this.currentUser.id, this.progress, 'both');
     }
 
     private saveTimeBest(time: number): void {
@@ -501,6 +501,8 @@ class GameApp {
 
     private recordBlockerAttempt(score: number): void {
         this.localAttemptStore.record('blocker', score);
+        if (!this.currentUser) return;
+        void this.persistProgress(this.currentUser.id, this.progress, 'blocker', score);
     }
 
     private recordTimeAttempt(time: number): void {
@@ -510,10 +512,17 @@ class GameApp {
     private async persistProgress(
         userId: string,
         progress: StoredProgress,
-        mode: LeaderboardMode | 'both'
+        mode: LeaderboardMode | 'both',
+        attemptScore?: number
     ): Promise<void> {
         try {
-            const stored = await this.progressStore.save(userId, progress, mode, this.getIdentity());
+            const stored = await this.progressStore.save(
+                userId,
+                progress,
+                mode,
+                this.getIdentity(),
+                attemptScore
+            );
             if (!this.isCurrentUser(userId)) return;
             this.progress = this.mergeProgress(this.progress, stored);
             this.googleAuth.clearError();

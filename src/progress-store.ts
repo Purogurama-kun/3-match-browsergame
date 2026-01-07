@@ -54,12 +54,17 @@ class ProgressStore {
         userId: string,
         progress: StoredProgress,
         mode: LeaderboardMode | 'both' = 'both',
-        identity?: LeaderboardIdentity | null
+        identity?: LeaderboardIdentity | null,
+        attemptScore?: number | null
     ): Promise<StoredProgress> {
         const normalizedUserId = this.requireUserId(userId);
         const normalized = this.normalizeProgress(progress);
-        const scorePayload =
-            mode === 'time' ? normalized.timeSurvival : normalized.blockerHighScore;
+        const shouldUseAttemptScore = attemptScore !== undefined && attemptScore !== null && mode !== 'both';
+        const scorePayload = shouldUseAttemptScore
+            ? this.normalizeAttemptScore(attemptScore, mode)
+            : mode === 'time'
+                ? normalized.timeSurvival
+                : normalized.blockerHighScore;
         const payloadData = {
             blockerHighScore: normalized.blockerHighScore,
             timeSurvival: normalized.timeSurvival,
@@ -210,6 +215,16 @@ class ProgressStore {
         if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
         const normalized = Math.floor(value);
         return Math.max(0, Math.min(MAX_TACTICAL_POWERUP_STOCK, normalized));
+    }
+
+    private normalizeAttemptScore(value: number, mode: LeaderboardMode): number {
+        if (mode === 'level') {
+            return this.normalizeLevel(value);
+        }
+        if (mode === 'time') {
+            return this.normalizeTime(value);
+        }
+        return this.normalizeScore(value);
     }
 
     private requireUserId(userId: string): string {

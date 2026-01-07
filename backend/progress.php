@@ -185,7 +185,13 @@ function handlePost(PDO $database): void
     $metrics = persistUserProgress($database, $userId, $candidate);
 
     if ($mode !== null) {
-        $attemptValue = determineAttemptValue($mode, $submittedLevel, $submittedScore, $submittedTime);
+        $attemptValue = determineAttemptValueFromPayload(
+            $mode,
+            $payload,
+            $submittedLevel,
+            $submittedScore,
+            $submittedTime
+        );
         if ($attemptValue > 0 || ($mode === MODE_LEVEL && $attemptValue >= 1)) {
             recordAttempt($database, $userId, $mode, $attemptValue);
         }
@@ -202,13 +208,26 @@ function handlePost(PDO $database): void
     ]);
 }
 
-function determineAttemptValue(string $mode, int $level, int $score, int $time): int
+function determineAttemptValueFromPayload(
+    string $mode,
+    array $payload,
+    int $level,
+    int $score,
+    int $time
+): int
 {
     if ($mode === MODE_LEVEL) {
         return $level;
     }
+    $rawScore = $payload['score'] ?? null;
     if ($mode === MODE_TIME) {
+        if (is_numeric($rawScore)) {
+            return clampTime($rawScore);
+        }
         return $time;
+    }
+    if (is_numeric($rawScore)) {
+        return clampScore($rawScore);
     }
     return $score;
 }
@@ -264,6 +283,10 @@ function deleteUserProgress(PDO $database, string $googleId): void
     if (!$user) {
         return;
     }
+
+    $statement = $database->prepare('DELETE FROM "GameAttempts" WHERE userID = :user_id');
+    $statement->bindValue(':user_id', (int) $user['id'], PDO::PARAM_INT);
+    $statement->execute();
 
     $statement = $database->prepare('DELETE FROM "GameProgress" WHERE userID = :user_id');
     $statement->bindValue(':user_id', (int) $user['id'], PDO::PARAM_INT);
