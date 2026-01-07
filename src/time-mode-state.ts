@@ -158,7 +158,7 @@ class TimeModeState implements GameModeState {
     }
 
     private getDrainMultiplier(): number {
-        return 1 + this.difficultyTier * this.accelerationStep;
+        return 2 + this.difficultyTier * this.accelerationStep;
     }
 
     private updateDifficulty(state: GameState): void {
