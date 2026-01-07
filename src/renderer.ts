@@ -42,6 +42,7 @@ class Renderer {
     private modalSecondaryCallback: (() => void) | null = null;
     private readonly cells: HTMLDivElement[] = [];
     private selectedIndex: number | null = null;
+    private readonly hintIndices = new Set<number>();
     private readonly explodingIndices = new Set<number>();
     private onCellClick: ((index: number) => void) | null = null;
     private onCellSwipe: ((index: number, direction: SwipeDirection) => void) | null = null;
@@ -107,6 +108,7 @@ class Renderer {
         onCellClick: (index: number) => void,
         onCellSwipe: (index: number, direction: SwipeDirection) => void
     ): void {
+        this.clearHint();
         this.onCellClick = onCellClick;
         this.onCellSwipe = onCellSwipe;
         this.resetTouchState();
@@ -126,6 +128,7 @@ class Renderer {
     }
 
     refreshBoard(board: Board): void {
+        this.clearHint();
         for (let i = 0; i < this.cells.length; i++) {
             this.applyCellState(i, board.getCellState(i));
         }
@@ -162,6 +165,25 @@ class Renderer {
         if (this.selectedIndex === null) return;
         this.getCellElement(this.selectedIndex).classList.remove('board__cell--selected');
         this.selectedIndex = null;
+    }
+
+    showHint(indices: number[]): void {
+        this.clearHint();
+        indices.forEach((index) => {
+            const cell = this.cells[index];
+            if (!cell) return;
+            cell.classList.add('board__cell--hint');
+            this.hintIndices.add(index);
+        });
+    }
+
+    clearHint(): void {
+        this.hintIndices.forEach((index) => {
+            const cell = this.cells[index];
+            if (!cell) return;
+            cell.classList.remove('board__cell--hint');
+        });
+        this.hintIndices.clear();
     }
 
     markCellExploding(index: number): void {

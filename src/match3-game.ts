@@ -125,6 +125,9 @@ class Match3Game implements ModeContext {
     private readonly generatorSpreadRadius = 3;
     private performanceMode = false;
     private readonly performanceModeStorageKey = 'match3-performance-mode';
+    private hintTimer: number | null = null;
+    private hintIndices: number[] = [];
+    private readonly hintDelayMs = 10000;
 
     startLevel(level: number): void {
         this.hud.closeOptions();
@@ -150,6 +153,7 @@ class Match3Game implements ModeContext {
             this.modeState.exit(this);
         }
         this.clearPendingTimers();
+        this.resetHintState();
         this.board.clear();
         this.resetMoveTracking();
         this.renderer.resetMoveEvaluation();
@@ -291,6 +295,7 @@ class Match3Game implements ModeContext {
     private createBoard(): void {
         this.generation++;
         this.clearPendingTimers();
+        this.resetHintState();
         this.boardAnimating = true;
         this.syncPowerupToolbarLock();
         const boardConfig = this.modeState.getBoardConfig();
@@ -334,6 +339,7 @@ class Match3Game implements ModeContext {
         if (this.powerupInProgress) return;
         if (this.moveActive) return;
         if (!this.modeState.canStartMove(this.state)) return;
+        this.resetHintState();
 
         const booster = this.board.getCellBooster(index);
         if (booster === BOOSTERS.BURST_LARGE) {
@@ -350,6 +356,7 @@ class Match3Game implements ModeContext {
         if (index === this.state.selected) {
             this.renderer.clearSelection();
             this.state.selected = null;
+            this.scheduleHint();
             return;
         }
 
@@ -372,6 +379,7 @@ class Match3Game implements ModeContext {
         if (this.pendingPowerup) return;
         if (this.moveActive) return;
         if (!this.modeState.canStartMove(this.state)) return;
+        this.resetHintState();
         const neighbor = this.getNeighbor(index, direction);
         if (!neighbor) return;
         if (this.state.selected) {
@@ -383,6 +391,7 @@ class Match3Game implements ModeContext {
 
     private handlePowerupCellSelection(index: number): void {
         if (!this.pendingPowerup) return;
+        this.resetHintState();
         if (this.pendingPowerup === 'bomb') {
             const { row, col } = this.getRowCol(index);
             this.pendingPowerup = null;
@@ -418,8 +427,10 @@ class Match3Game implements ModeContext {
         if (this.boardAnimating || this.moveActive) return;
         if (!this.modeState.canStartMove(this.state)) return;
         if (!this.hasPowerup(type)) return;
+        this.resetHintState();
         if (this.pendingPowerup === type) {
             this.cancelPendingPowerup();
+            this.scheduleHint();
             return;
         }
         if (this.pendingPowerup) {
@@ -512,6 +523,7 @@ class Match3Game implements ModeContext {
             this.syncPowerupToolbarLock();
         }
         this.modeState.handleBoardSettled(this.state, this);
+        this.scheduleHint();
     }
 
     private softenAdjacentHardCandies(matched: Set<number>): void {
@@ -1028,6 +1040,7 @@ class Match3Game implements ModeContext {
     }
 
     private trySwap(firstIndex: number, secondIndex: number): void {
+        this.resetHintState();
         const firstIsLocked =
             this.board.isBlockedCell(firstIndex) ||
             this.board.isHardCandy(firstIndex) ||
@@ -1052,6 +1065,7 @@ class Match3Game implements ModeContext {
             this.renderer.refreshBoard(this.board);
             this.resetMoveTracking();
             this.showInvalidMove(secondIndex);
+            this.scheduleHint();
             return;
         }
         this.modeState.consumeMove(this.state);
@@ -1168,6 +1182,7 @@ class Match3Game implements ModeContext {
     }
 
     private beginMove(): void {
+        this.resetHintState();
         this.moveActive = true;
         this.currentMoveScore = 0;
         this.currentMoveBaseScore = 0;
@@ -1519,6 +1534,69 @@ class Match3Game implements ModeContext {
         return false;
     }
 
+    private findHintMove(): number[] | null {
+        const colors = this.getMatchableColorSnapshot();
+        for (let i = 0; i < colors.length; i++) {
+            if (!this.isSwappable(i)) continue;
+            const { row, col } = this.getRowCol(i);
+            const neighbors = [
+                { row, col: col + 1 },
+                { row: row + 1, col }
+            ];
+            for (const neighbor of neighbors) {
+                if (neighbor.row >= GRID_SIZE || neighbor.col >= GRID_SIZE) continue;
+                const neighborIndex = this.indexAt(neighbor.row, neighbor.col);
+                if (!this.isSwappable(neighborIndex)) continue;
+                if (this.swapCreatesMatch(i, neighborIndex, colors)) {
+                    return [i, neighborIndex];
+                }
+            }
+        }
+        return null;
+    }
+
+    private scheduleHint(): void {
+        this.clearHintTimer();
+        if (!this.canScheduleHint()) return;
+        this.hintTimer = window.setTimeout(() => this.showHintIfIdle(), this.hintDelayMs);
+    }
+
+    private showHintIfIdle(): void {
+        this.hintTimer = null;
+        if (!this.canScheduleHint()) return;
+        const hint = this.findHintMove();
+        if (!hint) return;
+        this.hintIndices = hint;
+        this.renderer.showHint(hint);
+    }
+
+    private canScheduleHint(): boolean {
+        if (this.boardAnimating) return false;
+        if (this.moveActive) return false;
+        if (this.pendingPowerup) return false;
+        if (this.powerupInProgress) return false;
+        if (this.state.selected !== null) return false;
+        if (this.renderer.isModalVisible()) return false;
+        return true;
+    }
+
+    private resetHintState(): void {
+        this.clearHintTimer();
+        this.clearHintDisplay();
+    }
+
+    private clearHintDisplay(): void {
+        if (this.hintIndices.length === 0) return;
+        this.renderer.clearHint();
+        this.hintIndices = [];
+    }
+
+    private clearHintTimer(): void {
+        if (this.hintTimer === null) return;
+        clearTimeout(this.hintTimer);
+        this.hintTimer = null;
+    }
+
     private swapCreatesMatch(a: number, b: number, colors: (string | null)[]): boolean {
         const originalA = colors[a] ?? null;
         const originalB = colors[b] ?? null;
@@ -1575,6 +1653,7 @@ class Match3Game implements ModeContext {
         this.defer(() => {
             this.boardAnimating = false;
             this.syncPowerupToolbarLock();
+            this.scheduleHint();
         }, this.getAnimationDelay(duration));
     }
 
