@@ -280,7 +280,7 @@
 }
 
 .level-select__play {
-    margin-top: auto;
+    margin-top: 0.75rem;
     padding: 0.9rem 1rem;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.25);
@@ -306,6 +306,14 @@
 @media (max-width: 900px) {
     .level-select__content {
         grid-template-columns: 1fr;
+    }
+
+    .level-select__details {
+        order: -1;
+    }
+
+    .level-select__map {
+        order: 1;
     }
 
     .level-select__map {
