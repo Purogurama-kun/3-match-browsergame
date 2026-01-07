@@ -8,6 +8,7 @@
     overflow: visible;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 .main-menu[hidden] {
@@ -121,6 +122,17 @@
     gap: 0.35rem;
     width: 100%;
     text-align: center;
+}
+
+.main-menu__version {
+    position: absolute;
+    left: 1.25rem;
+    bottom: 1rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.75);
+    pointer-events: none;
 }
 
 .main-menu__icon-actions {
