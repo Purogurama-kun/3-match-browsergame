@@ -1,7 +1,6 @@
 import {
     GRID_SIZE,
     BOOSTERS,
-    BLACK_BOMB_COLOR,
     BoosterType,
     randomColor,
     TacticalPowerup,
@@ -24,8 +23,12 @@ import { MatchScanner } from './match-scanner.js';
 import { MultiplierTracker } from './multiplier-tracker.js';
 import { PowerupManager } from './powerup-manager.js';
 import { SugarChestManager } from './sugar-chest-manager.js';
+import { Bomb } from './bomb.js';
+import { Candie } from './candie.js';
+import { Generator } from './generator.js';
+import { HardCandy } from './hard-candy.js';
+import { Match } from './match.js';
 import type { MatchResult } from './match-scanner.js';
-import type { ParticleOptions } from './particle-effect.js';
 
 type ColumnEntry = {
     color: string;
@@ -62,7 +65,7 @@ class Match3Game implements ModeContext {
                 rearrangeBoardColors: () => this.rearrangeBoardColors(),
                 dropCells: () => this.dropCells(),
                 checkMatches: () => this.checkMatches(),
-                destroyCellAndMaybeFinishGenerator: (index) => this.destroyCellAndMaybeFinishGenerator(index),
+                destroyCellAndMaybeFinishGenerator: (index) => this.candie.destroyCellAndMaybeFinishGenerator(index),
                 getRowCol: (index) => this.getRowCol(index),
                 areAdjacent: (a, b) => this.areAdjacent(a, b),
                 resetHintState: () => this.resetHintState(),
@@ -81,11 +84,62 @@ class Match3Game implements ModeContext {
             getRowCol: (index) => this.getRowCol(index),
             getAdjacentIndices: (row, col) => this.getAdjacentIndices(row, col)
         });
+        this.hardCandy = new HardCandy({
+            board: this.board,
+            renderer: this.renderer,
+            getRowCol: (index) => this.getRowCol(index),
+            getAdjacentIndices: (row, col) => this.getAdjacentIndices(row, col)
+        });
+        this.candie = new Candie({
+            board: this.board,
+            renderer: this.renderer,
+            sugarChests: this.sugarChests,
+            isPerformanceMode: () => this.performanceMode,
+            defer: (callback, delay) => this.defer(callback, delay),
+            getAnimationDelay: (duration) => this.getAnimationDelay(duration),
+            awardScore: (points) => this.awardScore(points),
+            onColorCleared: (color) => this.modeState.handleColorCleared(this.state, color, this),
+            updateHud: () => this.updateHud(),
+            baseCellPoints: this.baseCellPoints
+        });
+        this.bomb = new Bomb({
+            board: this.board,
+            sounds: this.sounds,
+            renderer: this.renderer,
+            destroyCells: (indices) => this.candie.destroyCells(indices)
+        });
+        this.generator = new Generator({
+            board: this.board,
+            hardCandy: this.hardCandy,
+            getRowCol: (index) => this.getRowCol(index),
+            indexAt: (row, col) => this.indexAt(row, col),
+            spreadInterval: this.generatorSpreadInterval,
+            spreadRadius: this.generatorSpreadRadius
+        });
         this.hintManager = new HintManager({
             renderer: this.renderer,
             delayMs: this.hintDelayMs,
             canSchedule: () => this.canScheduleHint(),
             findHintMove: () => this.matchScanner.findHintMove()
+        });
+        this.matchFlow = new Match({
+            matchScanner: this.matchScanner,
+            sounds: this.sounds,
+            renderer: this.renderer,
+            candie: this.candie,
+            hardCandy: this.hardCandy,
+            sugarChests: this.sugarChests,
+            isPerformanceMode: () => this.performanceMode,
+            defer: (callback, delay) => this.defer(callback, delay),
+            getAnimationDelay: (duration) => this.getAnimationDelay(duration),
+            createBooster: (index, type, orientation) => this.bomb.createBooster(index, type, orientation),
+            activateBooster: (index) => this.activateBooster(index, false),
+            getCellBooster: (index) => this.board.getCellBooster(index),
+            dropCells: () => this.dropCells(),
+            finalizeMoveScore: () => this.finalizeMoveScore(),
+            finishPowerupIfNeeded: () => this.powerups.finishPowerupIfNeeded(),
+            onBoardSettled: () => this.modeState.handleBoardSettled(this.state, this),
+            scheduleHint: () => this.scheduleHint()
         });
         this.hud.onTacticalPowerup((type) => this.handleTacticalPowerup(type));
         this.hud.onAudioToggle((enabled) => {
@@ -123,6 +177,11 @@ class Match3Game implements ModeContext {
     private powerups: PowerupManager;
     private sugarChests: SugarChestManager;
     private multiplierTracker: MultiplierTracker;
+    private candie: Candie;
+    private hardCandy: HardCandy;
+    private bomb: Bomb;
+    private generator: Generator;
+    private matchFlow: Match;
     private state: GameState;
     private modeState: GameModeState;
     private generation: number;
@@ -142,7 +201,6 @@ class Match3Game implements ModeContext {
     private timeAttemptListener: ((time: number) => void) | null = null;
     private exitGameListener: (() => void) | null = null;
     private leaderboardState: LeaderboardState | null = null;
-    private generatorMoveCounter = 0;
     private readonly generatorSpreadInterval = 2;
     private readonly generatorSpreadRadius = 3;
     private performanceMode = false;
@@ -318,7 +376,7 @@ class Match3Game implements ModeContext {
             (index) => this.handleCellClick(index),
             (index, direction) => this.handleCellSwipe(index, direction)
         );
-        this.generatorMoveCounter = 0;
+        this.generator.reset();
         if (this.modeState.onBoardCreated) {
             this.modeState.onBoardCreated(this.state, this);
         }
@@ -409,120 +467,11 @@ class Match3Game implements ModeContext {
     }
 
     private findMatches(): MatchResult {
-        return this.matchScanner.findMatches();
+        return this.matchFlow.findMatches();
     }
 
     private checkMatches(): void {
-        const matchResult = this.findMatches();
-        const { matched, boostersToCreate } = matchResult;
-        this.softenAdjacentHardCandies(matched);
-        this.sugarChests.advanceNearMatches(matched);
-
-        if (matched.size > 0) {
-            const hasBlastBooster = boostersToCreate.some(
-                (boost) =>
-                    boost.type === BOOSTERS.BURST_SMALL ||
-                    boost.type === BOOSTERS.BURST_MEDIUM ||
-                    boost.type === BOOSTERS.BURST_LARGE
-            );
-            const hasLineMatch = boostersToCreate.some((boost) => boost.type === BOOSTERS.LINE);
-            if (hasBlastBooster) {
-                this.sounds.play('radiusBomb');
-            } else if (hasLineMatch) {
-                this.sounds.play('lineBomb');
-            } else {
-                this.sounds.play('match');
-            }
-            if (!this.performanceMode) {
-                this.renderer.screenShake();
-            }
-            matched.forEach((idx) => {
-                const booster = this.board.getCellBooster(idx);
-                if (booster !== BOOSTERS.NONE) {
-                    this.activateBooster(idx, false);
-                    return;
-                }
-                this.destroyCell(idx);
-            });
-            this.defer(() => {
-                boostersToCreate.forEach((b) => this.createBooster(b.index, b.type, b.orientation));
-                this.dropCells();
-            }, this.getAnimationDelay(350));
-            return;
-        }
-
-        this.finalizeMoveScore();
-        this.powerups.finishPowerupIfNeeded();
-        this.modeState.handleBoardSettled(this.state, this);
-        this.scheduleHint();
-    }
-
-    private softenAdjacentHardCandies(matched: Set<number>): void {
-        if (matched.size === 0) return;
-        const softened = new Set<number>();
-        matched.forEach((idx) => {
-            const { row, col } = this.getRowCol(idx);
-            this.getAdjacentIndices(row, col).forEach((neighbor) => {
-                if (softened.has(neighbor)) return;
-                if (this.board.isBlockedIndex(neighbor)) return;
-                if (!this.board.isHardCandy(neighbor)) return;
-                this.board.softenCandy(neighbor);
-                softened.add(neighbor);
-                this.renderer.updateCell(neighbor, this.board.getCellState(neighbor));
-            });
-        });
-    }
-
-    private destroyCell(index: number): void {
-        if (this.board.isBlockedIndex(index)) return;
-        if (this.board.isSugarChest(index)) {
-            this.sugarChests.handleHit(index, false);
-            return;
-        }
-        const isGenerator = this.board.isBlockerGenerator(index);
-        if (this.board.isHardCandy(index)) {
-            if (isGenerator) {
-                this.renderer.animateGeneratorHit(index);
-            }
-            this.board.softenCandy(index);
-            this.renderer.updateCell(index, this.board.getCellState(index));
-            return;
-        }
-        const booster = this.board.getCellBooster(index);
-        const color = this.board.getCellColor(index);
-        if ((!color && booster === BOOSTERS.NONE) || this.renderer.isCellExploding(index)) return;
-        if (!this.performanceMode) {
-            this.renderer.emitCellParticles(index, color || null, this.getParticleOptionsForBooster(booster));
-        }
-        if (isGenerator) {
-            this.renderer.animateGeneratorHit(index);
-        }
-        this.renderer.markCellExploding(index);
-        this.defer(() => {
-            this.renderer.clearCellExplosion(index);
-            this.board.clearCell(index);
-            this.awardScore(this.baseCellPoints);
-            if (color) {
-                this.modeState.handleColorCleared(this.state, color, this);
-            }
-            this.updateHud();
-            this.renderer.updateCell(index, this.board.getCellState(index));
-        }, this.getAnimationDelay(300));
-    }
-
-    private createBooster(index: number, type: BoosterType, orientation?: LineOrientation): void {
-        if (type === BOOSTERS.BURST_LARGE) {
-            this.board.setCellColor(index, BLACK_BOMB_COLOR);
-        } else {
-            this.board.setCellColor(index, randomColor());
-        }
-        this.board.setBooster(index, type);
-        if (type === BOOSTERS.LINE) {
-            this.board.setLineOrientation(index, orientation ?? 'horizontal');
-        } else {
-            this.board.setLineOrientation(index, null);
-        }
-        this.renderer.updateCell(index, this.board.getCellState(index));
+        this.matchFlow.checkMatches();
     }
 
     private activateBooster(index: number, consumesMove: boolean): void {
@@ -535,103 +484,12 @@ class Match3Game implements ModeContext {
             this.beginMove();
         }
 
-        this.executeBoosterEffect(booster, row, col);
+        this.bomb.applyBoosterEffect(booster, row, col, this.state.mode === 'blocker');
 
         if (consumesMove) {
             this.defer(() => this.dropCells(), this.getAnimationDelay(300));
         }
         this.updateHud();
-    }
-
-    private executeBoosterEffect(booster: BoosterType, row: number, col: number): void {
-        if (booster === BOOSTERS.LINE) {
-            this.sounds.play('lineBomb');
-            const index = this.indexAt(row, col);
-            const orientation = this.board.getLineOrientation(index) ?? 'horizontal';
-            const affected: number[] =
-                orientation === 'horizontal' ? [...this.getRowIndices(row)] : [...this.getColumnIndices(col)];
-            if (this.state.mode === 'blocker') {
-                const secondary =
-                    orientation === 'horizontal' ? this.getColumnIndices(col) : this.getRowIndices(row);
-                affected.push(...secondary);
-            }
-            this.destroyCells(affected);
-            return;
-        }
-
-        if (this.state.mode === 'blocker') {
-            const size = this.getBlockerBoosterSize(booster);
-            if (size !== null) {
-                this.sounds.play('radiusBomb');
-                this.destroySquareArea(row, col, size);
-                return;
-            }
-        }
-
-        const radius = this.getBoosterRadius(booster);
-        if (radius === null) return;
-        this.sounds.play('radiusBomb');
-        this.destroyCircularArea(row, col, radius);
-    }
-
-    private getBlockerBoosterSize(booster: BoosterType): number | null {
-        if (booster === BOOSTERS.BURST_SMALL) return 3;
-        if (booster === BOOSTERS.BURST_MEDIUM) return 4;
-        if (booster === BOOSTERS.BURST_LARGE) return 6;
-        return null;
-    }
-
-    private destroySquareArea(row: number, col: number, size: number): void {
-        if (size <= 0) return;
-        const halfBefore = Math.floor((size - 1) / 2);
-        const halfAfter = size - 1 - halfBefore;
-        const startRow = Math.max(0, row - halfBefore);
-        const endRow = Math.min(GRID_SIZE - 1, row + halfAfter);
-        const startCol = Math.max(0, col - halfBefore);
-        const endCol = Math.min(GRID_SIZE - 1, col + halfAfter);
-        const affected: number[] = [];
-        for (let r = startRow; r <= endRow; r++) {
-            for (let c = startCol; c <= endCol; c++) {
-                affected.push(this.indexAt(r, c));
-            }
-        }
-        this.destroyCells(affected);
-    }
-
-    private getBoosterRadius(booster: BoosterType): number | null {
-        if (booster === BOOSTERS.BURST_SMALL) return 1;
-        if (booster === BOOSTERS.BURST_MEDIUM) return 1.5;
-        if (booster === BOOSTERS.BURST_LARGE) return 2;
-        return null;
-    }
-
-    private getRowIndices(row: number): number[] {
-        const indices: number[] = [];
-        for (let c = 0; c < GRID_SIZE; c++) {
-            indices.push(row * GRID_SIZE + c);
-        }
-        return indices;
-    }
-
-    private getColumnIndices(col: number): number[] {
-        const indices: number[] = [];
-        for (let r = 0; r < GRID_SIZE; r++) {
-            indices.push(r * GRID_SIZE + col);
-        }
-        return indices;
-    }
-
-    private destroyCells(indices: Iterable<number>): void {
-        const unique = new Set(indices);
-        unique.forEach((idx) => this.destroyCellAndMaybeFinishGenerator(idx));
-    }
-
-    private destroyCellAndMaybeFinishGenerator(index: number): void {
-        const generatorWasHard = this.board.isBlockerGenerator(index) && this.board.isHardCandy(index);
-        this.destroyCell(index);
-        if (generatorWasHard && this.board.isBlockerGenerator(index)) {
-            this.destroyCell(index);
-        }
     }
 
     private rearrangeBoardColors(): boolean {
@@ -671,23 +529,6 @@ class Match3Game implements ModeContext {
         }
     }
 
-    private destroyCircularArea(row: number, col: number, radius: number): void {
-        const affected = new Set<number>();
-        const range = Math.ceil(radius);
-        for (let dx = -range; dx <= range; dx++) {
-            for (let dy = -range; dy <= range; dy++) {
-                const targetRow = row + dx;
-                const targetCol = col + dy;
-                if (targetRow < 0 || targetRow >= GRID_SIZE || targetCol < 0 || targetCol >= GRID_SIZE) continue;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance <= radius + 0.001) {
-                    affected.add(targetRow * GRID_SIZE + targetCol);
-                }
-            }
-        }
-        affected.forEach((idx) => this.destroyCellAndMaybeFinishGenerator(idx));
-    }
-
     private shouldSpawnBombFromDrop(): boolean {
         const normalizedMultiplier = Math.min(Math.max(this.state.comboMultiplier, 0), this.maxMultiplier);
         const chance = (normalizedMultiplier / this.maxMultiplier) * this.maxBombDropChance;
@@ -696,12 +537,6 @@ class Match3Game implements ModeContext {
 
     private shouldSpawnHardCandy(): boolean {
         return this.modeState.shouldSpawnHardCandy(this.state);
-    }
-
-    private createFallingBomb(index: number): void {
-        this.board.setCellColor(index, randomColor());
-        this.board.setBooster(index, BOOSTERS.BURST_SMALL);
-        this.renderer.updateCell(index, this.board.getCellState(index));
     }
 
     private dropCells(): void {
@@ -750,7 +585,7 @@ class Match3Game implements ModeContext {
             if (this.board.trySpawnSugarChest(index)) continue;
             const spawnHardCandy = this.shouldSpawnHardCandy();
             if (this.shouldSpawnBombFromDrop()) {
-                this.createFallingBomb(index);
+                this.bomb.spawnFallingBomb(index);
                 this.board.setHardCandy(index, false);
             } else {
                 this.board.setCellColor(index, randomColor());
@@ -979,79 +814,14 @@ class Match3Game implements ModeContext {
     private finalizeMoveScore(): void {
         if (!this.multiplierTracker.finalizeMoveScore()) return;
         this.syncPowerupToolbarLock();
-        this.generatorMoveCounter++;
-        this.triggerBlockerGeneratorsIfReady();
+        this.generator.advanceMove();
         this.updateHud();
         this.modeState.handleMoveResolved(this.state, this);
         this.modeState.checkForCompletion(this.state, this);
     }
 
     private hardenRandomCells(amount: number): void {
-        if (amount <= 0) return;
-        const candidates: number[] = [];
-        for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
-            if (this.board.isBlockedIndex(i)) continue;
-            if (this.board.isBlockerGenerator(i)) continue;
-            if (this.board.isHardCandy(i)) continue;
-            if (!this.board.getCellColor(i)) continue;
-            candidates.push(i);
-        }
-        for (let n = 0; n < amount; n++) {
-            if (candidates.length === 0) break;
-            const pick = Math.floor(Math.random() * candidates.length);
-            const index = candidates.splice(pick, 1)[0];
-            if (index === undefined) break;
-            this.board.setBooster(index, BOOSTERS.NONE);
-            this.board.setHardCandy(index, true);
-        }
-    }
-
-    private triggerBlockerGeneratorsIfReady(): void {
-        if (this.generatorMoveCounter % this.generatorSpreadInterval !== 0) return;
-        const generators = this.board.getBlockerGeneratorIndices();
-        generators.forEach((index) => this.hardenCellsFromGenerator(index));
-    }
-
-    private hardenCellsFromGenerator(generatorIndex: number): void {
-        const { row, col } = this.getRowCol(generatorIndex);
-        const target = this.collectIndicesWithinRadius(row, col, this.generatorSpreadRadius)
-            .map((index) => ({ index, distance: this.getManhattanDistance(row, col, index) }))
-            .filter((entry) => this.isValidGeneratorTarget(entry.index))
-            .sort((a, b) => (a.distance === b.distance ? a.index - b.index : a.distance - b.distance))[0];
-        if (!target) return;
-        this.hardenCell(target.index);
-    }
-
-    private collectIndicesWithinRadius(row: number, col: number, radius: number): number[] {
-        const indices: number[] = [];
-        for (let r = 0; r < GRID_SIZE; r++) {
-            for (let c = 0; c < GRID_SIZE; c++) {
-                const distance = Math.abs(r - row) + Math.abs(c - col);
-                if (distance <= radius) {
-                    indices.push(this.indexAt(r, c));
-                }
-            }
-        }
-        return indices;
-    }
-
-    private isValidGeneratorTarget(index: number): boolean {
-        if (this.board.isBlockedIndex(index)) return false;
-        if (this.board.isBlockerGenerator(index)) return false;
-        if (this.board.isHardCandy(index)) return false;
-        if (!this.board.getCellColor(index)) return false;
-        return true;
-    }
-
-    private hardenCell(index: number): void {
-        this.board.setBooster(index, BOOSTERS.NONE);
-        this.board.setHardCandy(index, true);
-        this.renderer.updateCell(index, this.board.getCellState(index));
-    }
-
-    private getManhattanDistance(row: number, col: number, index: number): number {
-        const position = this.getRowCol(index);
-        return Math.abs(position.row - row) + Math.abs(position.col - col);
+        this.hardCandy.hardenRandomCells(amount);
     }
 
     private indexAt(row: number, col: number): number {
@@ -1134,64 +904,6 @@ class Match3Game implements ModeContext {
             row: Math.floor(index / GRID_SIZE),
             col: index % GRID_SIZE
         };
-    }
-
-    private getParticleOptionsForBooster(booster: BoosterType): ParticleOptions {
-        const baseOptions: ParticleOptions = {
-            count: 16,
-            minDistance: 16,
-            maxDistance: 28,
-            minDuration: 0.58,
-            maxDuration: 0.92,
-            delayVariance: 0.2
-        };
-        if (booster === BOOSTERS.LINE) {
-            return {
-                ...baseOptions,
-                count: 22,
-                minDistance: 22,
-                maxDistance: 34,
-                minDuration: 0.72,
-                maxDuration: 1.02,
-                accentColor: '#fde047'
-            };
-        }
-        if (booster === BOOSTERS.BURST_SMALL) {
-            return {
-                ...baseOptions,
-                count: 24,
-                minDistance: 24,
-                maxDistance: 38,
-                minDuration: 0.78,
-                maxDuration: 1.05,
-                accentColor: '#4ade80'
-            };
-        }
-        if (booster === BOOSTERS.BURST_MEDIUM) {
-            return {
-                ...baseOptions,
-                count: 28,
-                minDistance: 28,
-                maxDistance: 44,
-                minDuration: 0.86,
-                maxDuration: 1.18,
-                delayVariance: 0.24,
-                accentColor: '#fb923c'
-            };
-        }
-        if (booster === BOOSTERS.BURST_LARGE) {
-            return {
-                ...baseOptions,
-                count: 34,
-                minDistance: 32,
-                maxDistance: 52,
-                minDuration: 0.95,
-                maxDuration: 1.35,
-                delayVariance: 0.28,
-                accentColor: '#67e8f9'
-            };
-        }
-        return baseOptions;
     }
 
     private formatTime(totalSeconds: number): string {
