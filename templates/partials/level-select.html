@@ -1,0 +1,51 @@
+    <div id="level-select" class="level-select" hidden>
+        <div class="level-select__panel">
+            <div class="level-select__top-bar">
+                <button
+                    id="level-select-back"
+                    class="level-select__back-button"
+                    type="button"
+                    aria-labelledby="level-select-back-label"
+                >
+                    <svg
+                        class="level-select__back-icon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M15 7l-6 5.5L15 18" />
+                    </svg>
+                    <span
+                        id="level-select-back-label"
+                        class="level-select__assistive-text"
+                        data-i18n-key="button.back"
+                    >
+                        Back
+                    </span>
+                </button>
+                <div class="level-select__top-title" data-i18n-key="levelSelect.title">Candy World</div>
+                <div class="level-select__top-spacer" aria-hidden="true"></div>
+            </div>
+            <div class="level-select__content">
+                <section class="level-select__map" aria-label="Level map">
+                    <p class="level-select__subtitle" data-i18n-key="levelSelect.subtitle">
+                        Choose a level to continue.
+                    </p>
+                    <ol id="level-select-path" class="level-select__path" role="list"></ol>
+                </section>
+                <aside class="level-select__details" aria-live="polite">
+                    <div class="level-select__details-card">
+                        <div id="level-select-selected-label" class="level-select__selected-label">Level 1</div>
+                        <div id="level-select-meta" class="level-select__meta"></div>
+                        <div class="level-select__goals-title" data-i18n-key="levelSelect.goalsTitle">Goals</div>
+                        <ul id="level-select-goals" class="level-select__goals" role="list"></ul>
+                        <button id="level-select-play" class="level-select__play" type="button"></button>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>

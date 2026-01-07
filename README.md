@@ -37,9 +37,12 @@ npm init -y
 npm install --save-dev typescript
 npm install --save-dev jsdoc
 npm install --save-dev pwa-asset-generator
+npm run render
 npm run build
 npm run server
 ```
+
+`npm run render` compiles the `templates/` files into `index.html`; the build scripts also run it automatically before regenerating the service worker cache list.
 
 Then open `http://localhost:5500` in your browser.
 

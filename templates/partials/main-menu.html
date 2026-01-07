@@ -1,0 +1,94 @@
+    <div id="main-menu" class="main-menu" role="dialog" aria-labelledby="main-menu-title">
+        <div class="main-menu__card">
+            <div class="main-menu__hero" style="display:none;">
+                <div class="main-menu__lead" data-i18n-key="mainMenu.lead">Welcome to</div>
+                <h1 id="main-menu-title" class="main-menu__title">Explosive Candy</h1>
+                <p class="main-menu__tagline">Pick a mode and let the explosions begin.</p>
+            </div>
+            <div class="main-menu__actions">
+                <button id="start-level" class="main-menu__button" type="button" disabled>Level Modus</button>
+                <button id="start-blocker" class="main-menu__button main-menu__button--blocker" type="button">Blocker Modus</button>
+                <button id="start-time" class="main-menu__button main-menu__button--secondary" type="button">Zeit Modus</button>
+            </div>
+            <div class="main-menu__utility">
+                <div class="main-menu__icon-actions">
+                    <button
+                        id="open-shop"
+                        class="main-menu__icon-button main-menu__icon-button--shop"
+                        type="button"
+                        aria-label="Open shop"
+                    >
+                        <img src="assets/images/store.svg" alt="" aria-hidden="true" />
+                    </button>
+                    <button
+                        id="open-leaderboard"
+                        class="main-menu__icon-button main-menu__icon-button--leaderboard"
+                        type="button"
+                        aria-label="Open leaderboard"
+                    >
+                        <img src="assets/images/leaderboard.svg" alt="" aria-hidden="true" />
+                    </button>
+                    <button
+                        id="open-account"
+                        class="main-menu__icon-button main-menu__icon-button--profile"
+                        type="button"
+                        aria-labelledby="main-menu-account-label"
+                    >
+                        <img src="assets/images/account-icon.svg" alt="" aria-hidden="true" />
+                        <span
+                            id="main-menu-account-label"
+                            class="main-menu__icon-button__assistive"
+                            data-i18n-key="button.account"
+                        ></span>
+                    </button>
+                    <button
+                        id="open-tutorial"
+                        class="main-menu__icon-button main-menu__icon-button--tutorial"
+                        type="button"
+                        aria-labelledby="main-menu-tutorial-label"
+                    >
+                        <img src="assets/images/guide.svg" alt="" aria-hidden="true" />
+                        <span
+                            id="main-menu-tutorial-label"
+                            class="main-menu__icon-button__assistive"
+                            data-i18n-key="button.tutorial"
+                        ></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="main-menu__auth-footer" aria-live="polite">
+            <div class="auth__actions auth__actions--login">
+                <div class="auth__login-row">
+                    <div id="google-login" class="auth__button">
+                        <span class="auth__button-text" data-i18n-key="auth.loginButton">Sign in with Google</span>
+                    </div>
+                    <div id="google-login-info-wrapper" class="auth__info-wrapper">
+                        <button
+                            id="google-login-info"
+                            class="main-menu__icon-button main-menu__icon-button--auth-info"
+                            type="button"
+                            aria-label="Google Login Information"
+                            aria-expanded="false"
+                        >
+                            <img src="assets/images/info.svg" alt="" aria-hidden="true" />
+                        </button>
+                        <div id="auth-info-tooltip" class="auth__tooltip" hidden role="tooltip">
+                            <p class="auth__tooltip-text">
+                                <span id="auth-info-tooltip-prefix"></span>
+                                <a
+                                    id="auth-info-tooltip-link"
+                                    class="auth__tooltip-link"
+                                    target="_blank"
+                                    rel="noreferrer noopener"
+                                ></a>
+                                <span id="auth-info-tooltip-suffix"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <p id="auth-error" class="auth__error" hidden></p>
+            </div>
+        </div>
+        <div class="main-menu__version" aria-label="Game version">BETA v0.1</div>
+    </div>

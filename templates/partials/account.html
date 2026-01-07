@@ -1,0 +1,88 @@
+    <div id="account" class="account" hidden>
+        <div class="account__panel">
+            <div class="account__sticky-top">
+                <div class="account__top-bar">
+                    <button
+                        id="account-back"
+                        class="account__back-button"
+                        type="button"
+                        aria-labelledby="account-back-label"
+                    >
+                        <svg
+                            class="account__back-icon"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M15 7l-6 5.5L15 18" />
+                        </svg>
+                        <span
+                            id="account-back-label"
+                            class="account__assistive-text"
+                            data-i18n-key="button.back"
+                        >
+                            Back
+                        </span>
+                    </button>
+                    <div class="account__top-title" data-i18n-key="account.title">My Account</div>
+                </div>
+            </div>
+            <div class="account__content">
+                <div class="account__field">
+                    <label class="account__field-label" for="account-name" data-i18n-key="account.field.name">Name</label>
+                    <div class="account__name-row">
+                        <input
+                            id="account-name"
+                            class="account__name-input"
+                            type="text"
+                            maxlength="128"
+                            aria-describedby="account-feedback"
+                            autocomplete="name"
+                            inputmode="text"
+                            spellcheck="false"
+                        />
+                        <button
+                            id="account-save-name"
+                            class="account__save-button"
+                            type="button"
+                            data-i18n-key="account.name.saveButton"
+                        >
+                            Save name
+                        </button>
+                    </div>
+                    <p id="account-feedback" class="account__feedback" aria-live="polite"></p>
+                </div>
+                <p id="account-status" class="account__status"></p>
+                <div class="account__actions">
+                    <button
+                        id="delete-progress"
+                        class="options-modal__action options-modal__action--danger"
+                        type="button"
+                        data-i18n-key="options.deleteProgress"
+                    >
+                        Delete game progress
+                    </button>
+                    <button
+                        id="delete-account"
+                        class="options-modal__action options-modal__action--danger"
+                        type="button"
+                        data-i18n-key="account.deleteAccount"
+                    >
+                        Delete account
+                    </button>
+                    <button
+                        id="logout-button"
+                        class="options-modal__action options-modal__action--secondary"
+                        type="button"
+                        data-i18n-key="account.logoutGoogle"
+                    >
+                        Logout from Google
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>

@@ -6,10 +6,12 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "render": "python3 scripts/render-index.py",
     "build:sw": "node scripts/build-service-worker.cjs",
     "build": "tsc && npm run build:sw",
+    "prebuild:sw": "npm run render",
     "watch": "npm run build:sw && tsc --watch",
-    "server": "php -c backend/php.ini -S 0.0.0.0:5500 -t .",
+    "server": "npm run render && php -c backend/php.ini -S 0.0.0.0:5500 -t .",
     "docs": "jsdoc -c jsdoc.json",
     "codex": "codex --model gpt-5.1-codex-mini",
     "codex:exec": "codex exec --model gpt-5.1-codex-mini",

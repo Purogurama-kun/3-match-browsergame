@@ -1,0 +1,45 @@
+    <div id="shop" class="shop" hidden>
+        <div class="shop__card">
+            <div class="shop__scroll">
+                <div class="shop__sticky-top">
+                    <div class="shop__top-bar">
+                        <button
+                            id="shop-close"
+                            class="shop__back-button shop__back-button--top"
+                            type="button"
+                            aria-labelledby="shop-back-label"
+                        >
+                            <svg
+                                class="shop__back-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2.2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <path d="M15 7l-6 5.5L15 18" />
+                            </svg>
+                            <span
+                                id="shop-back-label"
+                                class="shop__assistive-text"
+                                data-i18n-key="button.back"
+                            >
+                                Back
+                            </span>
+                        </button>
+                        <div class="shop__top-title" data-i18n-key="shop.title">Sugar Shop</div>
+                        <div class="shop__top-spacer" aria-hidden="true"></div>
+                    </div>
+                    <div class="shop__coins-row">
+                        <img src="assets/images/sugar_coin_icon.webp" alt="" class="shop__coins-icon" aria-hidden="true" />
+                        <span id="shop-coin-count" class="shop__coins-count" aria-live="polite">0</span>
+                    </div>
+                </div>
+                <p class="shop__lead" data-i18n-key="shop.lead">Spend sugar coins on tactical advantages.</p>
+                <div id="shop-feedback" class="shop__feedback" aria-live="polite" hidden></div>
+                <div id="shop-items" class="shop__grid"></div>
+            </div>
+        </div>
+    </div>
