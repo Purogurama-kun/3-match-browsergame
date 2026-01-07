@@ -1,6 +1,8 @@
 import { getRequiredElement } from './dom.js';
 import { LEVELS, describeGoal, getLevelDefinition } from './levels.js';
 import { t } from './i18n.js';
+import type { TranslationKey } from './i18n.js';
+import { Difficulty } from './types.js';
 
 type LevelSelectOptions = {
     onStart: (level: number) => void;
@@ -122,10 +124,12 @@ class LevelSelectView {
 
     private renderSelected(): void {
         const definition = getLevelDefinition(this.selectedLevel);
+        const difficultyLabel = this.formatDifficultyLabel(definition.difficulty);
         this.selectedLabel.textContent = t('levelSelect.selectedTitle', { level: definition.id });
         this.meta.textContent = t('levelSelect.meta', {
             moves: definition.moves,
-            target: definition.targetScore
+            target: definition.targetScore,
+            difficulty: difficultyLabel
         });
         this.goals.innerHTML = '';
         definition.goals.forEach((goal) => {
@@ -149,6 +153,17 @@ class LevelSelectView {
         const button = this.levelButtons[this.selectedLevel - 1];
         if (!button) return;
         button.scrollIntoView({ block: 'center' });
+    }
+
+    private formatDifficultyLabel(difficulty: Difficulty): string {
+        const keyMap: Record<Difficulty, TranslationKey> = {
+            easy: 'difficulty.easy',
+            normal: 'difficulty.normal',
+            hard: 'difficulty.hard',
+            expert: 'difficulty.expert',
+            nightmare: 'difficulty.nightmare'
+        };
+        return t(keyMap[difficulty]);
     }
 
     private clampLevel(level: number): number {
