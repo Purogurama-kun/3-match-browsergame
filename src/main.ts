@@ -9,6 +9,7 @@ import { ShopView, getNextPowerupPrice, type ShopState } from './shop.js';
 import { createFreshPowerupInventory, MAX_TACTICAL_POWERUP_STOCK, TACTICAL_POWERUPS, type TacticalPowerup } from './constants.js';
 import { GuestProfileStore } from './profile-store.js';
 import { ProfileState, type AccountProfileData } from './profile-state.js';
+import { LevelSelectView } from './level-select.js';
 import { onLocaleChange, setLocale, t } from './i18n.js';
 import type { Locale } from './i18n.js';
 import type { LeaderboardIdentity, LeaderboardMode, PowerupInventory } from './types.js';
@@ -56,6 +57,10 @@ class GameApp {
             onBuy: (type) => this.handleShopPurchase(type),
             onClose: () => this.showMainMenu()
         });
+        this.levelSelectView = new LevelSelectView({
+            onStart: (level) => this.startLevelGame(level),
+            onClose: () => this.showMainMenu()
+        });
         this.confirmDialog = new ConfirmDialog();
 
         this.loadLocalProgress();
@@ -68,7 +73,7 @@ class GameApp {
         this.game.setLogoutEnabled(false);
         this.googleAuth.trySilentLogin();
 
-        this.startLevelButton.addEventListener('click', () => this.startLevelGame());
+        this.startLevelButton.addEventListener('click', () => this.showLevelSelect());
         this.startBlockerButton.addEventListener('click', () => this.startBlockerGame());
         this.startTimeButton.addEventListener('click', () => this.startTimeGame());
         this.startLeaderboardButton.addEventListener('click', () => this.showLeaderboard());
@@ -103,6 +108,7 @@ class GameApp {
     private leaderboard: HTMLElement;
     private shopButton: HTMLButtonElement;
     private shopView: ShopView;
+    private levelSelectView: LevelSelectView;
     private confirmDialog: ConfirmDialog;
     private googleAuth: GoogleAuth;
     private progressStore: ProgressStore;
@@ -123,10 +129,11 @@ class GameApp {
     private profileState: ProfileState;
     private isProfileVisible = false;
 
-    private startLevelGame(): void {
+    private startLevelGame(level: number): void {
         if (this.isProgressLoading) return;
+        this.hideLevelSelect();
         this.hideMainMenu();
-        this.game.startLevel(this.progress.highestLevel);
+        this.game.startLevel(level);
     }
 
     private startBlockerGame(): void {
@@ -143,6 +150,7 @@ class GameApp {
 
     private showLeaderboard(): void {
         if (this.isProgressLoading) return;
+        this.hideLevelSelect();
         this.hideMainMenu();
         this.body.classList.add('match-app--leaderboard');
         this.leaderboard.removeAttribute('hidden');
@@ -162,12 +170,14 @@ class GameApp {
 
     private showShop(): void {
         if (this.isProgressLoading) return;
+        this.hideLevelSelect();
         this.hideMainMenu();
         this.shopView.open(this.buildShopState());
     }
 
     private showProfile(): void {
         if (this.isProgressLoading) return;
+        this.hideLevelSelect();
         this.hideLeaderboard();
         this.shopView.hide();
         this.hideMainMenu();
@@ -200,11 +210,13 @@ class GameApp {
         this.game.handleLocaleChange(locale);
         this.updateGoogleLoginTooltip(locale);
         this.profileState.applyLocale();
+        this.levelSelectView.applyLocale();
         this.refreshProfileView();
     }
 
     private showMainMenu(): void {
         this.shopView.hide();
+        this.hideLevelSelect();
         this.hideLeaderboard();
         this.hideProfile();
         this.body.classList.add('match-app--menu');
@@ -216,6 +228,19 @@ class GameApp {
     private hideMainMenu(): void {
         this.body.classList.remove('match-app--menu');
         this.mainMenu.setAttribute('hidden', 'true');
+    }
+
+    private showLevelSelect(): void {
+        if (this.isProgressLoading) return;
+        this.hideLeaderboard();
+        this.shopView.hide();
+        this.hideProfile();
+        this.hideMainMenu();
+        this.levelSelectView.open(this.progress.highestLevel);
+    }
+
+    private hideLevelSelect(): void {
+        this.levelSelectView.hide();
     }
 
     private hideLeaderboard(): void {
@@ -550,6 +575,7 @@ class GameApp {
         this.startLevelButton.textContent = t('button.levelMode');
         this.startBlockerButton.textContent = t('button.blockerMode');
         this.startTimeButton.textContent = t('button.timeMode');
+        this.levelSelectView.update(this.progress.highestLevel);
     }
 
     private setupGoogleLoginTooltip(): void {

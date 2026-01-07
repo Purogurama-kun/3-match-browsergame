@@ -62,6 +62,22 @@ body {
     display: none;
 }
 
+.match-app--level-select {
+    background:
+        radial-gradient(circle at 15% 20%, rgba(255, 182, 193, 0.2), transparent 45%),
+        radial-gradient(circle at 85% 10%, rgba(254, 215, 170, 0.2), transparent 50%),
+        radial-gradient(circle at 50% 80%, rgba(191, 219, 254, 0.18), transparent 55%),
+        #1e1e2f;
+}
+
+.match-app--level-select .main-menu,
+.match-app--level-select .hud,
+.match-app--level-select .board,
+.match-app--level-select .move-evaluation,
+.match-app--level-select .tactical-toolbar {
+    display: none;
+}
+
 .match-app--account .main-menu,
 .match-app--account .hud,
 .match-app--account .board,
