@@ -194,6 +194,10 @@ class OptionsMenu {
         this.hideOptionsModal();
     }
 
+    isOpen(): boolean {
+        return !this.optionsModal.hasAttribute('hidden');
+    }
+
     private toggleInfoPanel(): void {
         if (this.infoPanel.hasAttribute('hidden')) {
             this.showInfoPanel();

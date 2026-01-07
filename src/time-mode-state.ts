@@ -136,6 +136,10 @@ class TimeModeState implements GameModeState {
 
     private tick(context: ModeContext): void {
         if (!this.state || this.hasEnded) return;
+        if (context.isModalVisible()) {
+            this.lastTick = performance.now();
+            return;
+        }
         const now = performance.now();
         const deltaSeconds = (now - this.lastTick) / 1000;
         this.lastTick = now;

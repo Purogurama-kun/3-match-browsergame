@@ -160,6 +160,10 @@ class Hud {
         this.optionsMenu.close();
     }
 
+    isOptionsOpen(): boolean {
+        return this.optionsMenu.isOpen();
+    }
+
     resetStatus(): void {
         this.setStatus(t('hud.status.ready'), '✨');
     }

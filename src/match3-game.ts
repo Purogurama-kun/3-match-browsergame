@@ -1775,7 +1775,7 @@ class Match3Game implements ModeContext {
     }
 
     isModalVisible(): boolean {
-        return this.renderer.isModalVisible();
+        return this.renderer.isModalVisible() || this.hud.isOptionsOpen();
     }
 
     notifyBlockerHighScore(score: number): void {
