@@ -10,6 +10,7 @@ import { createFreshPowerupInventory, MAX_TACTICAL_POWERUP_STOCK, TACTICAL_POWER
 import { GuestProfileStore } from './profile-store.js';
 import { ProfileState, type AccountProfileData } from './profile-state.js';
 import { LevelSelectView } from './level-select.js';
+import { TutorialView } from './tutorial.js';
 import { onLocaleChange, setLocale, t } from './i18n.js';
 import type { Locale } from './i18n.js';
 import type { LeaderboardIdentity, LeaderboardMode, PowerupInventory } from './types.js';
@@ -24,6 +25,7 @@ class GameApp {
         this.startLeaderboardButton = this.getLeaderboardButton();
         this.leaderboard = getRequiredElement('leaderboard');
         this.shopButton = this.getShopButton();
+        this.tutorialButton = this.getTutorialButton();
         this.profileButton = this.getProfileButton();
         this.progress = {
             highestLevel: 1,
@@ -57,6 +59,9 @@ class GameApp {
             onBuy: (type) => this.handleShopPurchase(type),
             onClose: () => this.showMainMenu()
         });
+        this.tutorialView = new TutorialView({
+            onClose: () => this.showMainMenu()
+        });
         this.levelSelectView = new LevelSelectView({
             onStart: (level) => this.startLevelGame(level),
             onClose: () => this.showMainMenu()
@@ -78,6 +83,7 @@ class GameApp {
         this.startTimeButton.addEventListener('click', () => this.startTimeGame());
         this.startLeaderboardButton.addEventListener('click', () => this.showLeaderboard());
         this.shopButton.addEventListener('click', () => this.showShop());
+        this.tutorialButton.addEventListener('click', () => this.showTutorial());
         this.profileButton.addEventListener('click', () => this.showProfile());
         this.game.onExitGameRequested(() => this.returnToMenu());
         this.game.onDeleteProgressRequested(() => {
@@ -107,7 +113,9 @@ class GameApp {
     private startLeaderboardButton: HTMLButtonElement;
     private leaderboard: HTMLElement;
     private shopButton: HTMLButtonElement;
+    private tutorialButton: HTMLButtonElement;
     private shopView: ShopView;
+    private tutorialView: TutorialView;
     private levelSelectView: LevelSelectView;
     private confirmDialog: ConfirmDialog;
     private googleAuth: GoogleAuth;
@@ -175,11 +183,22 @@ class GameApp {
         this.shopView.open(this.buildShopState());
     }
 
+    private showTutorial(): void {
+        if (this.isProgressLoading) return;
+        this.hideLevelSelect();
+        this.hideLeaderboard();
+        this.shopView.hide();
+        this.hideProfile();
+        this.hideMainMenu();
+        this.tutorialView.open();
+    }
+
     private showProfile(): void {
         if (this.isProgressLoading) return;
         this.hideLevelSelect();
         this.hideLeaderboard();
         this.shopView.hide();
+        this.tutorialView.hide();
         this.hideMainMenu();
         this.body.classList.add('match-app--account');
         this.isProfileVisible = true;
@@ -216,6 +235,7 @@ class GameApp {
 
     private showMainMenu(): void {
         this.shopView.hide();
+        this.tutorialView.hide();
         this.hideLevelSelect();
         this.hideLeaderboard();
         this.hideProfile();
@@ -396,6 +416,14 @@ class GameApp {
         const element = getRequiredElement('open-shop');
         if (!(element instanceof HTMLButtonElement)) {
             throw new Error('Shop button is not a button');
+        }
+        return element;
+    }
+
+    private getTutorialButton(): HTMLButtonElement {
+        const element = getRequiredElement('open-tutorial');
+        if (!(element instanceof HTMLButtonElement)) {
+            throw new Error('Tutorial button is not a button');
         }
         return element;
     }

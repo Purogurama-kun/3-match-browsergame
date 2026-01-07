@@ -32,6 +32,7 @@
     <link rel="stylesheet" href="css/confirm-modal.css" />
     <link rel="stylesheet" href="css/shop.css" />
     <link rel="stylesheet" href="css/account.css" />
+    <link rel="stylesheet" href="css/tutorial.css" />
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script type="module" src="dist/main.js"></script>
 </head>
@@ -59,6 +60,19 @@
             </div>
             <div class="main-menu__utility">
                 <div class="main-menu__icon-actions">
+                    <button
+                        id="open-tutorial"
+                        class="main-menu__icon-button main-menu__icon-button--tutorial"
+                        type="button"
+                        aria-labelledby="main-menu-tutorial-label"
+                    >
+                        <img src="assets/images/guide.svg" alt="" aria-hidden="true" />
+                        <span
+                            id="main-menu-tutorial-label"
+                            class="main-menu__icon-button__assistive"
+                            data-i18n-key="button.tutorial"
+                        ></span>
+                    </button>
                     <button
                         id="open-shop"
                         class="main-menu__icon-button main-menu__icon-button--shop"
@@ -219,6 +233,170 @@
                 <p class="shop__lead" data-i18n-key="shop.lead">Spend sugar coins on tactical advantages.</p>
                 <div id="shop-feedback" class="shop__feedback" aria-live="polite" hidden></div>
                 <div id="shop-items" class="shop__grid"></div>
+            </div>
+        </div>
+    </div>
+    <div id="tutorial" class="tutorial" hidden>
+        <div class="tutorial__panel">
+            <div class="tutorial__scroll">
+                <div class="tutorial__sticky-top">
+                    <div class="tutorial__top-bar">
+                        <button
+                            id="tutorial-back"
+                            class="tutorial__back-button"
+                            type="button"
+                            aria-labelledby="tutorial-back-label"
+                        >
+                            <svg
+                                class="tutorial__back-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2.2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                            >
+                                <path d="M15 7l-6 5.5L15 18" />
+                            </svg>
+                            <span
+                                id="tutorial-back-label"
+                                class="tutorial__assistive-text"
+                                data-i18n-key="button.back"
+                            >
+                                Back
+                            </span>
+                        </button>
+                        <div class="tutorial__top-title" data-i18n-key="tutorial.title">Candy Guide</div>
+                        <div class="tutorial__top-spacer" aria-hidden="true"></div>
+                    </div>
+                </div>
+                <div class="tutorial__content">
+                    <p class="tutorial__lead" data-i18n-key="tutorial.lead">
+                        Learn the basics of boosters, matches, and special tiles.
+                    </p>
+                    <section class="tutorial__section">
+                        <h2 class="tutorial__section-title" data-i18n-key="tutorial.section.boosters">Boosters</h2>
+                        <div class="tutorial__card">
+                            <p class="tutorial__section-lead" data-i18n-key="tutorial.boosters.lead">
+                                The shop sells three tactical powerups that can be used mid-level.
+                            </p>
+                            <ul class="tutorial__list" role="list">
+                                <li class="tutorial__item">
+                                    <span class="tutorial__item-title" data-i18n-key="powerup.shuffle.label">Shuffle</span>
+                                    <span class="tutorial__item-text" data-i18n-key="powerup.shuffle.description">
+                                        Rearrange all candies
+                                    </span>
+                                </li>
+                                <li class="tutorial__item">
+                                    <span class="tutorial__item-title" data-i18n-key="powerup.switch.label">Switch</span>
+                                    <span class="tutorial__item-text" data-i18n-key="powerup.switch.description">
+                                        Swap two adjacent cells without a match
+                                    </span>
+                                </li>
+                                <li class="tutorial__item">
+                                    <span class="tutorial__item-title" data-i18n-key="powerup.bomb.label">Bomb</span>
+                                    <span class="tutorial__item-text" data-i18n-key="powerup.bomb.description">
+                                        Clear a 4x4 area of your choice
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </section>
+                    <section class="tutorial__section">
+                        <h2 class="tutorial__section-title" data-i18n-key="tutorial.section.matches">Matches</h2>
+                        <div class="tutorial__card">
+                            <ul class="tutorial__list tutorial__list--compact" role="list">
+                                <li class="tutorial__item">
+                                    <span class="tutorial__item-title" data-i18n-key="tutorial.matches.threeTitle">Match 3</span>
+                                    <span class="tutorial__item-text" data-i18n-key="tutorial.matches.threeText">
+                                        Clear the candies and score points.
+                                    </span>
+                                </li>
+                                <li class="tutorial__item">
+                                    <span class="tutorial__item-title" data-i18n-key="tutorial.matches.fourTitle">Match 4</span>
+                                    <span class="tutorial__item-text" data-i18n-key="tutorial.matches.fourText">
+                                        Creates a line bomb.
+                                    </span>
+                                </li>
+                                <li class="tutorial__item">
+                                    <span class="tutorial__item-title" data-i18n-key="tutorial.matches.fiveTitle">Match 5</span>
+                                    <span class="tutorial__item-text" data-i18n-key="tutorial.matches.fiveText">
+                                        Creates a large blast bomb.
+                                    </span>
+                                </li>
+                                <li class="tutorial__item">
+                                    <span class="tutorial__item-title" data-i18n-key="tutorial.matches.ltTitle">L or T</span>
+                                    <span class="tutorial__item-text" data-i18n-key="tutorial.matches.ltText">
+                                        Creates a medium blast bomb.
+                                    </span>
+                                </li>
+                                <li class="tutorial__item">
+                                    <span class="tutorial__item-title" data-i18n-key="tutorial.matches.squareTitle">Square (2x2)</span>
+                                    <span class="tutorial__item-text" data-i18n-key="tutorial.matches.squareText">
+                                        Creates a small blast bomb.
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </section>
+                    <section class="tutorial__section">
+                        <h2 class="tutorial__section-title" data-i18n-key="tutorial.section.obstacles">Obstacles</h2>
+                        <div class="tutorial__card">
+                            <ul class="tutorial__list" role="list">
+                                <li class="tutorial__item">
+                                    <span class="tutorial__item-title" data-i18n-key="tutorial.obstacles.hardTitle">
+                                        Hard candies
+                                    </span>
+                                    <span class="tutorial__item-text" data-i18n-key="tutorial.obstacles.hardText">
+                                        Adjacent matches crack them before they can be cleared.
+                                    </span>
+                                </li>
+                                <li class="tutorial__item">
+                                    <span class="tutorial__item-title" data-i18n-key="tutorial.obstacles.chestTitle">
+                                        Sugar chests
+                                    </span>
+                                    <span class="tutorial__item-text" data-i18n-key="tutorial.obstacles.chestText">
+                                        Adjacent matches crack them until they burst into sugar coins.
+                                    </span>
+                                </li>
+                                <li class="tutorial__item">
+                                    <span class="tutorial__item-title" data-i18n-key="tutorial.obstacles.generatorTitle">
+                                        Blocker generators
+                                    </span>
+                                    <span class="tutorial__item-text" data-i18n-key="tutorial.obstacles.generatorText">
+                                        Every few matches they create new hard candies nearby.
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </section>
+                    <section class="tutorial__section">
+                        <h2 class="tutorial__section-title" data-i18n-key="tutorial.section.modes">Modes</h2>
+                        <div class="tutorial__card">
+                            <ul class="tutorial__list tutorial__list--compact" role="list">
+                                <li class="tutorial__item">
+                                    <span class="tutorial__item-title" data-i18n-key="tutorial.modes.levelTitle">Level Mode</span>
+                                    <span class="tutorial__item-text" data-i18n-key="tutorial.modes.levelText">
+                                        Finish goals with limited moves.
+                                    </span>
+                                </li>
+                                <li class="tutorial__item">
+                                    <span class="tutorial__item-title" data-i18n-key="tutorial.modes.blockerTitle">Blocker Mode</span>
+                                    <span class="tutorial__item-text" data-i18n-key="tutorial.modes.blockerText">
+                                        Survive as hard candies spread and chase a high score.
+                                    </span>
+                                </li>
+                                <li class="tutorial__item">
+                                    <span class="tutorial__item-title" data-i18n-key="tutorial.modes.timeTitle">Time Mode</span>
+                                    <span class="tutorial__item-text" data-i18n-key="tutorial.modes.timeText">
+                                        Beat the clock as it speeds up; matches add time.
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </section>
+                </div>
             </div>
         </div>
     </div>

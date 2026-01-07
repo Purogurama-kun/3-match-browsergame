@@ -170,6 +170,10 @@
     border-color: rgba(92, 239, 189, 0.8);
 }
 
+.main-menu__icon-button--tutorial {
+    border-color: rgba(255, 211, 95, 0.85);
+}
+
 .main-menu__icon-button--leaderboard {
     border-color: rgba(93, 155, 255, 0.8);
 }
