@@ -4,7 +4,6 @@ import {
     BLACK_BOMB_COLOR,
     BoosterType,
     randomColor,
-    TACTICAL_POWERUPS,
     TacticalPowerup,
     createFreshPowerupInventory
 } from './constants.js';
@@ -20,28 +19,13 @@ import { BlockerModeState } from './blocker-mode-state.js';
 import { LeaderboardState, LeaderboardStateOptions } from './leaderboard-state.js';
 import { TimeModeState } from './time-mode-state.js';
 import { t, Locale } from './i18n.js';
+import { HintManager } from './hint-manager.js';
+import { MatchScanner } from './match-scanner.js';
+import { MultiplierTracker } from './multiplier-tracker.js';
+import { PowerupManager } from './powerup-manager.js';
+import { SugarChestManager } from './sugar-chest-manager.js';
+import type { MatchResult } from './match-scanner.js';
 import type { ParticleOptions } from './particle-effect.js';
-
-type BoosterCreation = {
-    index: number;
-    type: BoosterType;
-    orientation?: LineOrientation;
-};
-
-type MatchResult = {
-    matched: Set<number>;
-    boostersToCreate: BoosterCreation[];
-    largestMatch: number;
-    createdBoosterTypes: BoosterType[];
-};
-
-type MatchAccumulator = {
-    matched: Set<number>;
-    boostersToCreate: BoosterCreation[];
-    boosterSlots: Set<number>;
-    createdBoosterTypes: Set<BoosterType>;
-    largestMatch: number;
-};
 
 type ColumnEntry = {
     color: string;
@@ -52,14 +36,57 @@ type ColumnEntry = {
     sugarChestStage?: number;
 };
 
-const SUGAR_CHEST_REWARD = 1;
-
 class Match3Game implements ModeContext {
     constructor() {
         this.sounds = new SoundManager();
         this.hud = new Hud();
         this.renderer = new Renderer(this.hud);
         this.board = new Board();
+        this.matchScanner = new MatchScanner(this.board);
+        this.multiplierTracker = new MultiplierTracker({
+            renderer: this.renderer,
+            sounds: this.sounds,
+            minMultiplier: this.minMultiplier,
+            maxMultiplier: this.maxMultiplier
+        });
+        this.powerups = new PowerupManager(
+            {
+                board: this.board,
+                hud: this.hud,
+                renderer: this.renderer,
+                sounds: this.sounds,
+                getState: () => this.state,
+                updateHud: () => this.updateHud(),
+                defer: (callback, delay) => this.defer(callback, delay),
+                getAnimationDelay: (duration) => this.getAnimationDelay(duration),
+                rearrangeBoardColors: () => this.rearrangeBoardColors(),
+                dropCells: () => this.dropCells(),
+                checkMatches: () => this.checkMatches(),
+                destroyCellAndMaybeFinishGenerator: (index) => this.destroyCellAndMaybeFinishGenerator(index),
+                getRowCol: (index) => this.getRowCol(index),
+                areAdjacent: (a, b) => this.areAdjacent(a, b),
+                resetHintState: () => this.resetHintState(),
+                onLockChange: () => this.syncPowerupToolbarLock(),
+                isPerformanceMode: () => this.performanceMode
+            },
+            createFreshPowerupInventory()
+        );
+        this.sugarChests = new SugarChestManager({
+            board: this.board,
+            renderer: this.renderer,
+            isPerformanceMode: () => this.performanceMode,
+            getAnimationDelay: (duration) => this.getAnimationDelay(duration),
+            defer: (callback, delay) => this.defer(callback, delay),
+            onSugarCoins: (amount) => this.sugarCoinListener?.(amount),
+            getRowCol: (index) => this.getRowCol(index),
+            getAdjacentIndices: (row, col) => this.getAdjacentIndices(row, col)
+        });
+        this.hintManager = new HintManager({
+            renderer: this.renderer,
+            delayMs: this.hintDelayMs,
+            canSchedule: () => this.canScheduleHint(),
+            findHintMove: () => this.matchScanner.findHintMove()
+        });
         this.hud.onTacticalPowerup((type) => this.handleTacticalPowerup(type));
         this.hud.onAudioToggle((enabled) => {
             const active = this.sounds.setEnabled(enabled);
@@ -76,15 +103,13 @@ class Match3Game implements ModeContext {
         this.hud.setCellShapeMode(this.cellShapeMode);
         this.modeState = new LevelModeState(1);
         this.state = this.modeState.enter(this);
-        this.state.powerups = this.powerupInventory;
+        this.powerups.applyInventoryToState();
+        this.multiplierTracker.setState(this.state);
         this.refreshGoalDescriptions();
         this.updateCellShapeMode(this.state.cellShapeMode);
 
         this.generation = 0;
         this.pendingTimers = [];
-        this.moveActive = false;
-        this.currentMoveScore = 0;
-        this.currentMoveBaseScore = 0;
         this.boardAnimating = false;
         this.syncPowerupToolbarLock();
     }
@@ -93,25 +118,22 @@ class Match3Game implements ModeContext {
     private hud: Hud;
     private readonly renderer: Renderer;
     private board: Board;
+    private matchScanner: MatchScanner;
+    private hintManager: HintManager;
+    private powerups: PowerupManager;
+    private sugarChests: SugarChestManager;
+    private multiplierTracker: MultiplierTracker;
     private state: GameState;
     private modeState: GameModeState;
     private generation: number;
     private pendingTimers: number[];
-    private moveActive: boolean;
-    private currentMoveScore: number;
-    private currentMoveBaseScore: number;
     private readonly baseCellPoints = 10;
     private readonly minMultiplier = 0.5;
     private readonly maxMultiplier = 5;
     private readonly maxBombDropChance = 0.05; // 5%
     private boardAnimating: boolean;
     private cellShapeMode: CellShapeMode = 'square';
-    private pendingPowerup: TacticalPowerup | null = null;
-    private pendingPowerupSelections: number[] = [];
     private sugarCoinListener: ((amount: number) => void) | null = null;
-    private powerupInProgress = false;
-    private powerupInventory: PowerupInventory = createFreshPowerupInventory();
-    private powerupInventoryListener: ((inventory: PowerupInventory) => void) | null = null;
     private progressListener: ((level: number) => void) | null = null;
     private blockerHighScoreListener: ((score: number) => void) | null = null;
     private timeBestListener: ((time: number) => void) | null = null;
@@ -125,8 +147,6 @@ class Match3Game implements ModeContext {
     private readonly generatorSpreadRadius = 3;
     private performanceMode = false;
     private readonly performanceModeStorageKey = 'match3-performance-mode';
-    private hintTimer: number | null = null;
-    private hintIndices: number[] = [];
     private readonly hintDelayMs = 10000;
 
     startLevel(level: number): void {
@@ -158,7 +178,7 @@ class Match3Game implements ModeContext {
         this.resetMoveTracking();
         this.renderer.resetMoveEvaluation();
         this.renderer.hideModal(false);
-        this.clearPendingPowerup();
+        this.powerups.clearPendingPowerup();
         this.hud.resetStatus();
     }
 
@@ -212,15 +232,11 @@ class Match3Game implements ModeContext {
     }
 
     onPowerupInventoryChange(handler: (inventory: PowerupInventory) => void): void {
-        this.powerupInventoryListener = handler;
+        this.powerups.setPowerupInventoryListener(handler);
     }
 
     setPowerupInventory(inventory: PowerupInventory): void {
-        this.powerupInventory = { ...inventory };
-        if (this.state) {
-            this.state.powerups = this.powerupInventory;
-        }
-        this.updateHud();
+        this.powerups.setPowerupInventory(inventory);
     }
 
     showLeaderboard(options: LeaderboardStateOptions): void {
@@ -243,7 +259,8 @@ class Match3Game implements ModeContext {
         }
         this.modeState = modeState;
         this.state = this.modeState.enter(this);
-        this.state.powerups = this.powerupInventory;
+        this.powerups.applyInventoryToState();
+        this.multiplierTracker.setState(this.state);
         this.renderer.setGameMode(this.state.mode);
         this.refreshGoalDescriptions();
         this.updateCellShapeMode(this.cellShapeMode);
@@ -283,13 +300,9 @@ class Match3Game implements ModeContext {
     }
 
     private syncPowerupToolbarLock(): void {
-        this.hud.setPowerupToolbarBlocked(this.boardAnimating || this.moveActive || this.powerupInProgress);
-    }
-
-    private releasePowerupLock(): void {
-        if (!this.powerupInProgress) return;
-        this.powerupInProgress = false;
-        this.syncPowerupToolbarLock();
+        this.hud.setPowerupToolbarBlocked(
+            this.boardAnimating || this.multiplierTracker.isMoveActive() || this.powerups.isInProgress()
+        );
     }
 
     private createBoard(): void {
@@ -324,7 +337,7 @@ class Match3Game implements ModeContext {
     }
 
     shuffleBoardWithNotice(message: string): void {
-        if (this.boardAnimating || this.powerupInProgress) return;
+        if (this.boardAnimating || this.powerups.isInProgress()) return;
         if (!this.rearrangeBoardColors()) return;
         this.renderer.showShuffleNotice(message);
         this.defer(() => this.checkMatches(), this.getAnimationDelay(150));
@@ -332,12 +345,9 @@ class Match3Game implements ModeContext {
 
     private handleCellClick(index: number): void {
         if (this.boardAnimating) return;
-        if (this.pendingPowerup) {
-            this.handlePowerupCellSelection(index);
-            return;
-        }
-        if (this.powerupInProgress) return;
-        if (this.moveActive) return;
+        if (this.powerups.handleCellSelection(index)) return;
+        if (this.powerups.isInProgress()) return;
+        if (this.multiplierTracker.isMoveActive()) return;
         if (!this.modeState.canStartMove(this.state)) return;
         this.resetHintState();
 
@@ -376,8 +386,8 @@ class Match3Game implements ModeContext {
 
     private handleCellSwipe(index: number, direction: SwipeDirection): void {
         if (this.boardAnimating) return;
-        if (this.pendingPowerup) return;
-        if (this.moveActive) return;
+        if (this.powerups.hasPendingPowerup()) return;
+        if (this.multiplierTracker.isMoveActive()) return;
         if (!this.modeState.canStartMove(this.state)) return;
         this.resetHintState();
         const neighbor = this.getNeighbor(index, direction);
@@ -389,100 +399,24 @@ class Match3Game implements ModeContext {
         this.trySwap(index, neighbor);
     }
 
-    private handlePowerupCellSelection(index: number): void {
-        if (!this.pendingPowerup) return;
-        this.resetHintState();
-        if (this.pendingPowerup === 'bomb') {
-            const { row, col } = this.getRowCol(index);
-            this.pendingPowerup = null;
-            this.renderer.clearSelection();
-            this.hud.setPendingPowerup(null);
-            this.applyBombPowerup(row, col);
-            return;
-        }
-        if (this.pendingPowerup === 'switch') {
-            const selection = this.pendingPowerupSelections;
-            if (selection.length === 0) {
-                this.pendingPowerupSelections = [index];
-                this.renderer.selectCell(index);
-                this.hud.setStatus(t('hud.status.chooseAdjacent'), TACTICAL_POWERUPS.switch.icon);
-                return;
-            }
-            const first = selection[0]!;
-            if (!this.areAdjacent(first, index)) {
-                this.hud.setStatus(t('hud.status.targetAdjacent'), '⚠️');
-                this.pendingPowerupSelections = [];
-                this.renderer.clearSelection();
-                return;
-            }
-            this.pendingPowerupSelections = [];
-            this.pendingPowerup = null;
-            this.renderer.clearSelection();
-            this.hud.setPendingPowerup(null);
-            this.executeSwitchPowerup(first, index);
-        }
-    }
-
     private handleTacticalPowerup(type: TacticalPowerup): void {
-        if (this.boardAnimating || this.moveActive) return;
+        if (this.boardAnimating || this.multiplierTracker.isMoveActive()) return;
         if (!this.modeState.canStartMove(this.state)) return;
-        if (!this.hasPowerup(type)) return;
-        this.resetHintState();
-        if (this.pendingPowerup === type) {
-            this.cancelPendingPowerup();
+        const result = this.powerups.handleTacticalPowerup(type);
+        if (result === 'canceled') {
             this.scheduleHint();
-            return;
         }
-        if (this.pendingPowerup) {
-            this.clearPendingPowerup();
-        }
-        if (this.powerupInProgress) return;
-
-        const meta = TACTICAL_POWERUPS[type];
-        if (!meta) return;
-
-        this.powerupInProgress = true;
-        this.syncPowerupToolbarLock();
-        this.renderer.clearSelection();
-        this.state.selected = null;
-        const localizedLabel = t(meta.labelKey);
-
-        if (type === 'shuffle') {
-            this.consumePowerup(type);
-            this.hud.setStatus(t('hud.status.powerupActivated', { powerup: localizedLabel }), meta.icon ?? '✨');
-            this.hud.setPendingPowerup(null);
-            this.pendingPowerup = null;
-            this.applyShufflePowerup();
-        } else {
-            this.pendingPowerup = type;
-            this.pendingPowerupSelections = [];
-            this.hud.setPendingPowerup(type);
-            this.hud.setStatus(t('hud.status.chooseTarget', { powerup: localizedLabel }), meta.icon ?? '✨');
-        }
-        this.updateHud();
     }
 
     private findMatches(): MatchResult {
-        const accumulator = this.createMatchAccumulator();
-
-        this.scanSquareMatches(accumulator);
-        this.scanTPatterns(accumulator);
-        this.scanLPatterns(accumulator);
-        this.scanLineMatches(accumulator);
-
-        return {
-            matched: accumulator.matched,
-            boostersToCreate: accumulator.boostersToCreate,
-            largestMatch: accumulator.largestMatch,
-            createdBoosterTypes: Array.from(accumulator.createdBoosterTypes)
-        };
+        return this.matchScanner.findMatches();
     }
 
     private checkMatches(): void {
         const matchResult = this.findMatches();
         const { matched, boostersToCreate } = matchResult;
         this.softenAdjacentHardCandies(matched);
-        this.advanceSugarChestsNearMatches(matched);
+        this.sugarChests.advanceNearMatches(matched);
 
         if (matched.size > 0) {
             const hasBlastBooster = boostersToCreate.some(
@@ -518,10 +452,7 @@ class Match3Game implements ModeContext {
         }
 
         this.finalizeMoveScore();
-        if (this.powerupInProgress) {
-            this.powerupInProgress = false;
-            this.syncPowerupToolbarLock();
-        }
+        this.powerups.finishPowerupIfNeeded();
         this.modeState.handleBoardSettled(this.state, this);
         this.scheduleHint();
     }
@@ -542,24 +473,10 @@ class Match3Game implements ModeContext {
         });
     }
 
-    private advanceSugarChestsNearMatches(matched: Set<number>): void {
-        if (matched.size === 0) return;
-        const upgraded = new Set<number>();
-        matched.forEach((idx) => {
-            const { row, col } = this.getRowCol(idx);
-            this.getAdjacentIndices(row, col).forEach((neighbor) => {
-                if (upgraded.has(neighbor)) return;
-                if (!this.board.isSugarChest(neighbor)) return;
-                upgraded.add(neighbor);
-                this.handleSugarChestHit(neighbor, true);
-            });
-        });
-    }
-
     private destroyCell(index: number): void {
         if (this.board.isBlockedIndex(index)) return;
         if (this.board.isSugarChest(index)) {
-            this.handleSugarChestHit(index, false);
+            this.sugarChests.handleHit(index, false);
             return;
         }
         const isGenerator = this.board.isBlockerGenerator(index);
@@ -590,43 +507,6 @@ class Match3Game implements ModeContext {
             }
             this.updateHud();
             this.renderer.updateCell(index, this.board.getCellState(index));
-        }, this.getAnimationDelay(300));
-    }
-
-    private handleSugarChestHit(index: number, triggeredByMatch: boolean): void {
-        if (!this.board.isSugarChest(index)) return;
-        const stage = this.board.getSugarChestStage(index) ?? 1;
-        if (stage >= 4) {
-            if (triggeredByMatch) {
-                this.destroySugarChest(index);
-            }
-            return;
-        }
-        this.board.setSugarChestStage(index, stage + 1);
-        this.renderer.updateCell(index, this.board.getCellState(index));
-    }
-
-    private destroySugarChest(index: number): void {
-        if (!this.board.isSugarChest(index)) return;
-        if (!this.performanceMode) {
-            this.renderer.emitCellParticles(index, '#fcd34d', {
-                count: 12,
-                minDistance: 10,
-                maxDistance: 24,
-                minDuration: 0.6,
-                maxDuration: 0.9
-            });
-        }
-        this.renderer.markCellExploding(index);
-        this.defer(() => {
-            this.renderer.clearCellExplosion(index);
-            this.board.removeSugarChest(index);
-            this.board.clearCell(index);
-            this.renderer.updateCell(index, this.board.getCellState(index));
-            this.renderer.showSugarCoinReward(index, SUGAR_CHEST_REWARD);
-            if (this.sugarCoinListener) {
-                this.sugarCoinListener(SUGAR_CHEST_REWARD);
-            }
         }, this.getAnimationDelay(300));
     }
 
@@ -754,55 +634,6 @@ class Match3Game implements ModeContext {
         }
     }
 
-    private hasPowerup(type: TacticalPowerup): boolean {
-        return (this.state.powerups[type] ?? 0) > 0;
-    }
-
-    private clearPendingPowerup(showStatus = false): void {
-        if (!this.pendingPowerup) return;
-        this.pendingPowerup = null;
-        this.pendingPowerupSelections = [];
-        this.powerupInProgress = false;
-        this.syncPowerupToolbarLock();
-        this.hud.setPendingPowerup(null);
-        this.renderer.clearSelection();
-        if (showStatus) {
-            this.hud.setStatus(t('hud.status.powerupCanceled'), '✖️');
-        }
-    }
-
-    private cancelPendingPowerup(): void {
-        this.clearPendingPowerup(true);
-    }
-
-    private consumePowerup(type: TacticalPowerup): boolean {
-        const remaining = this.state.powerups[type] ?? 0;
-        if (remaining <= 0) return false;
-        this.state.powerups[type] = remaining - 1;
-        this.notifyPowerupInventoryChange();
-        return true;
-    }
-
-    private notifyPowerupInventoryChange(): void {
-        if (!this.powerupInventoryListener) return;
-        this.powerupInventoryListener(this.getCurrentPowerups());
-    }
-
-    private getCurrentPowerups(): PowerupInventory {
-        return { ...this.powerupInventory };
-    }
-
-    private applyShufflePowerup(): void {
-        if (!this.rearrangeBoardColors()) {
-            this.releasePowerupLock();
-            return;
-        }
-        this.defer(() => {
-            this.checkMatches();
-            this.releasePowerupLock();
-        }, this.getAnimationDelay(150));
-    }
-
     private rearrangeBoardColors(): boolean {
         const candidateIndices: number[] = [];
         const colors: string[] = [];
@@ -825,51 +656,6 @@ class Match3Game implements ModeContext {
         });
         this.renderer.refreshBoard(this.board);
         return true;
-    }
-
-    private applyBombPowerup(row: number, col: number): void {
-        if (!this.consumePowerup('bomb')) {
-            this.releasePowerupLock();
-            return;
-        }
-        this.updateHud();
-        const startRow = Math.min(Math.max(row - 1, 0), GRID_SIZE - 4);
-        const startCol = Math.min(Math.max(col - 1, 0), GRID_SIZE - 4);
-        const affected: number[] = [];
-        this.pendingPowerupSelections = [];
-        this.hud.setStatus(
-            t('hud.status.powerupUnleashed', { powerup: t(TACTICAL_POWERUPS.bomb.labelKey) }),
-            TACTICAL_POWERUPS.bomb.icon
-        );
-        for (let r = startRow; r < startRow + 4; r++) {
-            for (let c = startCol; c < startCol + 4; c++) {
-                affected.push(r * GRID_SIZE + c);
-            }
-        }
-        this.sounds.play('radiusBomb');
-        if (!this.performanceMode) {
-            this.renderer.screenShake();
-        }
-        affected.forEach((index) => this.destroyCellAndMaybeFinishGenerator(index));
-        this.defer(() => {
-            this.dropCells();
-            this.releasePowerupLock();
-        }, this.getAnimationDelay(320));
-    }
-
-    private executeSwitchPowerup(firstIndex: number, secondIndex: number): void {
-        if (!this.consumePowerup('switch')) {
-            this.releasePowerupLock();
-            return;
-        }
-        this.updateHud();
-        this.board.swapCells(firstIndex, secondIndex);
-        this.renderer.refreshBoard(this.board);
-        this.hud.setStatus(t('hud.status.switchExecuted'), TACTICAL_POWERUPS.switch.icon);
-        this.defer(() => {
-            this.checkMatches();
-            this.releasePowerupLock();
-        }, this.getAnimationDelay(120));
     }
 
     private shuffleArray<T>(items: T[]): void {
@@ -1172,37 +958,27 @@ class Match3Game implements ModeContext {
     }
 
     private awardScore(basePoints: number): void {
-        const effective = Math.round(basePoints * this.state.comboMultiplier);
-        this.state.score += effective;
-        this.currentMoveScore += effective;
-        this.currentMoveBaseScore += basePoints;
-        if (this.modeState.handleScoreAwarded) {
-            this.modeState.handleScoreAwarded(this.state, basePoints, this);
-        }
+        this.multiplierTracker.awardScore(basePoints, (points) => {
+            if (this.modeState.handleScoreAwarded) {
+                this.modeState.handleScoreAwarded(this.state, points, this);
+            }
+        });
     }
 
     private beginMove(): void {
         this.resetHintState();
-        this.moveActive = true;
-        this.currentMoveScore = 0;
-        this.currentMoveBaseScore = 0;
+        this.multiplierTracker.beginMove();
         this.syncPowerupToolbarLock();
     }
 
     private resetMoveTracking(): void {
-        this.moveActive = false;
-        this.currentMoveScore = 0;
-        this.currentMoveBaseScore = 0;
+        this.multiplierTracker.resetMove();
         this.syncPowerupToolbarLock();
     }
 
     private finalizeMoveScore(): void {
-        if (!this.moveActive) return;
-        const delta = this.calculateMultiplierDelta(this.currentMoveScore);
-        this.state.comboMultiplier = this.clampMultiplier(this.state.comboMultiplier + delta);
-        this.renderer.renderMultiplierStatus(this.state.comboMultiplier, delta, this.currentMoveScore);
-        this.showMoveEvaluation(this.currentMoveBaseScore);
-        this.resetMoveTracking();
+        if (!this.multiplierTracker.finalizeMoveScore()) return;
+        this.syncPowerupToolbarLock();
         this.generatorMoveCounter++;
         this.triggerBlockerGeneratorsIfReady();
         this.updateHud();
@@ -1278,222 +1054,6 @@ class Match3Game implements ModeContext {
         return Math.abs(position.row - row) + Math.abs(position.col - col);
     }
 
-    private calculateMultiplierDelta(moveScore: number): number {
-        if (moveScore >= 150) return 0.5;
-        if (moveScore >= 90) return 0.35;
-        if (moveScore >= 60) return 0.2;
-        if (moveScore === 0) return -0.3;
-        if (moveScore < 30) return -0.15;
-        return 0;
-    }
-
-    private clampMultiplier(multiplier: number): number {
-        const rounded = Math.round(multiplier * 100) / 100;
-        return Math.min(this.maxMultiplier, Math.max(this.minMultiplier, rounded));
-    }
-
-    private showMoveEvaluation(baseMoveScore: number): void {
-        const message = this.getMoveEvaluationMessage(baseMoveScore);
-        if (!message) return;
-        this.renderer.showMoveEvaluation(message, this.sounds.isEnabled());
-    }
-
-    private getMoveEvaluationMessage(baseMoveScore: number): string {
-        if (baseMoveScore >= 1600) return 'Candy Chaos!';
-        if (baseMoveScore >= 800) return 'Sweetplosion!';
-        if (baseMoveScore >= 400) return 'Candy Blast!';
-        if (baseMoveScore >= 200) return 'Candy Frenzy!';
-        if (baseMoveScore >= 100) return 'Sweet Heat!';
-        return '';
-    }
-
-    private createMatchAccumulator(): MatchAccumulator {
-        return {
-            matched: new Set<number>(),
-            boostersToCreate: [],
-            boosterSlots: new Set<number>(),
-            createdBoosterTypes: new Set<BoosterType>(),
-            largestMatch: 0
-        };
-    }
-
-    private scanSquareMatches(accumulator: MatchAccumulator): void {
-        const offsets = [
-            { row: 0, col: 0 },
-            { row: 0, col: 1 },
-            { row: 1, col: 0 },
-            { row: 1, col: 1 }
-        ];
-        this.scanPattern(offsets, { row: 0, col: 0 }, BOOSTERS.BURST_SMALL, accumulator);
-    }
-
-    private scanTPatterns(accumulator: MatchAccumulator): void {
-        const offsets = [
-            { row: 0, col: 0 },
-            { row: 0, col: 1 },
-            { row: 0, col: 2 },
-            { row: 1, col: 1 },
-            { row: 2, col: 1 }
-        ];
-        this.scanRotatedPatterns(offsets, { row: 1, col: 1 }, BOOSTERS.BURST_MEDIUM, accumulator);
-    }
-
-    private scanLPatterns(accumulator: MatchAccumulator): void {
-        const offsets = [
-            { row: 0, col: 0 },
-            { row: 1, col: 0 },
-            { row: 2, col: 0 },
-            { row: 2, col: 1 },
-            { row: 2, col: 2 }
-        ];
-        this.scanRotatedPatterns(offsets, { row: 2, col: 0 }, BOOSTERS.BURST_MEDIUM, accumulator);
-    }
-
-    private scanLineMatches(accumulator: MatchAccumulator): void {
-        for (let r = 0; r < GRID_SIZE; r++) {
-            this.checkLine(this.getRowIndices(r), accumulator, 'horizontal');
-        }
-
-        for (let c = 0; c < GRID_SIZE; c++) {
-            this.checkLine(this.getColumnIndices(c), accumulator, 'vertical');
-        }
-    }
-
-    private checkLine(indices: number[], accumulator: MatchAccumulator, orientation: LineOrientation): void {
-        let streak = 1;
-        for (let i = 1; i <= indices.length; i++) {
-            const prevIndex = indices[i - 1];
-            const currIndex = i < indices.length ? indices[i] : undefined;
-            if (prevIndex === undefined) {
-                throw new Error('Missing index at position: ' + (i - 1));
-            }
-            const prevColor = this.getMatchableColor(prevIndex);
-            const currColor = currIndex !== undefined ? this.getMatchableColor(currIndex) : '';
-            if (currColor && currColor === prevColor) {
-                streak++;
-            } else {
-                if (streak >= 3 && prevColor) {
-                    const streakCells = indices.slice(i - streak, i);
-                    streakCells.forEach((idx) => accumulator.matched.add(idx));
-                    if (streak === 4) {
-                        const lineIndex = streakCells[1];
-                        if (lineIndex === undefined) {
-                            throw new Error('Missing line booster index');
-                        }
-                        this.addBoosterSlot(lineIndex, BOOSTERS.LINE, accumulator, orientation);
-                    }
-                    if (streak >= 5) {
-                        const centerIndex = streakCells[Math.floor(streakCells.length / 2)];
-                        if (centerIndex === undefined) {
-                            throw new Error('Missing large blast index');
-                        }
-                        this.addBoosterSlot(centerIndex, BOOSTERS.BURST_LARGE, accumulator);
-                    }
-                    accumulator.largestMatch = Math.max(accumulator.largestMatch, streak);
-                }
-                streak = 1;
-            }
-        }
-    }
-
-    private scanRotatedPatterns(
-        baseOffsets: { row: number; col: number }[],
-        boosterOffset: { row: number; col: number },
-        boosterType: BoosterType,
-        accumulator: MatchAccumulator
-    ): void {
-        for (let rotation = 0; rotation < 4; rotation++) {
-            const offsets = baseOffsets.map((offset) => this.rotateOffset(offset, rotation));
-            const rotatedBoosterOffset = this.rotateOffset(boosterOffset, rotation);
-            this.scanPattern(offsets, rotatedBoosterOffset, boosterType, accumulator);
-        }
-    }
-
-    private scanPattern(
-        offsets: { row: number; col: number }[],
-        boosterOffset: { row: number; col: number } | null,
-        boosterType: BoosterType | null,
-        accumulator: MatchAccumulator
-    ): void {
-        const allOffsets = boosterOffset ? offsets.concat([boosterOffset]) : offsets;
-        const maxRow = Math.max(...allOffsets.map((offset) => offset.row));
-        const maxCol = Math.max(...allOffsets.map((offset) => offset.col));
-        for (let r = 0; r <= GRID_SIZE - (maxRow + 1); r++) {
-            for (let c = 0; c <= GRID_SIZE - (maxCol + 1); c++) {
-                this.checkPatternAt(r, c, offsets, boosterOffset, boosterType, accumulator);
-            }
-        }
-    }
-
-    private checkPatternAt(
-        originRow: number,
-        originCol: number,
-        offsets: { row: number; col: number }[],
-        boosterOffset: { row: number; col: number } | null,
-        boosterType: BoosterType | null,
-        accumulator: MatchAccumulator
-    ): void {
-        let color = '';
-        const indices: number[] = [];
-        for (const offset of offsets) {
-            const row = originRow + offset.row;
-            const col = originCol + offset.col;
-            const cellColor = this.getColorAt(row, col);
-            if (!cellColor) return;
-            if (!color) color = cellColor;
-            if (cellColor !== color) return;
-            indices.push(this.indexAt(row, col));
-        }
-        indices.forEach((idx) => accumulator.matched.add(idx));
-        if (boosterOffset && boosterType) {
-            const boosterIndex = this.indexAt(originRow + boosterOffset.row, originCol + boosterOffset.col);
-            this.addBoosterSlot(boosterIndex, boosterType, accumulator);
-        }
-        accumulator.largestMatch = Math.max(accumulator.largestMatch, offsets.length);
-    }
-
-    private addBoosterSlot(
-        index: number,
-        type: BoosterType,
-        accumulator: MatchAccumulator,
-        orientation?: LineOrientation
-    ): void {
-        if (accumulator.boosterSlots.has(index)) return;
-        accumulator.boosterSlots.add(index);
-        const creation: BoosterCreation = { index, type };
-        if (type === BOOSTERS.LINE) {
-            creation.orientation = orientation ?? 'horizontal';
-        }
-        accumulator.boostersToCreate.push(creation);
-        accumulator.createdBoosterTypes.add(type);
-    }
-
-    private getMatchableColor(index: number): string {
-        if (this.board.isBlockedIndex(index)) return '';
-        if (this.board.isHardCandy(index)) return '';
-        if (this.board.isSugarChest(index)) return '';
-        const booster = this.board.getCellBooster(index);
-        if (booster === BOOSTERS.BURST_LARGE) return '';
-        return this.board.getCellColor(index);
-    }
-
-    private getColorAt(row: number, col: number): string {
-        if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) return '';
-        return this.getMatchableColor(this.indexAt(row, col));
-    }
-
-    private rotateOffset(offset: { row: number; col: number }, times: number): { row: number; col: number } {
-        let row = offset.row;
-        let col = offset.col;
-        for (let i = 0; i < times; i++) {
-            const newRow = col;
-            const newCol = 2 - row;
-            row = newRow;
-            col = newCol;
-        }
-        return { row, col };
-    }
-
     private indexAt(row: number, col: number): number {
         return row * GRID_SIZE + col;
     }
@@ -1509,143 +1069,26 @@ class Match3Game implements ModeContext {
             .map((pos) => this.indexAt(pos.row, pos.col));
     }
 
-    private isSwappable(index: number): boolean {
-        if (this.board.isBlockedIndex(index)) return false;
-        if (this.board.isHardCandy(index)) return false;
-        return Boolean(this.board.getCellColor(index));
-    }
-
     hasAnyValidMove(): boolean {
-        const colors = this.getMatchableColorSnapshot();
-        for (let i = 0; i < colors.length; i++) {
-            if (!this.isSwappable(i)) continue;
-            const { row, col } = this.getRowCol(i);
-            const neighbors = [
-                { row, col: col + 1 },
-                { row: row + 1, col }
-            ];
-            for (const neighbor of neighbors) {
-                if (neighbor.row >= GRID_SIZE || neighbor.col >= GRID_SIZE) continue;
-                const neighborIndex = this.indexAt(neighbor.row, neighbor.col);
-                if (!this.isSwappable(neighborIndex)) continue;
-                if (this.swapCreatesMatch(i, neighborIndex, colors)) return true;
-            }
-        }
-        return false;
-    }
-
-    private findHintMove(): number[] | null {
-        const colors = this.getMatchableColorSnapshot();
-        for (let i = 0; i < colors.length; i++) {
-            if (!this.isSwappable(i)) continue;
-            const { row, col } = this.getRowCol(i);
-            const neighbors = [
-                { row, col: col + 1 },
-                { row: row + 1, col }
-            ];
-            for (const neighbor of neighbors) {
-                if (neighbor.row >= GRID_SIZE || neighbor.col >= GRID_SIZE) continue;
-                const neighborIndex = this.indexAt(neighbor.row, neighbor.col);
-                if (!this.isSwappable(neighborIndex)) continue;
-                if (this.swapCreatesMatch(i, neighborIndex, colors)) {
-                    return [i, neighborIndex];
-                }
-            }
-        }
-        return null;
+        return this.matchScanner.hasAnyValidMove();
     }
 
     private scheduleHint(): void {
-        this.clearHintTimer();
-        if (!this.canScheduleHint()) return;
-        this.hintTimer = window.setTimeout(() => this.showHintIfIdle(), this.hintDelayMs);
-    }
-
-    private showHintIfIdle(): void {
-        this.hintTimer = null;
-        if (!this.canScheduleHint()) return;
-        const hint = this.findHintMove();
-        if (!hint) return;
-        this.hintIndices = hint;
-        this.renderer.showHint(hint);
+        this.hintManager.schedule();
     }
 
     private canScheduleHint(): boolean {
         if (this.boardAnimating) return false;
-        if (this.moveActive) return false;
-        if (this.pendingPowerup) return false;
-        if (this.powerupInProgress) return false;
+        if (this.multiplierTracker.isMoveActive()) return false;
+        if (this.powerups.hasPendingPowerup()) return false;
+        if (this.powerups.isInProgress()) return false;
         if (this.state.selected !== null) return false;
         if (this.renderer.isModalVisible()) return false;
         return true;
     }
 
     private resetHintState(): void {
-        this.clearHintTimer();
-        this.clearHintDisplay();
-    }
-
-    private clearHintDisplay(): void {
-        if (this.hintIndices.length === 0) return;
-        this.renderer.clearHint();
-        this.hintIndices = [];
-    }
-
-    private clearHintTimer(): void {
-        if (this.hintTimer === null) return;
-        clearTimeout(this.hintTimer);
-        this.hintTimer = null;
-    }
-
-    private swapCreatesMatch(a: number, b: number, colors: (string | null)[]): boolean {
-        const originalA = colors[a] ?? null;
-        const originalB = colors[b] ?? null;
-        colors[a] = originalB;
-        colors[b] = originalA;
-        const hasMatch = this.formsMatchAt(a, colors) || this.formsMatchAt(b, colors);
-        colors[a] = originalA;
-        colors[b] = originalB;
-        return hasMatch;
-    }
-
-    private formsMatchAt(index: number, colors: (string | null)[]): boolean {
-        const color = colors[index];
-        if (!color) return false;
-        const { row, col } = this.getRowCol(index);
-        let horizontal = 1;
-        for (let c = col - 1; c >= 0; c--) {
-            const neighborColor = colors[this.indexAt(row, c)] ?? null;
-            if (neighborColor !== color) break;
-            horizontal++;
-        }
-        for (let c = col + 1; c < GRID_SIZE; c++) {
-            const neighborColor = colors[this.indexAt(row, c)] ?? null;
-            if (neighborColor !== color) break;
-            horizontal++;
-        }
-        if (horizontal >= 3) return true;
-
-        let vertical = 1;
-        for (let r = row - 1; r >= 0; r--) {
-            const neighborColor = colors[this.indexAt(r, col)] ?? null;
-            if (neighborColor !== color) break;
-            vertical++;
-        }
-        for (let r = row + 1; r < GRID_SIZE; r++) {
-            const neighborColor = colors[this.indexAt(r, col)] ?? null;
-            if (neighborColor !== color) break;
-            vertical++;
-        }
-        return vertical >= 3;
-    }
-
-    private getMatchableColorSnapshot(): (string | null)[] {
-        const snapshot: (string | null)[] = [];
-        for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
-            const color = this.getMatchableColor(i);
-            snapshot.push(color || null);
-        }
-        return snapshot;
+        this.hintManager.reset();
     }
 
     private animateBoardEntry(): void {
