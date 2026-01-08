@@ -45,7 +45,7 @@ class LevelSelectView {
         document.body.classList.add('match-app--level-select');
         this.container.removeAttribute('hidden');
         this.render();
-        this.scrollToSelected();
+        this.resetScrollPosition();
     }
 
     hide(): void {
@@ -149,13 +149,8 @@ class LevelSelectView {
         );
     }
 
-    private scrollToSelected(): void {
-        if (window.matchMedia('(max-width: 900px)').matches) {
-            return;
-        }
-        const button = this.levelButtons[this.selectedLevel - 1];
-        if (!button) return;
-        button.scrollIntoView({ block: 'center' });
+    private resetScrollPosition(): void {
+        this.path.scrollTop = 0;
     }
 
     private formatDifficultyLabel(difficulty: Difficulty): string {
