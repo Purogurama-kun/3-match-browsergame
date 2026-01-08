@@ -642,6 +642,9 @@ class Match3Game implements ModeContext {
         }
         this.board.swapCells(firstIndex, secondIndex);
         this.renderer.refreshBoard(this.board);
+        if (this.tryHandleBombCombination(firstIndex, secondIndex)) {
+            return;
+        }
         const { matched } = this.findMatches();
         if (matched.size === 0) {
             this.board.swapCells(firstIndex, secondIndex);
@@ -655,6 +658,52 @@ class Match3Game implements ModeContext {
         this.beginMove();
         this.updateHud();
         this.defer(() => this.checkMatches(), this.getAnimationDelay(120));
+    }
+
+    private tryHandleBombCombination(firstIndex: number, secondIndex: number): boolean {
+        const firstInfo = this.getBombInfo(firstIndex);
+        const secondInfo = this.getBombInfo(secondIndex);
+        if (!firstInfo || !secondInfo) {
+            return false;
+        }
+        this.modeState.consumeMove(this.state);
+        this.beginMove();
+        this.updateHud();
+        this.sounds.play('radiusBomb');
+        if (!this.performanceMode) {
+            this.renderer.screenShake();
+        }
+        this.bomb.combineBombs([firstInfo, secondInfo], this.state.mode === 'blocker');
+        this.defer(() => this.dropCells(), this.getAnimationDelay(300));
+        return true;
+    }
+
+    private getBombInfo(
+        index: number
+    ): { row: number; col: number; booster: BoosterType; orientation?: LineOrientation } | null {
+        const booster = this.board.getCellBooster(index);
+        if (!this.isBombBooster(booster)) {
+            return null;
+        }
+        const { row, col } = this.getRowCol(index);
+        const info: { row: number; col: number; booster: BoosterType; orientation?: LineOrientation } = {
+            row,
+            col,
+            booster
+        };
+        if (booster === BOOSTERS.LINE) {
+            info.orientation = this.board.getLineOrientation(index) ?? 'horizontal';
+        }
+        return info;
+    }
+
+    private isBombBooster(booster: BoosterType): boolean {
+        return (
+            booster === BOOSTERS.LINE ||
+            booster === BOOSTERS.BURST_SMALL ||
+            booster === BOOSTERS.BURST_MEDIUM ||
+            booster === BOOSTERS.BURST_LARGE
+        );
     }
 
     private defer(callback: () => void, delay: number): void {

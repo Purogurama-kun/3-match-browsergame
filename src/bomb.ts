@@ -83,6 +83,98 @@ class Bomb {
         this.renderer.updateCell(index, this.board.getCellState(index));
     }
 
+    combineBombs(
+        centers: { row: number; col: number; booster: BoosterType; orientation?: LineOrientation }[],
+        isBlockerMode: boolean
+    ): void {
+        if (centers.length < 2) return;
+        const affected = new Set<number>();
+        centers.forEach((center) => {
+            const impact = this.collectBombImpact(center, isBlockerMode);
+            impact.forEach((idx) => affected.add(idx));
+        });
+        if (!isBlockerMode) {
+            this.addBoundingRectCells(centers, affected);
+        }
+        centers.forEach((center) => {
+            const index = this.indexAt(center.row, center.col);
+            this.board.setBooster(index, BOOSTERS.NONE);
+            this.board.setLineOrientation(index, null);
+        });
+        this.destroyCells(affected);
+    }
+
+    private addBoundingRectCells(
+        centers: { row: number; col: number }[],
+        affected: Set<number>
+    ): void {
+        if (centers.length < 2) return;
+        const rows = centers.map((center) => center.row);
+        const cols = centers.map((center) => center.col);
+        const minRow = Math.min(...rows);
+        const maxRow = Math.max(...rows);
+        const minCol = Math.min(...cols);
+        const maxCol = Math.max(...cols);
+        for (let r = minRow; r <= maxRow; r++) {
+            for (let c = minCol; c <= maxCol; c++) {
+                affected.add(this.indexAt(r, c));
+            }
+        }
+    }
+
+    private collectBombImpact(center: { row: number; col: number; booster: BoosterType; orientation?: LineOrientation }, isBlockerMode: boolean): Set<number> {
+        if (center.booster === BOOSTERS.LINE) {
+            return this.collectLineImpact(center.row, center.col, center.orientation ?? 'horizontal', isBlockerMode);
+        }
+        if (isBlockerMode) {
+            const size = this.getBlockerBoosterSize(center.booster) ?? 3;
+            return this.collectSquareArea(center.row, center.col, size);
+        }
+        const radius = this.getBoosterRadius(center.booster);
+        if (radius === null) {
+            return new Set<number>();
+        }
+        return this.collectCircularArea(center.row, center.col, radius);
+    }
+
+    private collectLineImpact(row: number, col: number, orientation: LineOrientation, isBlockerMode: boolean): Set<number> {
+        const affected = new Set<number>();
+        const primary = orientation === 'vertical' ? this.getColumnIndices(col) : this.getRowIndices(row);
+        primary.forEach((idx) => affected.add(idx));
+        if (isBlockerMode) {
+            const secondary = orientation === 'vertical' ? this.getRowIndices(row) : this.getColumnIndices(col);
+            secondary.forEach((idx) => affected.add(idx));
+        }
+        return affected;
+    }
+
+    private getCombinedCircularRadius(
+        centers: { booster: BoosterType }[]
+    ): number {
+        const radii = centers
+            .map((center) => this.getBoosterRadius(center.booster))
+            .filter((radius): radius is number => radius !== null);
+        if (radii.length === 0) {
+            return 1;
+        }
+        const sum = radii.reduce((acc, value) => acc + value, 0);
+        return Math.min(GRID_SIZE, sum + 0.5);
+    }
+
+    private getCombinedBlockSize(
+        centers: { booster: BoosterType }[]
+    ): number {
+        const sizes = centers
+            .map((center) => this.getBlockerBoosterSize(center.booster))
+            .filter((size): size is number => size !== null);
+        if (sizes.length === 0) {
+            return 3;
+        }
+        const sum = sizes.reduce((acc, value) => acc + value, 0);
+        const candidate = Math.max(3, sum - (sizes.length - 1));
+        return Math.min(GRID_SIZE, candidate);
+    }
+
     private getBlockerBoosterSize(booster: BoosterType): number | null {
         if (booster === BOOSTERS.BURST_SMALL) return 3;
         if (booster === BOOSTERS.BURST_MEDIUM) return 4;
@@ -91,20 +183,25 @@ class Bomb {
     }
 
     private destroySquareArea(row: number, col: number, size: number, sourceIndex?: number): void {
-        if (size <= 0) return;
+        const affected = this.collectSquareArea(row, col, size);
+        this.destroyCells(affected, sourceIndex);
+    }
+
+    private collectSquareArea(row: number, col: number, size: number): Set<number> {
+        const affected = new Set<number>();
+        if (size <= 0) return affected;
         const halfBefore = Math.floor((size - 1) / 2);
         const halfAfter = size - 1 - halfBefore;
         const startRow = Math.max(0, row - halfBefore);
         const endRow = Math.min(GRID_SIZE - 1, row + halfAfter);
         const startCol = Math.max(0, col - halfBefore);
         const endCol = Math.min(GRID_SIZE - 1, col + halfAfter);
-        const affected: number[] = [];
         for (let r = startRow; r <= endRow; r++) {
             for (let c = startCol; c <= endCol; c++) {
-                affected.push(this.indexAt(r, c));
+                affected.add(this.indexAt(r, c));
             }
         }
-        this.destroyCells(affected, sourceIndex);
+        return affected;
     }
 
     private getBoosterRadius(booster: BoosterType): number | null {
@@ -131,6 +228,11 @@ class Bomb {
     }
 
     private destroyCircularArea(row: number, col: number, radius: number, sourceIndex?: number): void {
+        const affected = this.collectCircularArea(row, col, radius);
+        this.destroyCells(affected, sourceIndex);
+    }
+
+    private collectCircularArea(row: number, col: number, radius: number): Set<number> {
         const affected = new Set<number>();
         const range = Math.ceil(radius);
         for (let dx = -range; dx <= range; dx++) {
@@ -144,7 +246,7 @@ class Bomb {
                 }
             }
         }
-        this.destroyCells(affected, sourceIndex);
+        return affected;
     }
 
     private indexAt(row: number, col: number): number {
