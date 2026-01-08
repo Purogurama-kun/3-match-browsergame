@@ -1,6 +1,6 @@
 const STORAGE_KEY = 'match3-debug-mode';
 const DEBUG_VALUES = ['1', 'true'];
-const LOCAL_DEBUG_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
+const LOCAL_DEBUG_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '192.168.178.30']);
 
 function isLocalDebugHost(): boolean {
     if (typeof window === 'undefined') {

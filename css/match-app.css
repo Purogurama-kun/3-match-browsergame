@@ -129,3 +129,60 @@ body {
 .shuffle-notice__text {
     max-width: 24rem;
 }
+
+.cutscene {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background-color: #03010a;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    z-index: 220;
+    cursor: pointer;
+}
+
+.cutscene::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(3, 1, 10, 0.01) 0%, rgba(3, 1, 10, 0.92) 100%);
+    pointer-events: none;
+}
+
+.cutscene--visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.cutscene__content {
+    position: relative;
+    width: min(540px, calc(100% - 3rem));
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    text-align: center;
+    color: #f9fafb;
+    z-index: 1;
+}
+
+.cutscene__portrait {
+    width: auto;
+    height: 110px;
+}
+
+.cutscene__line {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.4;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}

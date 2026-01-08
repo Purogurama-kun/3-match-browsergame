@@ -12,6 +12,7 @@ import { Board } from './board.js';
 import { CellShapeMode, GameState, PowerupInventory, SwipeDirection } from './types.js';
 import type { LineOrientation } from './types.js';
 import { Renderer } from './renderer.js';
+import { CutsceneManager, type CutsceneScene } from './cutscene.js';
 import { describeGoal, LEVELS } from './levels.js';
 import { GameModeState, ModeContext, BoardConfig } from './game-mode-state.js';
 import { LevelModeState } from './level-mode-state.js';
@@ -38,11 +39,65 @@ type BoosterActivationOverride = {
 
 type ChainBoosterInfo = BoosterActivationOverride & { index: number };
 
+type StoryTiming = 'before' | 'after';
+
+type StoryCutsceneDefinition = {
+    level: number;
+    timing: StoryTiming;
+    background: string;
+    text: string;
+    durationMs?: number;
+};
+
+const FINAL_LEVEL = LEVELS.length;
+
+const STORY_CUTSCENES: StoryCutsceneDefinition[] = [
+    {
+        level: 1,
+        timing: 'before',
+        background: 'assets/images/vendor-plaza.png',
+        text: 'Mira: Tiny bursts keep the plaza spotless.',
+        durationMs: 2200
+    },
+    {
+        level: 6,
+        timing: 'before',
+        background: 'assets/images/vendor-plaza.png',
+        text: 'Mira: Hard candies vanish with a sparkle.',
+        durationMs: 2200
+    },
+    {
+        level: 16,
+        timing: 'before',
+        background: 'assets/images/ribbon-alley.png',
+        text: 'Mira: Sticky ribbons stay calm while I sweep.'
+    },
+    {
+        level: 26,
+        timing: 'before',
+        background: 'assets/images/lantern-bridge.png',
+        text: 'Mira: Syrup clears without dimming the lanterns.'
+    },
+    {
+        level: FINAL_LEVEL,
+        timing: 'before',
+        background: 'assets/images/festival.png',
+        text: 'Mira: One choreographed burst for the crowd.'
+    },
+    {
+        level: FINAL_LEVEL,
+        timing: 'after',
+        background: 'assets/images/festival.png',
+        text: 'Mira: Candy fireworks bloom; the festival cheers.'
+    }
+];
+
 class Match3Game implements ModeContext {
     constructor() {
         this.sounds = new SoundManager();
         this.hud = new Hud();
         this.renderer = new Renderer(this.hud);
+        this.cutsceneManager = new CutsceneManager();
         this.board = new Board();
         this.matchScanner = new MatchScanner(this.board);
         this.multiplierTracker = new MultiplierTracker({
@@ -172,6 +227,7 @@ class Match3Game implements ModeContext {
     private sounds: SoundManager;
     private hud: Hud;
     private readonly renderer: Renderer;
+    private cutsceneManager: CutsceneManager;
     private board: Board;
     private matchScanner: MatchScanner;
     private hintManager: HintManager;
@@ -208,10 +264,28 @@ class Match3Game implements ModeContext {
     private readonly performanceModeStorageKey = 'match3-performance-mode';
     private readonly hintDelayMs = 10000;
 
-    startLevel(level: number): void {
+    async startLevel(level: number): Promise<void> {
         this.hud.closeOptions();
+        await this.displayStoryCutscene(level, 'before');
         this.switchMode(new LevelModeState(level));
         this.createBoard();
+    }
+
+    private async displayStoryCutscene(level: number, timing: StoryTiming): Promise<void> {
+        const scene = this.findStoryCutscene(level, timing);
+        if (!scene) return;
+        await this.cutsceneManager.play(this.toCutsceneScene(scene));
+    }
+
+    private toCutsceneScene(scene: StoryCutsceneDefinition): CutsceneScene {
+        const payload: CutsceneScene = {
+            background: scene.background,
+            text: scene.text
+        };
+        if (scene.durationMs !== undefined) {
+            payload.durationMs = scene.durationMs;
+        }
+        return payload;
     }
 
     startBlocker(bestScore: number): void {
@@ -746,17 +820,30 @@ class Match3Game implements ModeContext {
                     ? t('result.level.winNext', { level: nextLevel })
                     : t('result.level.winAll', { count: LEVELS.length })
                 : t('result.level.loseText');
-        this.renderer.showModal({
-            title,
-            text,
-            buttonText: t('button.continue'),
-            secondaryButtonText: t('button.home'),
-            onSecondary: () => this.requestExitGame(),
-            onClose: () => {
-                this.switchMode(new LevelModeState(nextLevel));
-                this.createBoard();
-            }
-        });
+        const showResultModal = (): void => {
+            this.renderer.showModal({
+                title,
+                text,
+                buttonText: t('button.continue'),
+                secondaryButtonText: t('button.home'),
+                onSecondary: () => this.requestExitGame(),
+                onClose: () => {
+                    this.switchMode(new LevelModeState(nextLevel));
+                    this.createBoard();
+                }
+            });
+        };
+        const postScene =
+            result === 'win' ? this.findStoryCutscene(completedLevel, 'after') : undefined;
+        if (postScene) {
+            void this.cutsceneManager.play(this.toCutsceneScene(postScene)).then(showResultModal);
+            return;
+        }
+        showResultModal();
+    }
+
+    private findStoryCutscene(level: number, timing: StoryTiming): StoryCutsceneDefinition | undefined {
+        return STORY_CUTSCENES.find((scene) => scene.level === level && scene.timing === timing);
     }
 
     finishBlockerRun(finalScore: number, bestScore: number): void {
