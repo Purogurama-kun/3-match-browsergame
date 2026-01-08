@@ -643,6 +643,32 @@
             <img src="assets/images/mira.png" alt="Mira" class="cutscene__portrait" />
             <p id="cutscene-line" class="cutscene__line"></p>
         </div>
+        <div class="cutscene__timer">
+            <button
+                id="cutscene-timer-button"
+                class="cutscene__timer-button"
+                type="button"
+                aria-label="Pause cutscene countdown"
+            >
+                <svg class="cutscene__timer-ring" viewBox="0 0 48 48" role="presentation" aria-hidden="true">
+                    <circle class="cutscene__timer-ring-back" cx="24" cy="24" r="22" stroke-width="3" />
+                    <circle
+                        id="cutscene-timer-ring"
+                        class="cutscene__timer-ring-progress"
+                        cx="24"
+                        cy="24"
+                        r="20"
+                        stroke-width="3"
+                    />
+                </svg>
+                <img
+                    class="cutscene__timer-skip-icon"
+                    src="assets/images/skip.svg"
+                    alt=""
+                    aria-hidden="true"
+                />
+            </button>
+        </div>
     </div>
 
     <div id="result-modal" class="modal">

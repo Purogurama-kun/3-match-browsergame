@@ -186,3 +186,69 @@ body {
     line-height: 1.4;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
 }
+
+.cutscene__timer {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 2;
+}
+
+.cutscene__timer-button {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(15, 11, 36, 0.45);
+    color: #f9fafb;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    padding: 0;
+}
+
+.cutscene__timer-button:focus-visible {
+    outline: 2px solid #f9fafb;
+    outline-offset: 3px;
+}
+
+.cutscene__timer-ring {
+    width: 44px;
+    height: 44px;
+    transform: rotate(-90deg);
+    display: block;
+}
+
+.cutscene__timer-ring-back,
+.cutscene__timer-ring-progress {
+    fill: none;
+}
+
+.cutscene__timer-ring-back {
+    stroke: rgba(255, 255, 255, 0.25);
+}
+
+.cutscene__timer-ring-progress {
+    stroke: #f9fafb;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.1s linear;
+}
+
+.cutscene__timer-skip-icon {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.cutscene__timer-button--paused .cutscene__timer-skip-icon {
+    opacity: 1;
+}
+
+.cutscene__timer-button--paused .cutscene__timer-ring,
+.cutscene__timer-button--paused .cutscene__timer-ring-back {
+    opacity: 0;
+}
