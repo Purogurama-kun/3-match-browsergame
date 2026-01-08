@@ -3,6 +3,7 @@ import { LEVELS, describeGoal, getLevelDefinition } from './levels.js';
 import { t } from './i18n.js';
 import type { TranslationKey } from './i18n.js';
 import { Difficulty } from './types.js';
+import { isDebugMode } from './debug.js';
 
 type LevelSelectOptions = {
     onStart: (level: number) => void;
@@ -91,7 +92,7 @@ class LevelSelectView {
     }
 
     private selectLevel(level: number): void {
-        if (level > this.highestLevel) {
+        if (level > this.getUnlockedLevel()) {
             return;
         }
         this.selectedLevel = level;
@@ -104,10 +105,12 @@ class LevelSelectView {
     }
 
     private renderNodes(): void {
+        const unlockedLevel = this.getUnlockedLevel();
+        const currentLevel = this.getCurrentLevel();
         this.levelButtons.forEach((button, index) => {
             const level = index + 1;
-            const isUnlocked = level <= this.highestLevel;
-            const isCurrent = level === this.highestLevel;
+            const isUnlocked = level <= unlockedLevel;
+            const isCurrent = level === currentLevel;
             const isSelected = level === this.selectedLevel;
             button.disabled = !isUnlocked;
             button.classList.toggle('level-select__node-button--locked', !isUnlocked);
@@ -139,7 +142,7 @@ class LevelSelectView {
             this.goals.appendChild(item);
         });
         this.playButton.textContent = t('levelSelect.playButton');
-        this.playButton.disabled = this.selectedLevel > this.highestLevel;
+        this.playButton.disabled = this.selectedLevel > this.getUnlockedLevel();
         this.playButton.setAttribute(
             'aria-label',
             t('levelSelect.playButtonLabel', { level: this.selectedLevel })
@@ -168,6 +171,14 @@ class LevelSelectView {
 
     private clampLevel(level: number): number {
         return Math.min(Math.max(1, Math.floor(level)), this.maxLevel);
+    }
+
+    private getUnlockedLevel(): number {
+        return isDebugMode() ? this.maxLevel : this.highestLevel;
+    }
+
+    private getCurrentLevel(): number {
+        return isDebugMode() ? this.maxLevel : this.highestLevel;
     }
 }
 

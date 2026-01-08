@@ -6,7 +6,13 @@ import { ProgressStore, StoredProgress } from './progress-store.js';
 import { LocalProgressStore } from './local-progress-store.js';
 import { LocalAttemptStore } from './local-attempt-store.js';
 import { ShopView, getNextPowerupPrice, type ShopState } from './shop.js';
-import { createFreshPowerupInventory, MAX_TACTICAL_POWERUP_STOCK, TACTICAL_POWERUPS, type TacticalPowerup } from './constants.js';
+import {
+    createFreshPowerupInventory,
+    createMaxPowerupInventory,
+    MAX_TACTICAL_POWERUP_STOCK,
+    TACTICAL_POWERUPS,
+    type TacticalPowerup
+} from './constants.js';
 import { GuestProfileStore } from './profile-store.js';
 import { ProfileState, type AccountProfileData } from './profile-state.js';
 import { LevelSelectView } from './level-select.js';
@@ -14,6 +20,7 @@ import { TutorialView } from './tutorial.js';
 import { onLocaleChange, setLocale, t } from './i18n.js';
 import type { Locale } from './i18n.js';
 import type { LeaderboardIdentity, LeaderboardMode, PowerupInventory } from './types.js';
+import { isDebugMode } from './debug.js';
 
 class GameApp {
     constructor() {
@@ -206,9 +213,10 @@ class GameApp {
     }
 
     private buildShopState(): ShopState {
+        const coins = isDebugMode() ? 9999 : Math.max(0, Math.floor(this.progress.sugarCoins));
         return {
-            coins: Math.max(0, Math.floor(this.progress.sugarCoins)),
-            powerups: this.progress.powerups
+            coins,
+            powerups: this.getDisplayedPowerups()
         };
     }
 
@@ -376,8 +384,7 @@ class GameApp {
         this.progress = this.mergeProgress(this.progress, stored);
         this.googleAuth.setLoggedOut();
         this.updateStartButtonState();
-        this.game.setPowerupInventory(this.progress.powerups);
-        this.updateShopState();
+        this.refreshPowerupsAndShop();
     }
 
     private getLevelButton(): HTMLButtonElement {
@@ -487,8 +494,7 @@ class GameApp {
             const mergedProgress = this.mergeProgress(localProgress, stored);
             this.progress = mergedProgress;
             this.googleAuth.clearError();
-            this.game.setPowerupInventory(this.progress.powerups);
-            this.updateShopState();
+            this.refreshPowerupsAndShop();
             if (this.shouldPersistMergedProgress(stored, mergedProgress)) {
                 void this.persistProgress(userId, mergedProgress, 'both');
             }
@@ -579,8 +585,7 @@ class GameApp {
             if (!this.isCurrentUser(userId)) return;
             this.progress = this.mergeProgress(this.progress, stored);
             this.googleAuth.clearError();
-            this.game.setPowerupInventory(this.progress.powerups);
-            this.updateShopState();
+            this.refreshPowerupsAndShop();
         } catch (error) {
             console.error('Failed to save progress', error);
             if (this.isCurrentUser(userId)) {
@@ -739,9 +744,7 @@ class GameApp {
         this.localProgress.clear();
         this.localAttemptStore.clear();
         this.progress = this.localProgress.load();
-        this.game.setPowerupInventory(this.progress.powerups);
         this.handleLogout();
-        this.game.setPowerupInventory(this.progress.powerups);
         this.handleAccountExit();
     }
 
@@ -757,7 +760,7 @@ class GameApp {
         this.getGoogleLoginInfoWrapper().hidden = false;
         this.game.setLogoutEnabled(false);
         this.isProgressLoading = false;
-        this.updateShopState();
+        this.refreshPowerupsAndShop();
         this.updateStartButtonState();
         this.refreshProfileView();
     }
@@ -781,19 +784,22 @@ class GameApp {
             sugarCoins: nextCoins,
             powerups: updatedPowerups
         });
-        this.game.setPowerupInventory(this.progress.powerups);
-        this.updateShopState();
+        this.refreshPowerupsAndShop();
         if (this.currentUser) {
             void this.persistProgress(this.currentUser.id, this.progress, 'both');
         }
     }
 
     private handlePowerupInventoryChange(inventory: PowerupInventory): void {
+        if (isDebugMode()) {
+            this.refreshPowerupsAndShop();
+            return;
+        }
         this.progress = this.localProgress.save({
             ...this.progress,
             powerups: inventory
         });
-        this.updateShopState();
+        this.refreshPowerupsAndShop();
         if (this.currentUser) {
             void this.persistProgress(this.currentUser.id, this.progress, 'both');
         }
@@ -804,9 +810,21 @@ class GameApp {
         if (rounded === 0) return;
         const nextCoins = Math.max(0, this.progress.sugarCoins + rounded);
         this.progress = this.localProgress.save({ ...this.progress, sugarCoins: nextCoins });
-        this.updateShopState();
+        this.refreshPowerupsAndShop();
         if (!this.currentUser) return;
         void this.persistProgress(this.currentUser.id, this.progress, 'both');
+    }
+
+    private getDisplayedPowerups(): PowerupInventory {
+        if (isDebugMode()) {
+            return createMaxPowerupInventory();
+        }
+        return this.progress.powerups;
+    }
+
+    private refreshPowerupsAndShop(): void {
+        this.game.setPowerupInventory(this.getDisplayedPowerups());
+        this.updateShopState();
     }
 }
 

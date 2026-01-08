@@ -71,6 +71,10 @@ function createFreshPowerupInventory(): Record<TacticalPowerup, number> {
     return createPowerupInventory(DEFAULT_TACTICAL_POWERUP_USES);
 }
 
+function createMaxPowerupInventory(): Record<TacticalPowerup, number> {
+    return createPowerupInventory(MAX_TACTICAL_POWERUP_STOCK);
+}
+
 function randomColor(): string {
     const index = Math.floor(Math.random() * COLORS.length);
     const color = COLORS[index];
@@ -112,5 +116,6 @@ export {
     COLOR_SHAPE_CLASS,
     SHAPE_CLASS_NAMES,
     createFreshPowerupInventory,
+    createMaxPowerupInventory,
     MAX_TACTICAL_POWERUP_STOCK
 };
