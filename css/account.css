@@ -86,6 +86,42 @@
     color: white;
 }
 
+.account__edit-button {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.02);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.account__edit-button:hover {
+    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateY(-1px);
+}
+
+.account__edit-button:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
+}
+
+.account__edit-button--active {
+    border-color: rgba(138, 247, 203, 0.8);
+    background: rgba(138, 247, 203, 0.18);
+}
+
+.account__edit-icon {
+    width: 22px;
+    height: 22px;
+    display: block;
+}
+
 .account__assistive-text {
     position: absolute;
     width: 1px;

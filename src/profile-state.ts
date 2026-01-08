@@ -20,6 +20,9 @@ class ProfileState {
     private readonly saveButton: HTMLButtonElement;
     private readonly deleteAccountButton: HTMLButtonElement;
     private readonly feedbackElement: HTMLElement;
+    private readonly editButton: HTMLButtonElement;
+    private isEditing = false;
+    private isNameSaving = false;
     private currentProfile: AccountProfileData = { name: '', source: 'guest' };
     private readonly onExit: () => void;
     private nameSaveHandler: ((value: string) => void) | null = null;
@@ -34,6 +37,14 @@ class ProfileState {
         this.deleteAccountButton = this.getButton('delete-account');
         this.feedbackElement = getRequiredElement('account-feedback');
         this.onExit = options.onExit;
+        this.editButton = this.getButton('account-edit');
+        this.editButton.setAttribute('aria-pressed', 'false');
+        this.editButton.addEventListener('click', () => {
+            if (this.isNameSaving) {
+                return;
+            }
+            this.setEditing(!this.isEditing);
+        });
         this.backButton.addEventListener('click', () => {
             this.onExit();
         });
@@ -46,23 +57,25 @@ class ProfileState {
                 this.saveButton.click();
             }
         });
-        this.applyLocale();
         this.deleteAccountButton.addEventListener('click', () => {
             this.deleteAccountHandler?.();
         });
         const initialDeleteEnabled = this.currentProfile.source === 'google';
         this.deleteAccountButton.disabled = !initialDeleteEnabled;
         this.deleteAccountButton.setAttribute('aria-disabled', initialDeleteEnabled ? 'false' : 'true');
+        this.applyLocale();
+        this.updateInteractionState();
     }
 
     enter(profile: AccountProfileData): void {
+        this.isNameSaving = false;
+        this.setEditing(false);
         this.currentProfile = profile;
         this.render();
         this.root.removeAttribute('hidden');
         this.root.scrollTop = 0;
         this.clearFeedback();
-        this.saveButton.disabled = false;
-        this.saveButton.focus();
+        this.editButton.focus();
     }
 
     update(profile: AccountProfileData): void {
@@ -87,6 +100,7 @@ class ProfileState {
         const deleteEnabled = this.currentProfile.source === 'google';
         this.deleteAccountButton.disabled = !deleteEnabled;
         this.deleteAccountButton.setAttribute('aria-disabled', deleteEnabled ? 'false' : 'true');
+        this.updateInteractionState();
     }
 
     applyLocale(): void {
@@ -96,6 +110,9 @@ class ProfileState {
                 ? t('account.status.google')
                 : t('account.status.guest');
         this.deleteAccountButton.textContent = t('account.deleteAccount');
+        const editLabel = t('account.editButton');
+        this.editButton.setAttribute('aria-label', editLabel);
+        this.editButton.setAttribute('title', editLabel);
     }
 
     onNameSave(handler: (value: string) => void): void {
@@ -103,8 +120,8 @@ class ProfileState {
     }
 
     setNameSaving(saving: boolean): void {
-        this.saveButton.disabled = saving;
-        this.saveButton.setAttribute('aria-busy', saving ? 'true' : 'false');
+        this.isNameSaving = saving;
+        this.updateInteractionState();
     }
 
     setFeedback(message: string, type: 'error' | 'success' | 'info' = 'info'): void {
@@ -134,6 +151,23 @@ class ProfileState {
             throw new Error('Account back button is not a button');
         }
         return element;
+    }
+
+    private setEditing(active: boolean): void {
+        this.isEditing = active;
+        this.editButton.setAttribute('aria-pressed', active ? 'true' : 'false');
+        this.editButton.classList.toggle('account__edit-button--active', active);
+        this.updateInteractionState();
+        if (active) {
+            this.nameInput.focus();
+        }
+    }
+
+    private updateInteractionState(): void {
+        this.nameInput.disabled = !this.isEditing;
+        const saveDisabled = this.isNameSaving || !this.isEditing;
+        this.saveButton.disabled = saveDisabled;
+        this.saveButton.setAttribute('aria-busy', this.isNameSaving ? 'true' : 'false');
     }
 }
 
