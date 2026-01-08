@@ -15,6 +15,8 @@ class HardCandy {
     private getRowCol: (index: number) => { row: number; col: number };
     private getAdjacentIndices: (row: number, col: number) => number[];
 
+    private softenedHandler: ((index: number) => void) | null = null;
+
     constructor(options: HardCandyOptions) {
         this.board = options.board;
         this.renderer = options.renderer;
@@ -34,6 +36,7 @@ class HardCandy {
                 this.board.softenCandy(neighbor);
                 softened.add(neighbor);
                 this.renderer.updateCell(neighbor, this.board.getCellState(neighbor));
+                this.softenedHandler?.(neighbor);
             });
         });
     }
@@ -67,6 +70,10 @@ class HardCandy {
         if (this.board.isHardCandy(index)) return false;
         if (!this.board.getCellColor(index)) return false;
         return true;
+    }
+
+    setSoftenedHandler(handler: ((index: number) => void) | null): void {
+        this.softenedHandler = handler;
     }
 }
 
