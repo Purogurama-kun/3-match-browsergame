@@ -11,6 +11,7 @@
     "build": "tsc && npm run build:sw",
     "prebuild:sw": "npm run render",
     "watch": "npm run build:sw && tsc --watch",
+    "watch:templates": "python3 scripts/watch-templates.py",
     "server": "npm run render && php -c backend/php.ini -S 0.0.0.0:5500 -t .",
     "docs": "jsdoc -c jsdoc.json",
     "codex": "codex --model gpt-5.1-codex-mini",
