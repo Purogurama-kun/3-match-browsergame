@@ -29,6 +29,15 @@ body {
     --cell-size: 3.75rem;
 }
 
+.match-app--cutscene-active .board,
+.match-app--cutscene-active .hud,
+.match-app--cutscene-active .tactical-toolbar,
+.match-app--cutscene-active .move-evaluation {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
 .match-app--menu {
     background-image: url("/assets/images/main-menu-bg-landscape.webp");
     background-size: contain;

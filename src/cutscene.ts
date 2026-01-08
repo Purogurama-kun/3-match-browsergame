@@ -7,6 +7,8 @@ export type CutsceneScene = {
 };
 
 export class CutsceneManager {
+    private static readonly CUTSCENE_BODY_CLASS = 'match-app--cutscene-active';
+
     private readonly overlay: HTMLElement;
     private readonly lineElement: HTMLElement;
     private readonly timerButton: HTMLButtonElement;
@@ -39,6 +41,7 @@ export class CutsceneManager {
         this.overlay.removeAttribute('hidden');
         this.overlay.setAttribute('aria-hidden', 'false');
         this.overlay.classList.add('cutscene--visible');
+        this.setCutsceneActive(true);
         const duration = scene.durationMs ?? 3000;
         return new Promise((resolve) => {
             this.resolve = resolve;
@@ -48,6 +51,7 @@ export class CutsceneManager {
 
     private finish(): void {
         if (!this.resolve) return;
+        this.setCutsceneActive(false);
         this.overlay.classList.remove('cutscene--visible');
         this.overlay.setAttribute('aria-hidden', 'true');
         this.overlay.setAttribute('hidden', 'true');
@@ -101,6 +105,10 @@ export class CutsceneManager {
         this.timerButton.classList.remove('cutscene__timer-button--paused');
         this.timerButton.setAttribute('aria-label', 'Pause cutscene countdown');
         this.timerCircle.setAttribute('stroke-dashoffset', '0');
+    }
+
+    private setCutsceneActive(isActive: boolean): void {
+        document.body.classList.toggle(CutsceneManager.CUTSCENE_BODY_CLASS, isActive);
     }
 
     private updateAutorunProgress = (timestamp: number): void => {
