@@ -8,14 +8,14 @@ type BombOptions = {
     board: Board;
     sounds: SoundManager;
     renderer: Renderer;
-    destroyCells: (indices: Iterable<number>) => void;
+    destroyCells: (indices: Iterable<number>, sourceIndex?: number) => void;
 };
 
 class Bomb {
     private board: Board;
     private sounds: SoundManager;
     private renderer: Renderer;
-    private destroyCells: (indices: Iterable<number>) => void;
+    private destroyCells: (indices: Iterable<number>, sourceIndex?: number) => void;
 
     constructor(options: BombOptions) {
         this.board = options.board;
@@ -24,11 +24,18 @@ class Bomb {
         this.destroyCells = options.destroyCells;
     }
 
-    applyBoosterEffect(booster: BoosterType, row: number, col: number, isBlockerMode: boolean): void {
+    applyBoosterEffect(
+        booster: BoosterType,
+        row: number,
+        col: number,
+        isBlockerMode: boolean,
+        overrideOrientation?: LineOrientation
+    ): void {
+        const sourceIndex = this.indexAt(row, col);
         if (booster === BOOSTERS.LINE) {
             this.sounds.play('lineBomb');
-            const index = this.indexAt(row, col);
-            const orientation = this.board.getLineOrientation(index) ?? 'horizontal';
+            const orientation =
+                overrideOrientation ?? this.board.getLineOrientation(sourceIndex) ?? 'horizontal';
             const affected: number[] =
                 orientation === 'horizontal' ? [...this.getRowIndices(row)] : [...this.getColumnIndices(col)];
             if (isBlockerMode) {
@@ -36,7 +43,7 @@ class Bomb {
                     orientation === 'horizontal' ? this.getColumnIndices(col) : this.getRowIndices(row);
                 affected.push(...secondary);
             }
-            this.destroyCells(affected);
+            this.destroyCells(affected, sourceIndex);
             return;
         }
 
@@ -44,7 +51,7 @@ class Bomb {
             const size = this.getBlockerBoosterSize(booster);
             if (size !== null) {
                 this.sounds.play('radiusBomb');
-                this.destroySquareArea(row, col, size);
+                this.destroySquareArea(row, col, size, sourceIndex);
                 return;
             }
         }
@@ -52,7 +59,7 @@ class Bomb {
         const radius = this.getBoosterRadius(booster);
         if (radius === null) return;
         this.sounds.play('radiusBomb');
-        this.destroyCircularArea(row, col, radius);
+        this.destroyCircularArea(row, col, radius, sourceIndex);
     }
 
     createBooster(index: number, type: BoosterType, orientation?: LineOrientation): void {
@@ -83,7 +90,7 @@ class Bomb {
         return null;
     }
 
-    private destroySquareArea(row: number, col: number, size: number): void {
+    private destroySquareArea(row: number, col: number, size: number, sourceIndex?: number): void {
         if (size <= 0) return;
         const halfBefore = Math.floor((size - 1) / 2);
         const halfAfter = size - 1 - halfBefore;
@@ -97,7 +104,7 @@ class Bomb {
                 affected.push(this.indexAt(r, c));
             }
         }
-        this.destroyCells(affected);
+        this.destroyCells(affected, sourceIndex);
     }
 
     private getBoosterRadius(booster: BoosterType): number | null {
@@ -123,7 +130,7 @@ class Bomb {
         return indices;
     }
 
-    private destroyCircularArea(row: number, col: number, radius: number): void {
+    private destroyCircularArea(row: number, col: number, radius: number, sourceIndex?: number): void {
         const affected = new Set<number>();
         const range = Math.ceil(radius);
         for (let dx = -range; dx <= range; dx++) {
@@ -137,7 +144,7 @@ class Bomb {
                 }
             }
         }
-        this.destroyCells(affected);
+        this.destroyCells(affected, sourceIndex);
     }
 
     private indexAt(row: number, col: number): number {

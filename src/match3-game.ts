@@ -3,12 +3,14 @@ import {
     BOOSTERS,
     randomColor,
     TacticalPowerup,
-    createFreshPowerupInventory
+    createFreshPowerupInventory,
+    type BoosterType
 } from './constants.js';
 import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
 import { Board } from './board.js';
 import { CellShapeMode, GameState, PowerupInventory, SwipeDirection } from './types.js';
+import type { LineOrientation } from './types.js';
 import { Renderer } from './renderer.js';
 import { describeGoal, LEVELS } from './levels.js';
 import { GameModeState, ModeContext, BoardConfig } from './game-mode-state.js';
@@ -28,6 +30,13 @@ import { Generator } from './generator.js';
 import { HardCandy } from './hard-candy.js';
 import { Match } from './match.js';
 import type { MatchResult } from './match-scanner.js';
+
+type BoosterActivationOverride = {
+    booster: BoosterType;
+    orientation?: LineOrientation;
+};
+
+type ChainBoosterInfo = BoosterActivationOverride & { index: number };
 
 class Match3Game implements ModeContext {
     constructor() {
@@ -96,7 +105,7 @@ class Match3Game implements ModeContext {
             board: this.board,
             sounds: this.sounds,
             renderer: this.renderer,
-            destroyCells: (indices) => this.candie.destroyCells(indices)
+            destroyCells: (indices, sourceIndex) => this.handleBombDestruction(indices, sourceIndex)
         });
         this.generator = new Generator({
             board: this.board,
@@ -466,9 +475,10 @@ class Match3Game implements ModeContext {
         this.matchFlow.checkMatches();
     }
 
-    private activateBooster(index: number, consumesMove: boolean): void {
+    private activateBooster(index: number, consumesMove: boolean, override?: BoosterActivationOverride): void {
         const { row, col } = this.getRowCol(index);
-        const booster = this.board.getCellBooster(index);
+        const booster = override?.booster ?? this.board.getCellBooster(index);
+        if (booster === BOOSTERS.NONE) return;
         this.modeState.handleBoosterUsed(this.state, booster, this);
 
         if (consumesMove) {
@@ -476,12 +486,45 @@ class Match3Game implements ModeContext {
             this.beginMove();
         }
 
-        this.bomb.applyBoosterEffect(booster, row, col, this.state.mode === 'blocker');
+        this.bomb.applyBoosterEffect(booster, row, col, this.state.mode === 'blocker', override?.orientation);
 
         if (consumesMove) {
             this.defer(() => this.dropCells(), this.getAnimationDelay(300));
+        } else {
+            this.defer(() => this.dropCells(), this.getAnimationDelay(300));
         }
         this.updateHud();
+    }
+
+    private handleBombDestruction(indices: Iterable<number>, sourceIndex?: number): void {
+        const boosters: ChainBoosterInfo[] = [];
+        const seen = new Set<number>();
+        for (const index of indices) {
+            if (index === sourceIndex || seen.has(index)) continue;
+            seen.add(index);
+            const booster = this.board.getCellBooster(index);
+            if (booster === BOOSTERS.NONE) continue;
+            const orientation =
+                booster === BOOSTERS.LINE ? this.board.getLineOrientation(index) ?? 'horizontal' : undefined;
+            const entry: ChainBoosterInfo = { index, booster };
+            if (orientation) {
+                entry.orientation = orientation;
+            }
+            boosters.push(entry);
+        }
+        this.candie.destroyCells(indices);
+        if (boosters.length === 0) {
+            return;
+        }
+        boosters.forEach((info, offset) => {
+            this.defer(() => {
+                const override: BoosterActivationOverride = { booster: info.booster };
+                if (info.orientation) {
+                    override.orientation = info.orientation;
+                }
+                this.activateBooster(info.index, false, override);
+            }, this.getAnimationDelay(200 + offset * 30));
+        });
     }
 
     private rearrangeBoardColors(): boolean {
