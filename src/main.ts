@@ -20,7 +20,7 @@ import { TutorialView } from './tutorial.js';
 import { onLocaleChange, setLocale, t } from './i18n.js';
 import type { Locale } from './i18n.js';
 import type { LeaderboardIdentity, LeaderboardMode, PowerupInventory } from './types.js';
-import { isDebugMode } from './debug.js';
+import { isDebugMode, isLocalDebugHost } from './debug.js';
 
 class GameApp {
     constructor() {
@@ -831,10 +831,7 @@ class GameApp {
 setLocale('en');
 new GameApp();
 
-const isLocalDebugHost = window.location.hostname === 'localhost'
-    || window.location.hostname === '127.0.0.1';
-
-if ('serviceWorker' in navigator && !isLocalDebugHost) {
+if ('serviceWorker' in navigator && !isLocalDebugHost()) {
     window.addEventListener('load', () => {
         void navigator.serviceWorker
             .register('/service-worker.js', { scope: '/' })
