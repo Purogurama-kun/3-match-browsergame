@@ -97,6 +97,18 @@ class LevelModeState implements GameModeState {
         });
     }
 
+    handleHardCandyHit(state: GameState, context: ModeContext): void {
+        let progressed = false;
+        state.goals = state.goals.map((goal) => {
+            if (goal.type !== 'destroy-hard-candies') return goal;
+            progressed = true;
+            return { ...goal, current: Math.min(goal.target, goal.current + 1) };
+        });
+        if (progressed) {
+            context.updateHud(state);
+        }
+    }
+
     getBoardConfig(): BoardConfig {
         const config: BoardConfig = {};
         if (this.levelDefinition.missingCells) config.blockedCells = this.levelDefinition.missingCells;

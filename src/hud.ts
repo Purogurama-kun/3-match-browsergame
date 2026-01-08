@@ -366,6 +366,13 @@ class Hud {
             }
             return chip;
         }
+        if (goal.type === 'destroy-hard-candies') {
+            const chip = document.createElement('span');
+            chip.className = 'hud__goal-chip hud__goal-chip--hard';
+            chip.textContent = '🧊';
+            chip.setAttribute('aria-hidden', 'true');
+            return chip;
+        }
         const chip = document.createElement('span');
         chip.className = 'hud__goal-chip hud__goal-chip--booster';
         chip.textContent = this.getBoosterIcon(goal.booster);

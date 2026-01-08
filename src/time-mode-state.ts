@@ -104,6 +104,10 @@ class TimeModeState implements GameModeState {
         this.updateGoals((goal) => goal.type === 'activate-booster' && goal.booster === booster, state, context);
     }
 
+    handleHardCandyHit(_state: GameState, _context: ModeContext): void {
+        // Time mode ignores hard candy goals.
+    }
+
     handleScoreAwarded(state: GameState, basePoints: number, _context: ModeContext): void {
         this.addTime(state, basePoints * this.scoreTimeFactor);
     }
@@ -267,6 +271,9 @@ class TimeModeState implements GameModeState {
             if (goal.type === 'activate-booster' && other.type === 'activate-booster') {
                 return goal.booster === other.booster;
             }
+            if (goal.type === 'destroy-hard-candies' && other.type === 'destroy-hard-candies') {
+                return true;
+            }
             return false;
         });
     }
@@ -275,7 +282,10 @@ class TimeModeState implements GameModeState {
         if (goal.type === 'destroy-color') {
             return { type: 'destroy-color', color: goal.color, target: goal.target };
         }
-        return { type: 'activate-booster', booster: goal.booster, target: goal.target };
+        if (goal.type === 'activate-booster') {
+            return { type: 'activate-booster', booster: goal.booster, target: goal.target };
+        }
+        return { type: 'destroy-hard-candies', target: goal.target };
     }
 
     private endRun(context: ModeContext): void {

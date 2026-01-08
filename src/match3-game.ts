@@ -147,6 +147,7 @@ class Match3Game implements ModeContext {
         this.hud.setCellShapeMode(this.cellShapeMode);
         this.modeState = new LevelModeState(1);
         this.state = this.modeState.enter(this);
+        this.candie.setHardCandyHitHandler(() => this.modeState.handleHardCandyHit(this.state, this));
         this.powerups.applyInventoryToState();
         this.multiplierTracker.setState(this.state);
         this.refreshGoalDescriptions();

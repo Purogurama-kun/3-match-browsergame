@@ -37,6 +37,7 @@ interface GameModeState {
     checkForCompletion(state: GameState, context: ModeContext): void;
     handleColorCleared(state: GameState, color: string, context: ModeContext): void;
     handleBoosterUsed(state: GameState, booster: BoosterType, context: ModeContext): void;
+    handleHardCandyHit(state: GameState, context: ModeContext): void;
     handleScoreAwarded?(state: GameState, basePoints: number, context: ModeContext): void;
     getBoardConfig(): BoardConfig;
     shouldSpawnHardCandy(state: GameState): boolean;

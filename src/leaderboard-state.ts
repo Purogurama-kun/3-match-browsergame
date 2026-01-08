@@ -133,6 +133,10 @@ class LeaderboardState implements GameModeState {
         // Leaderboard view has no boosters.
     }
 
+    handleHardCandyHit(_state: GameState, _context: ModeContext): void {
+        // Leaderboard view has no hard candy goals.
+    }
+
     getBoardConfig(): BoardConfig {
         return {};
     }

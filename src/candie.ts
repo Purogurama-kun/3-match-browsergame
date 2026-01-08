@@ -28,6 +28,7 @@ class Candie {
     private onColorCleared: (color: string) => void;
     private updateHud: () => void;
     private baseCellPoints: number;
+    private hardCandyHitHandler: (() => void) | null = null;
 
     constructor(options: CandieOptions) {
         this.board = options.board;
@@ -40,6 +41,10 @@ class Candie {
         this.onColorCleared = options.onColorCleared;
         this.updateHud = options.updateHud;
         this.baseCellPoints = options.baseCellPoints;
+    }
+
+    setHardCandyHitHandler(handler: (() => void) | null): void {
+        this.hardCandyHitHandler = handler;
     }
 
     destroyCell(index: number): void {
@@ -55,6 +60,7 @@ class Candie {
             }
             this.board.softenCandy(index);
             this.renderer.updateCell(index, this.board.getCellState(index));
+            this.hardCandyHitHandler?.();
             return;
         }
         const booster = this.board.getCellBooster(index);

@@ -41,9 +41,14 @@ type ActivateBoosterGoal = {
     target: number;
 };
 
-type LevelGoal = DestroyColorGoal | ActivateBoosterGoal;
+type DestroyHardCandiesGoal = {
+    type: 'destroy-hard-candies';
+    target: number;
+};
 
-type GoalProgress = (DestroyColorGoal | ActivateBoosterGoal) & {
+type LevelGoal = DestroyColorGoal | ActivateBoosterGoal | DestroyHardCandiesGoal;
+
+type GoalProgress = (DestroyColorGoal | ActivateBoosterGoal | DestroyHardCandiesGoal) & {
     current: number;
     description: string;
 };

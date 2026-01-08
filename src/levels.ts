@@ -20,6 +20,29 @@ const INNER_HARD_SHELL = [indexAt(3, 2), indexAt(3, 5), indexAt(4, 2), indexAt(4
 const MID_HARD_CROSS = [indexAt(2, 3), indexAt(2, 4), indexAt(5, 3), indexAt(5, 4)];
 const EDGE_HARD_GUARDS = [indexAt(1, 1), indexAt(1, 6), indexAt(6, 1), indexAt(6, 6)];
 const FINAL_HARD_RING = [indexAt(2, 2), indexAt(2, 5), indexAt(5, 2), indexAt(5, 5), indexAt(3, 3), indexAt(4, 4)];
+const GAP_POSITIONS = new Set<number>([
+    ...CENTER_GAPS,
+    ...CORNER_GAPS,
+    ...DIAGONAL_GAPS,
+    ...EDGE_GAPS,
+    ...STAIR_GAPS
+]);
+const PLAYABLE_INDICES = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, index) => index).filter(
+    (index) => !GAP_POSITIONS.has(index)
+);
+const distanceFromCenter = (index: number): number => {
+    const row = Math.floor(index / GRID_SIZE);
+    const column = index % GRID_SIZE;
+    const center = (GRID_SIZE - 1) / 2;
+    return Math.abs(row - center) + Math.abs(column - center);
+};
+const SORTED_PLAYABLE_INDICES = [...PLAYABLE_INDICES].sort((a, b) => {
+    const diff = distanceFromCenter(a) - distanceFromCenter(b);
+    return diff !== 0 ? diff : a - b;
+});
+const CORE_HARD_FIELD = SORTED_PLAYABLE_INDICES.slice(0, 28);
+const DENSE_HARD_FIELD = SORTED_PLAYABLE_INDICES.slice(0, 34);
+const MASSIVE_HARD_FIELD = SORTED_PLAYABLE_INDICES.slice(0, 40);
 
 type LevelDifficultyValue = Difficulty | number;
 type LevelDefinitionInput = Omit<LevelDefinition, 'difficulty'> & { difficulty: LevelDifficultyValue };
@@ -549,7 +572,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
             { type: 'activate-booster', booster: BOOSTERS.BURST_LARGE, target: 2 }
         ],
         missingCells: [...CORNER_GAPS, ...DIAGONAL_GAPS],
-        hardCandies: FINAL_HARD_RING
+        hardCandies: CORE_HARD_FIELD
     },
     {
         id: 44,
@@ -562,7 +585,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
             { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 6 }
         ],
         missingCells: [...CENTER_GAPS, ...STAIR_GAPS],
-        hardCandies: EDGE_HARD_GUARDS
+        hardCandies: DENSE_HARD_FIELD
     },
     {
         id: 45,
@@ -575,7 +598,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
             { type: 'activate-booster', booster: BOOSTERS.BURST_SMALL, target: 7 }
         ],
         missingCells: [...EDGE_GAPS, ...DIAGONAL_GAPS],
-        hardCandies: FINAL_HARD_RING
+        hardCandies: CORE_HARD_FIELD
     },
     {
         id: 46,
@@ -588,7 +611,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
             { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 6 }
         ],
         missingCells: [...CORNER_GAPS, ...CENTER_GAPS, ...EDGE_GAPS],
-        hardCandies: [...EDGE_HARD_GUARDS, ...MID_HARD_CROSS]
+        hardCandies: MASSIVE_HARD_FIELD
     },
     {
         id: 47,
@@ -601,7 +624,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
             { type: 'activate-booster', booster: BOOSTERS.BURST_LARGE, target: 2 }
         ],
         missingCells: STAIR_GAPS,
-        hardCandies: FINAL_HARD_RING
+        hardCandies: DENSE_HARD_FIELD
     },
     {
         id: 48,
@@ -614,7 +637,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
             { type: 'activate-booster', booster: BOOSTERS.BURST_MEDIUM, target: 7 }
         ],
         missingCells: [...CENTER_GAPS, ...DIAGONAL_GAPS],
-        hardCandies: [...EDGE_HARD_GUARDS, ...MID_HARD_CROSS]
+        hardCandies: DENSE_HARD_FIELD
     },
     {
         id: 49,
@@ -627,7 +650,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
             { type: 'activate-booster', booster: BOOSTERS.BURST_SMALL, target: 7 }
         ],
         missingCells: [...EDGE_GAPS, ...STAIR_GAPS],
-        hardCandies: FINAL_HARD_RING
+        hardCandies: CORE_HARD_FIELD
     },
     {
         id: 50,
@@ -641,7 +664,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
             { type: 'activate-booster', booster: BOOSTERS.BURST_LARGE, target: 1 }
         ],
         missingCells: [...CENTER_GAPS, ...CORNER_GAPS, ...EDGE_GAPS],
-        hardCandies: [...FINAL_HARD_RING, ...EDGE_HARD_GUARDS]
+        hardCandies: MASSIVE_HARD_FIELD
     }
 ];
 
@@ -650,10 +673,15 @@ const LEVELS: LevelDefinition[] = RAW_LEVELS.map((definition, index) =>
 );
 
 function normalizeLevelDefinition(definition: LevelDefinitionInput, id: number): LevelDefinition {
+    const goals = [...definition.goals];
+    if (definition.hardCandies && definition.hardCandies.length > 0) {
+        goals.push({ type: 'destroy-hard-candies', target: definition.hardCandies.length });
+    }
     return {
         ...definition,
         id,
         difficulty: normalizeDifficulty(definition.difficulty),
+        goals,
         ...(definition.missingCells ? { missingCells: [...definition.missingCells] } : {}),
         ...(definition.hardCandies ? { hardCandies: [...definition.hardCandies] } : {}),
         ...(definition.blockerGenerators ? { blockerGenerators: [...definition.blockerGenerators] } : {})
@@ -720,6 +748,9 @@ function describeGoal(goal: LevelGoal): string {
             throw new Error('Missing color name for: ' + goal.color);
         }
         return t('goal.destroyColor', { target: goal.target, color: t(colorKey) });
+    }
+    if (goal.type === 'destroy-hard-candies') {
+        return t('goal.destroyHardCandies', { target: goal.target });
     }
     const boosterKey = BOOSTER_LABEL_KEYS[goal.booster];
     if (!boosterKey) {
