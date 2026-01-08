@@ -516,15 +516,23 @@ class Match3Game implements ModeContext {
         if (boosters.length === 0) {
             return;
         }
-        boosters.forEach((info, offset) => {
-            this.defer(() => {
-                const override: BoosterActivationOverride = { booster: info.booster };
-                if (info.orientation) {
-                    override.orientation = info.orientation;
-                }
-                this.activateBooster(info.index, false, override);
-            }, this.getAnimationDelay(200 + offset * 30));
-        });
+        const immediate = boosters.filter((info) => info.booster !== BOOSTERS.BURST_LARGE);
+        const large = boosters.filter((info) => info.booster === BOOSTERS.BURST_LARGE);
+        immediate.forEach((info, offset) => this.scheduleChainBoosterActivation(info, 200, offset));
+        const nextOffset = immediate.length;
+        large.forEach((info, offset) =>
+            this.scheduleChainBoosterActivation(info, 360, nextOffset + offset)
+        );
+    }
+
+    private scheduleChainBoosterActivation(info: ChainBoosterInfo, baseDelay: number, offset: number): void {
+        this.defer(() => {
+            const override: BoosterActivationOverride = { booster: info.booster };
+            if (info.orientation) {
+                override.orientation = info.orientation;
+            }
+            this.activateBooster(info.index, false, override);
+        }, this.getAnimationDelay(baseDelay + offset * 30));
     }
 
     private rearrangeBoardColors(): boolean {
