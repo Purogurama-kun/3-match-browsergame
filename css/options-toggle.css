@@ -48,3 +48,11 @@
     clip: rect(0 0 0 0);
     white-space: nowrap;
 }
+
+.match-app--leaderboard .options-toggle,
+.match-app--level-select .options-toggle,
+.match-app--account .options-toggle,
+.match-app--tutorial .options-toggle,
+.match-app--shop .options-toggle {
+    display: none;
+}
