@@ -1,6 +1,6 @@
 .account {
     width: min(48rem, 100%);
-    margin: clamp(1.5rem, 6vh, 3.5rem) auto;
+    margin: 2.5rem auto clamp(1.5rem, 6vh, 3.5rem);
     padding: 0 1rem;
     box-sizing: border-box;
 }

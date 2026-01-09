@@ -2,11 +2,11 @@
     position: fixed;
     inset: 0;
     display: none;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     background: #1e1e2f;
     backdrop-filter: blur(20px);
-    padding: 1rem;
+    padding: 2.5rem 1rem 1rem;
     z-index: 40;
 }
 
@@ -16,7 +16,7 @@
 
 .shop__card {
     width: min(46rem, 100%);
-    max-height: calc(100vh - 2rem);
+    max-height: calc(100vh - 3.5rem);
     overflow: hidden;
     border-radius: 32px;
     border: 1px solid rgba(255, 255, 255, 0.12);
