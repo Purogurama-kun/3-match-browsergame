@@ -1,14 +1,23 @@
 import { getRequiredElement } from './dom.js';
+import { getColorHex } from './constants.js';
 import { LEVELS, describeGoal, getLevelDefinition } from './levels.js';
 import { t } from './i18n.js';
 import type { TranslationKey } from './i18n.js';
-import { Difficulty } from './types.js';
+import { Difficulty, LevelGoal } from './types.js';
 import { isDebugMode } from './debug.js';
+
+const TIME_GOAL_ICON_SRC = 'assets/images/timer.svg';
 
 type LevelSelectOptions = {
     onStart: (level: number) => void;
     onClose: () => void;
 };
+
+type LevelSelectGoalIcon =
+    | { variant: 'time'; src: string }
+    | { variant: 'color'; color: string }
+    | { variant: 'booster'; symbol: string }
+    | { variant: 'hard'; symbol: string };
 
 class LevelSelectView {
     constructor(options: LevelSelectOptions) {
@@ -136,18 +145,16 @@ class LevelSelectView {
         });
         this.goals.innerHTML = '';
         if (definition.timeGoalSeconds !== undefined) {
-            const timeItem = document.createElement('li');
-            timeItem.className = 'level-select__goal';
-            timeItem.textContent = t('levelSelect.timeGoal', {
+            const timeGoal = t('levelSelect.timeGoal', {
                 time: this.formatTime(definition.timeGoalSeconds)
             });
-            this.goals.appendChild(timeItem);
+            this.goals.appendChild(
+                this.createGoalElement(timeGoal, { variant: 'time', src: TIME_GOAL_ICON_SRC })
+            );
         }
         definition.goals.forEach((goal) => {
-            const item = document.createElement('li');
-            item.className = 'level-select__goal';
-            item.textContent = describeGoal(goal);
-            this.goals.appendChild(item);
+            const description = describeGoal(goal);
+            this.goals.appendChild(this.createGoalElement(description, this.getGoalIcon(goal)));
         });
         this.playButton.textContent = t('levelSelect.playButton');
         this.playButton.disabled = this.selectedLevel > this.getUnlockedLevel();
@@ -155,6 +162,45 @@ class LevelSelectView {
             'aria-label',
             t('levelSelect.playButtonLabel', { level: this.selectedLevel })
         );
+    }
+
+    private createGoalElement(description: string, icon: LevelSelectGoalIcon): HTMLLIElement {
+        const item = document.createElement('li');
+        item.className = 'level-select__goal';
+
+        const iconNode = document.createElement('span');
+        iconNode.className = `level-select__goal-icon level-select__goal-icon--${icon.variant}`;
+        iconNode.setAttribute('aria-hidden', 'true');
+
+        if (icon.variant === 'time') {
+            const img = document.createElement('img');
+            img.src = icon.src;
+            img.alt = '';
+            iconNode.appendChild(img);
+        } else if (icon.variant === 'color') {
+            iconNode.style.setProperty('--goal-icon-color', icon.color);
+        } else {
+            iconNode.textContent = icon.symbol;
+        }
+
+        const label = document.createElement('span');
+        label.className = 'level-select__goal-text';
+        label.textContent = description;
+
+        item.append(iconNode, label);
+        return item;
+    }
+
+    private getGoalIcon(goal: LevelGoal): LevelSelectGoalIcon {
+        switch (goal.type) {
+            case 'destroy-color':
+                return { variant: 'color', color: getColorHex(goal.color) };
+            case 'destroy-hard-candies':
+                return { variant: 'hard', symbol: '▣' };
+            case 'activate-booster':
+            default:
+                return { variant: 'booster', symbol: 'B' };
+        }
     }
 
     private resetScrollPosition(): void {
