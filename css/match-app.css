@@ -117,6 +117,13 @@ body {
     display: none;
 }
 
+.match-app--shop .hud,
+.match-app--shop .board,
+.match-app--shop .move-evaluation,
+.match-app--shop .tactical-toolbar {
+    display: none;
+}
+
 @media (max-width: 780px) {
     .match-app {
         --cell-size: 2.7rem;
