@@ -117,7 +117,8 @@
 }
 
 .shop__buy {
-    width: 140px;
+    min-width: 90px;
+    padding: 0.5rem 0.65rem;
     align-self: stretch;
     height: 100%;
     border-width: 1px;
