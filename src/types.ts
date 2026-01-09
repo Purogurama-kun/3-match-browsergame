@@ -59,6 +59,7 @@ type LevelDefinition = {
     targetScore: number;
     goals: LevelGoal[];
     difficulty: Difficulty;
+    background?: string;
     missingCells?: number[];
     hardCandies?: number[];
     blockerGenerators?: number[];

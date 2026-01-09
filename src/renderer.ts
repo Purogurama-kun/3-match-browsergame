@@ -103,6 +103,16 @@ class Renderer {
         this.animationsEnabled = enabled;
     }
 
+    setBackground(backgroundUrl?: string): void {
+        if (backgroundUrl) {
+            document.body.style.backgroundImage = `url('${backgroundUrl}')`;
+            document.body.classList.add('match-app--playing');
+        } else {
+            document.body.style.backgroundImage = '';
+            document.body.classList.remove('match-app--playing');
+        }
+    }
+
     renderBoard(
         board: Board,
         onCellClick: (index: number) => void,

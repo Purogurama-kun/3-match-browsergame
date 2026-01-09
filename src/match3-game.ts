@@ -311,6 +311,7 @@ class Match3Game implements ModeContext {
         this.resetMoveTracking();
         this.renderer.resetMoveEvaluation();
         this.renderer.hideModal(false);
+        this.renderer.setBackground(undefined);
         this.powerups.clearPendingPowerup();
         this.hud.resetStatus();
     }
@@ -446,6 +447,9 @@ class Match3Game implements ModeContext {
         this.syncPowerupToolbarLock();
         const boardConfig = this.modeState.getBoardConfig();
         this.board.create(boardConfig);
+        if ('getBackground' in this.modeState && typeof this.modeState.getBackground === 'function') {
+            this.renderer.setBackground(this.modeState.getBackground());
+        }
         this.renderer.renderBoard(
             this.board,
             (index) => this.handleCellClick(index),

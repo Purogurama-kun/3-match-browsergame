@@ -120,6 +120,10 @@ class LevelModeState implements GameModeState {
         return config;
     }
 
+    getBackground(): string | undefined {
+        return this.levelDefinition.background;
+    }
+
     shouldSpawnHardCandy(_state: GameState): boolean {
         return false; // Hard candy never spawns dynamically in level mode.
     }

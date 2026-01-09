@@ -71,6 +71,28 @@ body {
     display: none;
 }
 
+.match-app--playing {
+    background-color: #03010a;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+}
+
+.match-app--playing::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 1, 10, 0.65);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.match-app--playing > * {
+    position: relative;
+    z-index: 1;
+}
+
 .match-app--level-select {
     background:
         radial-gradient(circle at 15% 20%, rgba(255, 182, 193, 0.2), transparent 45%),

@@ -10,6 +10,22 @@ import { t } from './i18n.js';
 
 const indexAt = (row: number, col: number): number => row * GRID_SIZE + col;
 
+function getBackgroundForLevel(levelId: number): string {
+    if (levelId >= 1 && levelId <= 15) {
+        return 'assets/images/vendor-plaza.png';
+    }
+    if (levelId >= 16 && levelId <= 25) {
+        return 'assets/images/ribbon-alley.png';
+    }
+    if (levelId >= 26 && levelId <= 49) {
+        return 'assets/images/lantern-bridge.png';
+    }
+    if (levelId === 50) {
+        return 'assets/images/festival.png';
+    }
+    return 'assets/images/vendor-plaza.png';
+}
+
 const CENTER_GAPS = [indexAt(3, 3), indexAt(3, 4), indexAt(4, 3), indexAt(4, 4)];
 const CORNER_GAPS = [indexAt(0, 0), indexAt(0, 7), indexAt(7, 0), indexAt(7, 7)];
 const DIAGONAL_GAPS = [indexAt(1, 1), indexAt(2, 2), indexAt(5, 5), indexAt(6, 6)];
@@ -681,6 +697,7 @@ function normalizeLevelDefinition(definition: LevelDefinitionInput, id: number):
         ...definition,
         id,
         difficulty: normalizeDifficulty(definition.difficulty),
+        background: getBackgroundForLevel(id),
         goals,
         ...(definition.missingCells ? { missingCells: [...definition.missingCells] } : {}),
         ...(definition.hardCandies ? { hardCandies: [...definition.hardCandies] } : {}),

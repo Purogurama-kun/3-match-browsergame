@@ -4,7 +4,7 @@
     grid-template-columns: repeat(8, var(--cell-size));
     grid-template-rows: repeat(8, var(--cell-size));
     gap: 0.25rem;
-    background: #111;
+    background: rgba(17, 17, 17, 0.7);
     padding: 0.375rem;
     border-radius: 12px;
     touch-action: none;
