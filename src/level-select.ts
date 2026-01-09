@@ -146,16 +146,17 @@ class LevelSelectView {
         });
         this.goals.innerHTML = '';
         if (definition.timeGoalSeconds !== undefined) {
-            const timeGoal = t('levelSelect.timeGoal', {
-                time: this.formatTime(definition.timeGoalSeconds)
-            });
+            const formattedTime = this.formatTime(definition.timeGoalSeconds);
+            const description = t('levelSelect.timeGoal', { time: formattedTime });
             this.goals.appendChild(
-                this.createGoalElement(timeGoal, { variant: 'time', src: TIME_GOAL_ICON_SRC })
+                this.createGoalElement(formattedTime, { variant: 'time', src: TIME_GOAL_ICON_SRC }, description)
             );
         }
         definition.goals.forEach((goal) => {
             const description = describeGoal(goal);
-            this.goals.appendChild(this.createGoalElement(description, this.getGoalIcon(goal)));
+            this.goals.appendChild(
+                this.createGoalElement(this.getGoalValue(goal), this.getGoalIcon(goal), description)
+            );
         });
         this.playButton.textContent = t('levelSelect.playButton');
         this.playButton.disabled = this.selectedLevel > this.getUnlockedLevel();
@@ -165,9 +166,14 @@ class LevelSelectView {
         );
     }
 
-    private createGoalElement(description: string, icon: LevelSelectGoalIcon): HTMLLIElement {
+    private createGoalElement(
+        value: string,
+        icon: LevelSelectGoalIcon,
+        ariaDescription: string
+    ): HTMLLIElement {
         const item = document.createElement('li');
         item.className = 'level-select__goal';
+        item.setAttribute('aria-label', ariaDescription);
 
         const iconNode = document.createElement('span');
         iconNode.className = `level-select__goal-icon level-select__goal-icon--${icon.variant}`;
@@ -184,11 +190,11 @@ class LevelSelectView {
             iconNode.textContent = icon.symbol;
         }
 
-        const label = document.createElement('span');
-        label.className = 'level-select__goal-text';
-        label.textContent = description;
+        const valueNode = document.createElement('span');
+        valueNode.className = 'level-select__goal-value';
+        valueNode.textContent = value;
 
-        item.append(iconNode, label);
+        item.append(iconNode, valueNode);
         return item;
     }
 
@@ -202,6 +208,10 @@ class LevelSelectView {
             default:
                 return { variant: 'booster', symbol: getBoosterIcon(goal.booster) };
         }
+    }
+
+    private getGoalValue(goal: LevelGoal): string {
+        return goal.target.toString();
     }
 
     private resetScrollPosition(): void {

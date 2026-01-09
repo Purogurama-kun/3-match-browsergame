@@ -266,26 +266,29 @@
     margin: 0;
     padding: 0;
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 0.6rem;
     color: rgba(255, 255, 255, 0.85);
+
     font-size: 0.95rem;
 }
 
 .level-select__goal {
-    padding: 0.6rem 0.75rem;
-    border-radius: 14px;
+    padding: 0.3rem 0.35rem;
+    border-radius: 999px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.35rem;
+    flex: 0 1 auto;
+    min-width: 5.5rem;
 }
 
 .level-select__goal-icon {
-    width: 34px;
-    height: 34px;
-    min-width: 34px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
     border-radius: 50%;
     border: 1px solid rgba(255, 255, 255, 0.15);
     background: rgba(255, 255, 255, 0.08);
@@ -322,9 +325,11 @@
     border-color: rgba(59, 130, 246, 0.35);
 }
 
-.level-select__goal-text {
+.level-select__goal-value {
     display: block;
     color: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
 }
 
 .level-select__play {
