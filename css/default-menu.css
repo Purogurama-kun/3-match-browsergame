@@ -1,0 +1,126 @@
+.default-menu {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    background: #1e1e2f;
+    backdrop-filter: blur(20px);
+    padding: var(--menu-panel-top-offset) 1rem 1rem;
+    z-index: 40;
+}
+
+.default-menu:not([hidden]) {
+    display: flex;
+}
+
+.default-menu__panel {
+    width: min(54rem, 100%);
+    max-height: calc(100vh - 3.5rem);
+    overflow: hidden;
+    border-radius: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: linear-gradient(180deg, rgba(9, 12, 20, 0.95), rgba(2, 3, 9, 0.97));
+    display: flex;
+    flex-direction: column;
+    box-shadow:
+        0 35px 70px rgba(0, 0, 0, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(18px);
+    box-sizing: border-box;
+}
+
+.default-menu__scroll {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow-y: auto;
+}
+
+.default-menu__scroll::-webkit-scrollbar {
+    width: 8px;
+}
+
+.default-menu__scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+}
+
+.default-menu__sticky-top {
+    display: flex;
+    flex-direction: column;
+    z-index: 4;
+}
+
+.default-menu__top-bar {
+    --default-menu-top-bar-height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    height: var(--default-menu-top-bar-height);
+    padding: 0 1.25rem;
+    display: grid;
+    grid-template-columns: 52px 1fr 52px;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(4, 5, 10, 0.95);
+    backdrop-filter: blur(12px);
+}
+
+.default-menu__top-title {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-align: center;
+    color: #f8f9ff;
+}
+
+.default-menu__top-spacer {
+    width: 52px;
+    height: 1px;
+}
+
+.default-menu__back-button {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.02);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.default-menu__back-button:hover {
+    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateY(-1px);
+}
+
+.default-menu__back-button:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
+}
+
+.default-menu__back-button svg {
+    width: 20px;
+    height: 20px;
+    color: #ffffff;
+}
+
+.default-menu__assistive-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    border: 0;
+}
