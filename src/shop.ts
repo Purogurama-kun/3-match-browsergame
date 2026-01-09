@@ -100,18 +100,21 @@ class ShopView {
             const owned = Math.max(0, this.currentState?.powerups[type] ?? 0);
             const price = getNextPowerupPrice(owned);
             if (entry) {
-                entry.count.textContent = t('shop.count', { count: owned, max: MAX_TACTICAL_POWERUP_STOCK });
-                if (price === null) {
-                    entry.price.textContent = t('shop.priceMaxed');
+                const ownedText = t('shop.count', { count: owned, max: MAX_TACTICAL_POWERUP_STOCK });
+                const priceText = price === null ? t('shop.priceMaxed') : String(price);
+                entry.count.textContent = ownedText;
+                entry.price.textContent = priceText;
+                const isMaxed = price === null;
+                entry.button.classList.toggle('shop__buy--maxed', isMaxed);
+                if (isMaxed) {
                     entry.button.disabled = true;
                 } else {
-                    entry.price.textContent = t('shop.price', { price });
                     entry.button.disabled = coins < price;
                 }
-                entry.button.textContent = t('shop.button.buy');
+                const priceSpeech = isMaxed ? t('shop.priceMaxed') : t('shop.priceAria', { price });
                 entry.button.setAttribute(
                     'aria-label',
-                    `${t(meta.labelKey)} · ${entry.count.textContent}`
+                    `${t('shop.button.buy')} ${t(meta.labelKey)} · ${ownedText} · ${priceSpeech}`
                 );
             }
         });
@@ -130,53 +133,67 @@ class ShopView {
             const item = document.createElement('article');
             item.className = 'shop__item';
 
-            const metaContainer = document.createElement('div');
-            metaContainer.className = 'shop__meta';
+            const iconWrapper = document.createElement('div');
+            iconWrapper.className = 'shop__item-icon';
 
             const icon = document.createElement('span');
             icon.className = 'shop__icon';
             icon.textContent = meta.icon;
+            iconWrapper.appendChild(icon);
+
+            const info = document.createElement('div');
+            info.className = 'shop__item-info';
 
             const label = document.createElement('p');
             label.className = 'shop__label';
             label.textContent = t(meta.labelKey);
 
+            const owned = document.createElement('p');
+            owned.className = 'shop__owned';
+
             const description = document.createElement('p');
             description.className = 'shop__description';
             description.textContent = t(meta.descriptionKey);
 
-            const metaText = document.createElement('div');
-            metaText.appendChild(label);
-            metaText.appendChild(description);
-            metaContainer.appendChild(icon);
-            metaContainer.appendChild(metaText);
-
-            const controls = document.createElement('div');
-            controls.className = 'shop__controls';
-
-            const priceNode = document.createElement('span');
-            priceNode.className = 'shop__price';
-
-            const countNode = document.createElement('span');
-            countNode.className = 'shop__owned';
+            info.appendChild(label);
+            info.appendChild(owned);
+            info.appendChild(description);
 
             const button = document.createElement('button');
             button.className = 'shop__buy';
             button.type = 'button';
             button.addEventListener('click', () => this.onBuy(type));
 
-            controls.appendChild(priceNode);
-            controls.appendChild(countNode);
-            controls.appendChild(button);
+            const buyCost = document.createElement('span');
+            buyCost.className = 'shop__buy-cost';
 
-            item.appendChild(metaContainer);
-            item.appendChild(controls);
+            const coinIcon = document.createElement('img');
+            coinIcon.className = 'shop__buy-coin';
+            coinIcon.src = 'assets/images/sugar_coin_icon.webp';
+            coinIcon.alt = '';
+            coinIcon.setAttribute('aria-hidden', 'true');
+
+            const priceNode = document.createElement('span');
+            priceNode.className = 'shop__buy-price';
+
+            const maxLabel = document.createElement('span');
+            maxLabel.className = 'shop__buy-max';
+            maxLabel.textContent = t('shop.maxLabel');
+
+            buyCost.appendChild(coinIcon);
+            buyCost.appendChild(priceNode);
+            button.appendChild(buyCost);
+            button.appendChild(maxLabel);
+
+            item.appendChild(iconWrapper);
+            item.appendChild(info);
+            item.appendChild(button);
             this.itemsContainer.appendChild(item);
 
             this.entries[type] = {
                 button,
                 price: priceNode,
-                count: countNode
+                count: owned
             };
         });
     }

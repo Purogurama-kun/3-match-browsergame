@@ -46,7 +46,7 @@
 
 .shop__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: 1fr;
     gap: 1rem;
     padding: 0 1.25rem 1.5rem;
 }
@@ -55,15 +55,14 @@
     background: rgba(255, 255, 255, 0.02);
     border-radius: 18px;
     border: 1px solid rgba(255, 255, 255, 0.07);
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    min-height: 150px;
     box-shadow:
         inset 0 0 30px rgba(255, 255, 255, 0.04),
         0 12px 25px rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: stretch;
+    gap: 0.75rem;
     transition: transform 0.2s ease, border-color 0.2s ease;
+    overflow: hidden;
 }
 
 .shop__item:hover {
@@ -71,51 +70,113 @@
     border-color: rgba(255, 255, 255, 0.18);
 }
 
-.shop__meta {
+.shop__item-icon {
+    width: 72px;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
     display: flex;
     align-items: center;
-    gap: 0.55rem;
+    justify-content: center;
+    padding: 0.5rem;
+    height: 100%;
 }
 
 .shop__icon {
-    font-size: 1.5rem;
-    color: rgba(255, 255, 255, 0.7);
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.shop__item-info {
+    flex: 1;
+    padding: 0.65rem 0.5rem 0.65rem 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0.15rem;
 }
 
 .shop__label {
     margin: 0;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #ffffff;
+}
+
+.shop__owned {
+    margin: 0;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.65);
+    letter-spacing: 0.08em;
 }
 
 .shop__description {
     margin: 0;
-    font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.7);
-}
-
-.shop__controls {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-}
-
-.shop__price,
-.shop__owned {
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.75rem;
+    line-height: 1.2;
 }
 
 .shop__buy {
-    padding: 0.65rem;
-    border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    background: linear-gradient(145deg, rgba(248, 226, 168, 0.2), rgba(248, 226, 168, 0.1));
+    width: 140px;
+    align-self: stretch;
+    height: 100%;
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.25);
+    border-radius: 0 18px 18px 0;
+    background: rgba(255, 255, 255, 0.05);
     color: #f4e5c8;
     font-weight: 700;
     cursor: pointer;
-    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.shop__buy:not(:disabled) {
+    border-color: rgba(255, 187, 100, 0.7);
+    background: linear-gradient(145deg, rgba(248, 226, 168, 0.45), rgba(255, 196, 59, 0.35));
+    box-shadow: 0 8px 18px rgba(255, 196, 59, 0.35);
+}
+
+.shop__buy--maxed {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.shop__buy--maxed .shop__buy-cost {
+    display: none;
+}
+
+.shop__buy-cost {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.shop__buy-max {
+    display: none;
+    font-size: 0.95rem;
+    letter-spacing: 0.12em;
+    color: #f4e5c8;
+}
+
+.shop__buy--maxed .shop__buy-max {
+    display: flex;
+}
+
+.shop__buy-coin {
+    width: 20px;
+    height: 20px;
+}
+
+.shop__buy-price {
+    font-size: 1.05rem;
+    color: #f4e5c8;
+    font-weight: 700;
 }
 
 .shop__buy:disabled {
@@ -124,10 +185,11 @@
     transform: none;
 }
 
-.shop__buy:hover:not(:disabled) {
-    transform: translateY(-1px);
+.shop__buy:not(:disabled):hover {
+    transform: translateY(-1px) scale(1.02);
     border-color: rgba(255, 255, 255, 0.45);
-    background: rgba(255, 255, 255, 0.1);
+    background: linear-gradient(145deg, rgba(255, 216, 107, 0.55), rgba(255, 158, 0, 0.5));
+    box-shadow: 0 12px 25px rgba(255, 203, 53, 0.45);
 }
 
 .shop__back-button {
