@@ -6,7 +6,7 @@
     justify-content: center;
     background: #1e1e2f;
     backdrop-filter: blur(20px);
-    padding: 2.5rem 1rem 1rem;
+    padding: var(--menu-panel-top-offset) 1rem 1rem;
     z-index: 40;
 }
 

@@ -1,6 +1,6 @@
 .leaderboard {
     width: min(48rem, 100%);
-    margin: 2.5rem auto clamp(1.5rem, 6vh, 3.5rem);
+    margin: calc(var(--menu-panel-top-offset) - var(--match-app-top-padding, 0rem)) auto clamp(1.5rem, 6vh, 3.5rem);
     padding: 0 1rem;
     box-sizing: border-box;
 }
@@ -327,7 +327,7 @@
 
 @media (max-width: 580px) {
     .leaderboard {
-        margin: 1rem;
+        margin: calc(var(--menu-panel-top-offset) - var(--match-app-top-padding, 0rem)) 1rem clamp(1.5rem, 6vh, 3.5rem);
         padding: 0;
     }
 

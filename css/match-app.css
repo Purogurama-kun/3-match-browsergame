@@ -1,3 +1,8 @@
+:root {
+    --match-app-top-padding: 0.5rem;
+    --menu-panel-top-offset: 2.5rem;
+}
+
 html, body {
     height: 100%;
     margin: 0;
@@ -18,7 +23,7 @@ body {
     align-items: center;
     gap: 0.75rem;
     margin: 0;
-    padding: 0.5rem;
+    padding: var(--match-app-top-padding) 0.5rem 0.5rem;
     min-height: 100vh;
     min-height: 100dvh;
     box-sizing: border-box;
@@ -291,3 +296,4 @@ body {
 .cutscene__timer-button--paused .cutscene__timer-ring-back {
     opacity: 0;
 }
+.match-app {
