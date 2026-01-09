@@ -22,6 +22,8 @@ type LevelSelectGoalIcon =
     | { variant: 'hard'; symbol: string }
     | { variant: 'score'; symbol: string };
 
+type MetaChipVariant = 'moves' | 'difficulty';
+
 class LevelSelectView {
     constructor(options: LevelSelectOptions) {
         this.container = getRequiredElement('level-select');
@@ -141,10 +143,13 @@ class LevelSelectView {
         const definition = getLevelDefinition(this.selectedLevel);
         const difficultyLabel = this.formatDifficultyLabel(definition.difficulty);
         this.selectedLabel.textContent = t('levelSelect.selectedTitle', { level: definition.id });
-        this.meta.textContent = t('levelSelect.meta', {
-            moves: definition.moves,
-            difficulty: difficultyLabel
-        });
+        const movesText = t('levelSelect.metaMoves', { moves: definition.moves });
+        const difficultyAccessible = t('levelSelect.metaDifficulty', { difficulty: difficultyLabel });
+        this.meta.innerHTML = '';
+        this.meta.append(
+            this.createMetaChip(movesText, 'moves', movesText),
+            this.createMetaChip(difficultyLabel, 'difficulty', difficultyAccessible)
+        );
         this.goals.innerHTML = '';
         const targetDescription = t('levelSelect.targetGoal', { target: definition.targetScore });
         this.goals.appendChild(
@@ -221,6 +226,18 @@ class LevelSelectView {
 
     private getGoalValue(goal: LevelGoal): string {
         return goal.target.toString();
+    }
+
+    private createMetaChip(
+        text: string,
+        variant: MetaChipVariant,
+        ariaLabel: string
+    ): HTMLSpanElement {
+        const chip = document.createElement('span');
+        chip.className = `level-select__meta-chip level-select__meta-chip--${variant}`;
+        chip.textContent = text;
+        chip.setAttribute('aria-label', ariaLabel);
+        return chip;
     }
 
     private resetScrollPosition(): void {

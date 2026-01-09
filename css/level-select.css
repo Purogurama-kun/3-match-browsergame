@@ -256,8 +256,32 @@
 }
 
 .level-select__meta {
-    font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.level-select__meta-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.level-select__meta-chip--moves {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.level-select__meta-chip--difficulty {
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .level-select__goals-title {
