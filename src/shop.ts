@@ -18,7 +18,7 @@ type ShopState = {
 type ShopEntry = {
     button: HTMLButtonElement;
     price: HTMLElement;
-    count: HTMLElement;
+    ownedValue: HTMLElement;
 };
 
 function getNextPowerupPrice(owned: number): number | null {
@@ -102,7 +102,7 @@ class ShopView {
             if (entry) {
                 const ownedText = t('shop.count', { count: owned, max: MAX_TACTICAL_POWERUP_STOCK });
                 const priceText = price === null ? t('shop.priceMaxed') : String(price);
-                entry.count.textContent = ownedText;
+                entry.ownedValue.textContent = String(owned);
                 entry.price.textContent = priceText;
                 const isMaxed = price === null;
                 entry.button.classList.toggle('shop__buy--maxed', isMaxed);
@@ -151,6 +151,26 @@ class ShopView {
             const owned = document.createElement('p');
             owned.className = 'shop__owned';
 
+            const ownedLabel = document.createElement('span');
+            ownedLabel.className = 'shop__owned-label';
+            ownedLabel.textContent = t('shop.ownedLabel');
+
+            const ownedValue = document.createElement('span');
+            ownedValue.className = 'shop__owned-value';
+
+            const ownedDelimiter = document.createElement('span');
+            ownedDelimiter.className = 'shop__owned-delimiter';
+            ownedDelimiter.textContent = '/';
+
+            const ownedMax = document.createElement('span');
+            ownedMax.className = 'shop__owned-max';
+            ownedMax.textContent = String(MAX_TACTICAL_POWERUP_STOCK);
+
+            owned.appendChild(ownedLabel);
+            owned.appendChild(ownedValue);
+            owned.appendChild(ownedDelimiter);
+            owned.appendChild(ownedMax);
+
             const description = document.createElement('p');
             description.className = 'shop__description';
             description.textContent = t(meta.descriptionKey);
@@ -193,7 +213,7 @@ class ShopView {
             this.entries[type] = {
                 button,
                 price: priceNode,
-                count: owned
+                ownedValue
             };
         });
     }
