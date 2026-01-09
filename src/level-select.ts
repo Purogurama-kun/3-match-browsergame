@@ -148,7 +148,7 @@ class LevelSelectView {
         this.meta.innerHTML = '';
         this.meta.append(
             this.createMetaChip(movesText, 'moves', movesText),
-            this.createMetaChip(difficultyLabel, 'difficulty', difficultyAccessible)
+            this.createMetaChip(difficultyLabel, 'difficulty', difficultyAccessible, definition.difficulty)
         );
         this.goals.innerHTML = '';
         const targetDescription = t('levelSelect.targetGoal', { target: definition.targetScore });
@@ -231,10 +231,16 @@ class LevelSelectView {
     private createMetaChip(
         text: string,
         variant: MetaChipVariant,
-        ariaLabel: string
+        ariaLabel: string,
+        difficulty?: Difficulty
     ): HTMLSpanElement {
         const chip = document.createElement('span');
         chip.className = `level-select__meta-chip level-select__meta-chip--${variant}`;
+        if (variant === 'difficulty' && difficulty) {
+            chip.classList.add(
+                `level-select__meta-chip--difficulty-${difficulty}`
+            );
+        }
         chip.textContent = text;
         chip.setAttribute('aria-label', ariaLabel);
         return chip;

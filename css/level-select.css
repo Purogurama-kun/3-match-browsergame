@@ -282,6 +282,32 @@
 
 .level-select__meta-chip--difficulty {
     background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.level-select__meta-chip--difficulty-easy {
+    border-color: rgba(34, 197, 94, 0.5);
+    box-shadow: 0 0 0 0.08rem rgba(34, 197, 94, 0.25);
+}
+
+.level-select__meta-chip--difficulty-normal {
+    border-color: rgba(56, 189, 248, 0.5);
+    box-shadow: 0 0 0 0.08rem rgba(56, 189, 248, 0.25);
+}
+
+.level-select__meta-chip--difficulty-hard {
+    border-color: rgba(245, 158, 11, 0.5);
+    box-shadow: 0 0 0 0.08rem rgba(245, 158, 11, 0.25);
+}
+
+.level-select__meta-chip--difficulty-expert {
+    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow: 0 0 0 0.08rem rgba(168, 85, 247, 0.25);
+}
+
+.level-select__meta-chip--difficulty-nightmare {
+    border-color: rgba(239, 68, 68, 0.5);
+    box-shadow: 0 0 0 0.08rem rgba(239, 68, 68, 0.25);
 }
 
 .level-select__goals-title {
