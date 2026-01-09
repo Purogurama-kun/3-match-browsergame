@@ -186,6 +186,7 @@ body {
 .cutscene__portrait {
     width: auto;
     height: 110px;
+    border-radius: 16px;
 }
 
 .cutscene__line {
