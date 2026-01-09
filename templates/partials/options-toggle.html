@@ -1,7 +1,16 @@
-    <button id="options-toggle" class="options-toggle" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="options-modal">
+    <button
+        id="options-toggle"
+        class="options-toggle"
+        type="button"
+        aria-haspopup="dialog"
+        aria-expanded="false"
+        aria-controls="options-modal"
+        aria-labelledby="options-toggle-label"
+    >
         <span class="options-toggle__icon" aria-hidden="true">
-            <span class="options-toggle__line"></span>
-            <span class="options-toggle__line"></span>
-            <span class="options-toggle__line"></span>
+            <img src="assets/images/settings.svg" alt="" />
+        </span>
+        <span id="options-toggle-label" class="options-toggle__assistive" data-i18n-key="options.title">
+            Options
         </span>
     </button>
