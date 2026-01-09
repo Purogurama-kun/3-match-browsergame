@@ -282,14 +282,14 @@ class Hud {
 
     private renderGoals(goals: GoalProgress[], mode: GameMode, state: GameState): void {
         this.goalsList.innerHTML = '';
-        if (mode === 'blocker') {
-            this.renderBlockerModeHighscore(state.bestScore);
+        if (mode === 'blocker' || mode === 'time') {
+            if (mode === 'blocker') {
+                this.renderBlockerModeHighscore(state.bestScore);
+            }
             this.hideTimeModeHint();
             return;
         }
-        if (mode === 'time') {
-            this.renderTimeModeHint(state);
-        } else if (mode === 'level' && state.timeRemaining !== undefined) {
+        if (mode === 'level' && state.timeRemaining !== undefined && state.timeCapacity !== undefined) {
             this.renderLevelTimeHint(state);
         } else {
             this.hideTimeModeHint();
@@ -428,11 +428,11 @@ class Hud {
             </span>
             <span class="hud__time-hint-label">${label}</span>
         `;
-        this.timeHint.removeAttribute('hidden');
+        this.timeHint.hidden = false;
     }
 
     private hideTimeModeHint(): void {
-        this.timeHint.setAttribute('hidden', 'true');
+        this.timeHint.hidden = true;
         this.timeHint.textContent = '';
     }
 

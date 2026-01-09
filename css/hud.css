@@ -164,6 +164,10 @@
     gap: 0.6rem;
 }
 
+.hud__time-hint[hidden] {
+    display: none;
+}
+
 .hud__time-hint-track {
     flex: 1;
     height: 0.45rem;
