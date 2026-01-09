@@ -33,6 +33,13 @@ class LevelSelectView {
         this.meta = getRequiredElement('level-select-meta');
         this.goals = getRequiredElement<HTMLUListElement>('level-select-goals');
         this.playButton = getRequiredElement<HTMLButtonElement>('level-select-play');
+        this.selectedStory = getRequiredElement('level-select-selected-story');
+        this.levelTitleNode = document.createElement('span');
+        this.difficultyChip = document.createElement('span');
+        this.difficultyChip.className =
+            'level-select__meta-chip level-select__meta-chip--difficulty';
+        this.selectedLabel.textContent = '';
+        this.selectedLabel.append(this.levelTitleNode, this.difficultyChip);
         this.maxLevel = LEVELS.length;
         this.options = options;
         this.buildPath();
@@ -47,6 +54,9 @@ class LevelSelectView {
     private readonly meta: HTMLElement;
     private readonly goals: HTMLUListElement;
     private readonly playButton: HTMLButtonElement;
+    private readonly selectedStory: HTMLElement;
+    private readonly levelTitleNode: HTMLSpanElement;
+    private readonly difficultyChip: HTMLSpanElement;
     private readonly maxLevel: number;
     private readonly options: LevelSelectOptions;
     private readonly levelButtons: HTMLButtonElement[] = [];
@@ -142,14 +152,13 @@ class LevelSelectView {
     private renderSelected(): void {
         const definition = getLevelDefinition(this.selectedLevel);
         const difficultyLabel = this.formatDifficultyLabel(definition.difficulty);
-        this.selectedLabel.textContent = t('levelSelect.selectedTitle', { level: definition.id });
+        this.levelTitleNode.textContent = t('levelSelect.selectedTitle', { level: definition.id });
         const movesText = t('levelSelect.metaMoves', { moves: definition.moves });
         const difficultyAccessible = t('levelSelect.metaDifficulty', { difficulty: difficultyLabel });
         this.meta.innerHTML = '';
-        this.meta.append(
-            this.createMetaChip(movesText, 'moves', movesText),
-            this.createMetaChip(difficultyLabel, 'difficulty', difficultyAccessible, definition.difficulty)
-        );
+        this.meta.append(this.createMetaChip(movesText, 'moves', movesText));
+        this.updateDifficultyChip(definition.difficulty, difficultyLabel, difficultyAccessible);
+        this.selectedStory.textContent = this.getLocationDescription(definition.id);
         this.goals.innerHTML = '';
         const targetDescription = t('levelSelect.targetGoal', { target: definition.targetScore });
         this.goals.appendChild(
@@ -228,22 +237,57 @@ class LevelSelectView {
         return goal.target.toString();
     }
 
-    private createMetaChip(
-        text: string,
-        variant: MetaChipVariant,
-        ariaLabel: string,
-        difficulty?: Difficulty
-    ): HTMLSpanElement {
+    private getLocationDescription(levelId: number): string {
+        const key = this.getLocationKey(levelId);
+        switch (key) {
+            case 'vendorPlaza':
+                return t('levelSelect.location.vendorPlaza');
+            case 'ribbonAlley':
+                return t('levelSelect.location.ribbonAlley');
+            case 'lanternBridge':
+                return t('levelSelect.location.lanternBridge');
+            case 'festival':
+                return t('levelSelect.location.festival');
+            default:
+                return t('levelSelect.location.vendorPlaza');
+        }
+    }
+
+    private getLocationKey(levelId: number): 'vendorPlaza' | 'ribbonAlley' | 'lanternBridge' | 'festival' {
+        if (levelId >= 1 && levelId <= 15) {
+            return 'vendorPlaza';
+        }
+        if (levelId >= 16 && levelId <= 25) {
+            return 'ribbonAlley';
+        }
+        if (levelId >= 26 && levelId <= 49) {
+            return 'lanternBridge';
+        }
+        if (levelId === 50) {
+            return 'festival';
+        }
+        return 'vendorPlaza';
+    }
+
+    private createMetaChip(text: string, variant: MetaChipVariant, ariaLabel: string): HTMLSpanElement {
         const chip = document.createElement('span');
         chip.className = `level-select__meta-chip level-select__meta-chip--${variant}`;
-        if (variant === 'difficulty' && difficulty) {
-            chip.classList.add(
-                `level-select__meta-chip--difficulty-${difficulty}`
-            );
-        }
         chip.textContent = text;
         chip.setAttribute('aria-label', ariaLabel);
         return chip;
+    }
+
+    private updateDifficultyChip(difficulty: Difficulty, text: string, aria: string): void {
+        this.difficultyChip.textContent = text;
+        this.difficultyChip.setAttribute('aria-label', aria);
+        this.difficultyChip.classList.remove(
+            'level-select__meta-chip--difficulty-easy',
+            'level-select__meta-chip--difficulty-normal',
+            'level-select__meta-chip--difficulty-hard',
+            'level-select__meta-chip--difficulty-expert',
+            'level-select__meta-chip--difficulty-nightmare'
+        );
+        this.difficultyChip.classList.add(`level-select__meta-chip--difficulty-${difficulty}`);
     }
 
     private resetScrollPosition(): void {
