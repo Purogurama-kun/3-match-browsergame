@@ -9,7 +9,7 @@ Guidelines for AI agents working in this repository.
 
 ## Structure
 
-- `index.html` — markup and asset links
+- `templates/` — markup. You may not modify `index.html`, because that is a genearted file.
 - `css/` — styles
 - `src/` — TypeScript modules
 - `dist/` — compiled output
