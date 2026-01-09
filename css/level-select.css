@@ -1,7 +1,7 @@
 .level-select {
     width: min(70rem, 100%);
     margin: clamp(1.25rem, 5vh, 3rem) auto;
-    padding: 0 1rem;
+    padding: 0;
     box-sizing: border-box;
 }
 
