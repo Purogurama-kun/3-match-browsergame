@@ -541,6 +541,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
         id: 40,
         moves: 17,
         targetScore: 21600,
+        timeGoalSeconds: 180,
         difficulty: 48,
         goals: [
             { type: 'destroy-color', color: 'blue', target: 40 },
@@ -607,6 +608,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
         id: 45,
         moves: 17,
         targetScore: 26900,
+        timeGoalSeconds: 210,
         difficulty: 53,
         goals: [
             { type: 'destroy-color', color: 'purple', target: 44 },
@@ -690,6 +692,8 @@ const LEVELS: LevelDefinition[] = RAW_LEVELS.map((definition, index) =>
 
 function normalizeLevelDefinition(definition: LevelDefinitionInput, id: number): LevelDefinition {
     const goals = [...definition.goals];
+    const normalizedTimeGoal =
+        definition.timeGoalSeconds !== undefined ? Math.max(180, definition.timeGoalSeconds) : undefined;
     if (definition.hardCandies && definition.hardCandies.length > 0) {
         goals.push({ type: 'destroy-hard-candies', target: definition.hardCandies.length });
     }
@@ -701,7 +705,8 @@ function normalizeLevelDefinition(definition: LevelDefinitionInput, id: number):
         goals,
         ...(definition.missingCells ? { missingCells: [...definition.missingCells] } : {}),
         ...(definition.hardCandies ? { hardCandies: [...definition.hardCandies] } : {}),
-        ...(definition.blockerGenerators ? { blockerGenerators: [...definition.blockerGenerators] } : {})
+        ...(definition.blockerGenerators ? { blockerGenerators: [...definition.blockerGenerators] } : {}),
+        ...(normalizedTimeGoal !== undefined ? { timeGoalSeconds: normalizedTimeGoal } : {})
     };
 }
 
@@ -736,7 +741,8 @@ function getLevelDefinition(levelNumber: number): LevelDefinition {
         id: clamped,
         ...(baseDefinition.missingCells ? { missingCells: [...baseDefinition.missingCells] } : {}),
         ...(baseDefinition.hardCandies ? { hardCandies: [...baseDefinition.hardCandies] } : {}),
-        ...(baseDefinition.blockerGenerators ? { blockerGenerators: [...baseDefinition.blockerGenerators] } : {})
+        ...(baseDefinition.blockerGenerators ? { blockerGenerators: [...baseDefinition.blockerGenerators] } : {}),
+        ...(baseDefinition.timeGoalSeconds !== undefined ? { timeGoalSeconds: baseDefinition.timeGoalSeconds } : {})
     };
 }
 

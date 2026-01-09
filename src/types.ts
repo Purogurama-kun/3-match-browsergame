@@ -57,6 +57,7 @@ type LevelDefinition = {
     id: number;
     moves: number;
     targetScore: number;
+    timeGoalSeconds?: number;
     goals: LevelGoal[];
     difficulty: Difficulty;
     background?: string;

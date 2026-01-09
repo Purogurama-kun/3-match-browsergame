@@ -17,6 +17,7 @@ class LevelSelectView {
         this.backButton = getRequiredElement<HTMLButtonElement>('level-select-back');
         this.selectedLabel = getRequiredElement('level-select-selected-label');
         this.meta = getRequiredElement('level-select-meta');
+        this.timeHint = getRequiredElement('level-select-time-hint');
         this.goals = getRequiredElement<HTMLUListElement>('level-select-goals');
         this.playButton = getRequiredElement<HTMLButtonElement>('level-select-play');
         this.maxLevel = LEVELS.length;
@@ -31,6 +32,7 @@ class LevelSelectView {
     private readonly backButton: HTMLButtonElement;
     private readonly selectedLabel: HTMLElement;
     private readonly meta: HTMLElement;
+    private readonly timeHint: HTMLElement;
     private readonly goals: HTMLUListElement;
     private readonly playButton: HTMLButtonElement;
     private readonly maxLevel: number;
@@ -134,7 +136,23 @@ class LevelSelectView {
             target: definition.targetScore,
             difficulty: difficultyLabel
         });
+        if (definition.timeGoalSeconds !== undefined) {
+            const formatted = this.formatTime(definition.timeGoalSeconds);
+            this.timeHint.textContent = t('levelSelect.timeGoal', { time: formatted });
+            this.timeHint.removeAttribute('hidden');
+        } else {
+            this.timeHint.setAttribute('hidden', 'true');
+            this.timeHint.textContent = '';
+        }
         this.goals.innerHTML = '';
+        if (definition.timeGoalSeconds !== undefined) {
+            const timeItem = document.createElement('li');
+            timeItem.className = 'level-select__goal';
+            timeItem.textContent = t('levelSelect.timeGoal', {
+                time: this.formatTime(definition.timeGoalSeconds)
+            });
+            this.goals.appendChild(timeItem);
+        }
         definition.goals.forEach((goal) => {
             const item = document.createElement('li');
             item.className = 'level-select__goal';
@@ -162,6 +180,13 @@ class LevelSelectView {
             nightmare: 'difficulty.nightmare'
         };
         return t(keyMap[difficulty]);
+    }
+
+    private formatTime(totalSeconds: number): string {
+        const safeSeconds = Math.max(0, Number.isFinite(totalSeconds) ? totalSeconds : 0);
+        const minutes = Math.floor(safeSeconds / 60);
+        const seconds = Math.floor(safeSeconds % 60);
+        return minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
     }
 
     private clampLevel(level: number): number {

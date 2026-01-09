@@ -289,6 +289,8 @@ class Hud {
         }
         if (mode === 'time') {
             this.renderTimeModeHint(state);
+        } else if (mode === 'level' && state.timeRemaining !== undefined) {
+            this.renderLevelTimeHint(state);
         } else {
             this.hideTimeModeHint();
         }
@@ -403,7 +405,29 @@ class Hud {
     private renderTimeModeHint(state: GameState): void {
         const survived = this.formatTime(state.survivalTime ?? 0);
         const best = this.formatTime(state.bestScore ?? 0);
-        this.timeHint.textContent = t('hud.timeModeHint', { survived, best });
+        const capacity = Math.max(1, state.timeCapacity ?? 0, state.timeRemaining ?? 0);
+        const remaining = Math.max(0, state.timeRemaining ?? 0);
+        const ratio = Math.min(1, capacity === 0 ? 0 : remaining / capacity);
+        this.renderTimeHintBar(t('hud.timeModeHint', { survived, best }), ratio);
+    }
+
+    private renderLevelTimeHint(state: GameState): void {
+        const remainingText = this.formatTime(state.timeRemaining ?? 0);
+        const current = Math.max(0, state.timeRemaining ?? 0);
+        const capacity = Math.max(current, state.timeCapacity ?? current);
+        const ratio = capacity === 0 ? 0 : Math.min(1, current / capacity);
+        this.renderTimeHintBar(remainingText, ratio);
+    }
+
+    private renderTimeHintBar(label: string, ratio: number): void {
+        const clamped = Math.max(0, Math.min(1, ratio));
+        const fillWidth = (clamped * 100).toFixed(1) + '%';
+        this.timeHint.innerHTML = `
+            <span class="hud__time-hint-track" aria-hidden="true">
+                <span class="hud__time-hint-fill" style="width:${fillWidth}"></span>
+            </span>
+            <span class="hud__time-hint-label">${label}</span>
+        `;
         this.timeHint.removeAttribute('hidden');
     }
 

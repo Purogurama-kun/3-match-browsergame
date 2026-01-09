@@ -13,15 +13,19 @@ class LevelModeState implements GameModeState {
     readonly id = 'level';
     private levelNumber: number;
     private levelDefinition: LevelDefinition;
+    private timerId: number | null = null;
+    private lastTick = 0;
+    private state: GameState | null = null;
 
     constructor(levelNumber: number) {
         this.levelNumber = Math.max(1, levelNumber);
         this.levelDefinition = getLevelDefinition(this.levelNumber);
     }
 
-    enter(_context: ModeContext): GameState {
+    enter(context: ModeContext): GameState {
         this.levelDefinition = getLevelDefinition(this.levelNumber);
-        return {
+        const timeGoal = this.levelDefinition.timeGoalSeconds;
+        const state: GameState = {
             mode: 'level',
             selected: null,
             score: 0,
@@ -36,10 +40,18 @@ class LevelModeState implements GameModeState {
             ,
             cellShapeMode: 'square'
         };
+        if (timeGoal !== undefined) {
+            state.timeRemaining = timeGoal;
+            state.timeCapacity = timeGoal;
+        }
+        this.state = state;
+        this.startTimer(context);
+        return state;
     }
 
     exit(_context: ModeContext): void {
-        // Nothing to clean up yet.
+        this.stopTimer();
+        this.state = null;
     }
 
     canStartMove(state: GameState): boolean {
@@ -67,6 +79,11 @@ class LevelModeState implements GameModeState {
 
     checkForCompletion(state: GameState, context: ModeContext): void {
         if (context.isModalVisible()) return;
+        if (state.timeRemaining !== undefined && state.timeRemaining <= 0) {
+            this.stopTimer();
+            context.finishLevel('lose', state.level);
+            return;
+        }
         if (this.isLevelComplete(state)) {
             context.finishLevel('win', state.level);
             return;
@@ -126,6 +143,41 @@ class LevelModeState implements GameModeState {
 
     shouldSpawnHardCandy(_state: GameState): boolean {
         return false; // Hard candy never spawns dynamically in level mode.
+    }
+
+    private startTimer(context: ModeContext): void {
+        const duration = this.levelDefinition.timeGoalSeconds;
+        if (duration === undefined) return;
+        this.stopTimer();
+        this.lastTick = performance.now();
+        this.timerId = window.setInterval(() => this.tick(context), 200);
+    }
+
+    private stopTimer(): void {
+        if (this.timerId !== null) {
+            clearInterval(this.timerId);
+            this.timerId = null;
+        }
+    }
+
+    private tick(context: ModeContext): void {
+        if (!this.state) return;
+        if (context.isModalVisible()) {
+            this.lastTick = performance.now();
+            return;
+        }
+        const now = performance.now();
+        const deltaSeconds = (now - this.lastTick) / 1000;
+        this.lastTick = now;
+        const current = this.state.timeRemaining ?? 0;
+        const remaining = Math.max(0, current - deltaSeconds);
+        this.state.timeRemaining = remaining;
+        if (remaining <= 0) {
+            this.stopTimer();
+            context.finishLevel('lose', this.state.level);
+            return;
+        }
+        context.updateHud(this.state);
     }
 
     private createGoals(levelGoals: LevelGoal[]): GoalProgress[] {

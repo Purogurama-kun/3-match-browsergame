@@ -159,8 +159,33 @@
     border-radius: 10px;
     border: 1px dashed rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.hud__time-hint-track {
+    flex: 1;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+}
+
+.hud__time-hint-fill {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #7bffb0 0%, #53c6ff 100%);
+    transition: width 0.2s ease;
+    box-shadow: 0 0 6px rgba(83, 198, 255, 0.45);
+}
+
+.hud__time-hint-label {
+    font-size: 0.85rem;
     color: #cfd5ff;
-    font-size: 0.95rem;
+    white-space: nowrap;
 }
 
 .hud__progress-bar {
