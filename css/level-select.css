@@ -326,6 +326,11 @@
     border-color: rgba(249, 115, 22, 0.25);
 }
 
+.level-select__goal-icon--score {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(34, 197, 94, 0.3));
+    border-color: rgba(16, 185, 129, 0.5);
+}
+
 .level-select__goal-icon--hard {
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(14, 165, 233, 0.3));
     border-color: rgba(59, 130, 246, 0.35);

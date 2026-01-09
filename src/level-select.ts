@@ -8,6 +8,7 @@ import { Difficulty, LevelGoal } from './types.js';
 import { isDebugMode } from './debug.js';
 
 const TIME_GOAL_ICON_SRC = 'assets/images/timer.svg';
+const SCORE_GOAL_ICON_SYMBOL = '🎯';
 
 type LevelSelectOptions = {
     onStart: (level: number) => void;
@@ -18,7 +19,8 @@ type LevelSelectGoalIcon =
     | { variant: 'time'; src: string }
     | { variant: 'color'; color: string }
     | { variant: 'booster'; symbol: string }
-    | { variant: 'hard'; symbol: string };
+    | { variant: 'hard'; symbol: string }
+    | { variant: 'score'; symbol: string };
 
 class LevelSelectView {
     constructor(options: LevelSelectOptions) {
@@ -141,10 +143,17 @@ class LevelSelectView {
         this.selectedLabel.textContent = t('levelSelect.selectedTitle', { level: definition.id });
         this.meta.textContent = t('levelSelect.meta', {
             moves: definition.moves,
-            target: definition.targetScore,
             difficulty: difficultyLabel
         });
         this.goals.innerHTML = '';
+        const targetDescription = t('levelSelect.targetGoal', { target: definition.targetScore });
+        this.goals.appendChild(
+            this.createGoalElement(
+                definition.targetScore.toString(),
+                { variant: 'score', symbol: SCORE_GOAL_ICON_SYMBOL },
+                targetDescription
+            )
+        );
         if (definition.timeGoalSeconds !== undefined) {
             const formattedTime = this.formatTime(definition.timeGoalSeconds);
             const description = t('levelSelect.timeGoal', { time: formattedTime });
