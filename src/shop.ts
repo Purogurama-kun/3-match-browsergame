@@ -189,7 +189,7 @@ class ShopView {
 
             const coinIcon = document.createElement('img');
             coinIcon.className = 'shop__buy-coin';
-            coinIcon.src = 'assets/images/sugar_coin_icon.webp';
+            coinIcon.src = 'assets/images/sugar_coin.webp';
             coinIcon.alt = '';
             coinIcon.setAttribute('aria-hidden', 'true');
 
