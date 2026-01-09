@@ -1,6 +1,13 @@
 :root {
     --match-app-top-padding: 0.5rem;
     --menu-panel-top-offset: 2.5rem;
+    --menu-panel-bottom-offset: 3rem;
+}
+
+@media (max-width: 780px) {
+    :root {
+        --menu-panel-bottom-offset: 4.5rem;
+    }
 }
 
 html, body {
