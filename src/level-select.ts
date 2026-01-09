@@ -1,5 +1,6 @@
 import { getRequiredElement } from './dom.js';
 import { getColorHex } from './constants.js';
+import { getBoosterIcon } from './boosters.js';
 import { LEVELS, describeGoal, getLevelDefinition } from './levels.js';
 import { t } from './i18n.js';
 import type { TranslationKey } from './i18n.js';
@@ -199,7 +200,7 @@ class LevelSelectView {
                 return { variant: 'hard', symbol: '▣' };
             case 'activate-booster':
             default:
-                return { variant: 'booster', symbol: 'B' };
+                return { variant: 'booster', symbol: getBoosterIcon(goal.booster) };
         }
     }
 

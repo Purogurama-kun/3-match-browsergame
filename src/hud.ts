@@ -1,12 +1,10 @@
 import {
-    BOOSTERS,
     TACTICAL_POWERUPS,
     TacticalPowerup,
     getColorHex,
     COLOR_SHAPE_CLASS
 } from './constants.js';
 import {
-    ActivatableBoosterType,
     CellShapeMode,
     Difficulty,
     GameMode,
@@ -18,6 +16,7 @@ import { getRequiredElement } from './dom.js';
 import { describeGoal } from './levels.js';
 import { t, Locale } from './i18n.js';
 import { OptionsMenu } from './options-menu.js';
+import { getBoosterIcon } from './boosters.js';
 
 class Hud {
     constructor() {
@@ -377,7 +376,7 @@ class Hud {
         }
         const chip = document.createElement('span');
         chip.className = 'hud__goal-chip hud__goal-chip--booster';
-        chip.textContent = this.getBoosterIcon(goal.booster);
+        chip.textContent = getBoosterIcon(goal.booster);
         chip.setAttribute('aria-hidden', 'true');
         return chip;
     }
@@ -445,14 +444,6 @@ class Hud {
             nightmare: 'Nightmare'
         };
         return labelMap[difficulty];
-    }
-
-    private getBoosterIcon(booster: ActivatableBoosterType): string {
-        if (booster === BOOSTERS.LINE) return '💣';
-        if (booster === BOOSTERS.BURST_SMALL) return '🧨';
-        if (booster === BOOSTERS.BURST_MEDIUM) return '💥';
-        if (booster === BOOSTERS.BURST_LARGE) return '☢️';
-        return '';
     }
 
     private formatTime(totalSeconds: number): string {
