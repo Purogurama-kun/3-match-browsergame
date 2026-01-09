@@ -139,6 +139,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
         id: 8,
         moves: 22,
         targetScore: 2150,
+        timeGoalSeconds: 180,
         difficulty: 8,
         goals: [
             { type: 'destroy-color', color: 'green', target: 20 },
@@ -222,6 +223,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
         id: 15,
         moves: 21,
         targetScore: 5200,
+        timeGoalSeconds: 195,
         difficulty: 17,
         goals: [
             { type: 'destroy-color', color: 'green', target: 26 },
@@ -309,6 +311,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
         id: 22,
         moves: 21,
         targetScore: 8900,
+        timeGoalSeconds: 195,
         difficulty: 26,
         goals: [
             { type: 'destroy-color', color: 'amber', target: 30 },
