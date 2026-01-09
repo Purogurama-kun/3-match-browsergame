@@ -295,8 +295,13 @@
 }
 
 .level-select__meta-chip--difficulty {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.15);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
+    border-color: transparent;
+    color: #f8fafc;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 0 0 2px rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(6px);
 }
 
 .level-select__meta-chip--difficulty-easy {
