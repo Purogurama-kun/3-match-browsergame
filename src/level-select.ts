@@ -36,8 +36,7 @@ class LevelSelectView {
         this.selectedStory = getRequiredElement('level-select-selected-story');
         this.levelTitleNode = document.createElement('span');
         this.difficultyChip = document.createElement('span');
-        this.difficultyChip.className =
-            'level-select__meta-chip level-select__meta-chip--difficulty';
+        this.difficultyChip.className = 'level-select__difficulty';
         this.selectedLabel.textContent = '';
         this.selectedLabel.append(this.levelTitleNode, this.difficultyChip);
         this.maxLevel = LEVELS.length;
@@ -281,13 +280,13 @@ class LevelSelectView {
         this.difficultyChip.textContent = text;
         this.difficultyChip.setAttribute('aria-label', aria);
         this.difficultyChip.classList.remove(
-            'level-select__meta-chip--difficulty-easy',
-            'level-select__meta-chip--difficulty-normal',
-            'level-select__meta-chip--difficulty-hard',
-            'level-select__meta-chip--difficulty-expert',
-            'level-select__meta-chip--difficulty-nightmare'
+            'level-select__difficulty--easy',
+            'level-select__difficulty--normal',
+            'level-select__difficulty--hard',
+            'level-select__difficulty--expert',
+            'level-select__difficulty--nightmare'
         );
-        this.difficultyChip.classList.add(`level-select__meta-chip--difficulty-${difficulty}`);
+        this.difficultyChip.classList.add(`level-select__difficulty--${difficulty}`);
     }
 
     private resetScrollPosition(): void {
