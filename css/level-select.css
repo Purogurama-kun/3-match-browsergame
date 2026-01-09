@@ -254,15 +254,6 @@
     color: rgba(255, 255, 255, 0.7);
 }
 
-.level-select__time-hint {
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.75);
-    border-radius: 12px;
-    border: 1px dashed rgba(255, 255, 255, 0.2);
-    padding: 0.5rem 0.65rem;
-    background: rgba(255, 255, 255, 0.03);
-}
-
 .level-select__goals-title {
     font-size: 0.9rem;
     text-transform: uppercase;
