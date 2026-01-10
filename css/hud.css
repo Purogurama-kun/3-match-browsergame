@@ -14,7 +14,6 @@
 
 .hud__row--top {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     gap: 0.5rem;
     width: 100%;
@@ -53,7 +52,11 @@
     background: rgba(255, 255, 255, 0.06);
 }
 
-.hud__top-stat--level,
+.hud__top-stat--level {
+    min-width: 3.5rem;
+    margin-left: auto;
+}
+
 .hud__top-stat--moves {
     min-width: 3.5rem;
 }
