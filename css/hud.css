@@ -13,20 +13,18 @@
 }
 
 .hud__row--top {
-    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    min-height: 5rem;
     gap: 0.5rem;
     width: 100%;
-    background: linear-gradient(135deg, #0b0f1d 0%, #05070f 100%);
-    border: 1px solid #2f3654;
-    border-radius: 18px;
-    padding: 0.35rem 0.65rem;
+    background: linear-gradient(180deg, rgba(15, 20, 35, 0.95) 0%, rgba(8, 12, 22, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 0.5rem 1rem;
     box-shadow:
-        0 8px 18px rgba(0, 0, 0, 0.45),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        0 4px 16px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .hud__card {
@@ -38,49 +36,62 @@
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
 }
 
-.hud__stat-pill {
-    background: rgba(255, 255, 255, 0.02);
-    border-color: rgba(255, 255, 255, 0.15);
-    padding: 0.3rem 0.45rem 0.25rem;
-    min-width: 2.6rem;
-    min-height: 2.6rem;
-    font-size: 0.85rem;
-    box-shadow: none;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.35rem;
-}
 
-.hud__card--level {
+.hud__top-stat {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.35rem;
-    width: min(8rem, 100%);
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.hud__top-left {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    z-index: 2;
-    max-width: 14rem;
+    gap: 0.1rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    transition: background 0.2s;
+}
+
+.hud__top-stat:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.hud__top-stat--level,
+.hud__top-stat--moves {
+    min-width: 3.5rem;
+}
+
+.hud__top-stat--multiplier {
+    min-width: 4rem;
+}
+
+.hud__top-stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #f8fafc;
+    line-height: 1.1;
+}
+
+.hud__top-stat-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #8b92b0;
 }
 
 .hud__difficulty {
-    font-size: 0.75rem;
+    position: absolute;
+    top: -0.4rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.55rem;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 0.15rem 0.55rem;
+    letter-spacing: 0.05em;
+    padding: 0.1rem 0.4rem;
     border-radius: 999px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
+    background: rgba(15, 20, 35, 0.95);
     color: #f8fafc;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    white-space: nowrap;
+    z-index: 4;
 }
 
 .hud__card--difficulty-easy {
@@ -155,94 +166,56 @@
     font-weight: 800;
 }
 
-.hud__level-row {
-    display: flex;
-    align-items: baseline;
-    gap: 0.35rem;
-}
-
-.hud__label--inline {
-    font-size: 0.65rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: #d0d8ff;
-}
-
-.hud__value--inline {
-    font-size: 1.1rem;
-    font-weight: 800;
-}
-
-.hud__value--moves {
-    font-size: 0.9rem;
-    font-weight: 700;
-}
-
-.hud__moves {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    font-size: 0.85rem;
-    text-transform: none;
-    color: #cfd5ff;
-}
-
-.hud__label--moves {
-    font-size: 0.65rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: #b7bed8;
-}
 
 .hud__profile-wrapper {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 3;
-}
-
-.hud__profile {
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.35rem;
+    justify-content: center;
+    z-index: 3;
+}
+
+.hud__profile-ring {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(99, 130, 255, 0.5) 0%, rgba(139, 92, 246, 0.4) 100%);
+    box-shadow: 0 0 12px rgba(99, 130, 255, 0.25);
+    transition: box-shadow 0.3s, border-color 0.2s;
 }
 
 .hud__profile-image {
-    width: 4.8rem;
-    height: 4.8rem;
+    width: 3.5rem;
+    height: 3.5rem;
     border-radius: 50%;
-    border: none;
+    border: 2px solid rgba(15, 20, 35, 0.9);
     object-fit: cover;
-    box-shadow:
-        0 4px 12px rgba(0, 0, 0, 0.45),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .hud__speech-bubble {
     position: absolute;
     left: 50%;
-    bottom: -2.25rem;
+    top: calc(100% + 0.35rem);
     transform: translateX(-50%);
-    padding: 0.35rem 0.6rem;
-    background: rgba(5, 7, 15, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.25rem 0.5rem;
+    background: rgba(5, 7, 15, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 999px;
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
-    font-size: 0.75rem;
+    gap: 0.25rem;
+    font-size: 0.7rem;
     color: #f5f5ff;
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.55);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     white-space: nowrap;
     opacity: 1;
     transition: opacity 0.3s ease;
-    z-index: 1;
+    z-index: 10;
 }
 
 .hud__speech-bubble--fade-out {
@@ -264,28 +237,6 @@
     font-size: 0.95rem;
 }
 
-.hud__multiplier-pill {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.15rem;
-    flex-shrink: 0;
-    min-width: 3.6rem;
-    color: #cfd5ff;
-    z-index: 2;
-}
-
-.hud__multiplier-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-}
-
-.hud__multiplier-value {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #9fb7ff;
-}
 
 .hud__progress {
     display: flex;
