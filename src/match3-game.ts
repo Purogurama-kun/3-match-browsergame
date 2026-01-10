@@ -257,6 +257,7 @@ class Match3Game implements ModeContext {
     private blockerAttemptListener: ((score: number) => void) | null = null;
     private timeAttemptListener: ((time: number) => void) | null = null;
     private exitGameListener: (() => void) | null = null;
+    private levelSelectListener: (() => void) | null = null;
     private leaderboardState: LeaderboardState | null = null;
     private readonly generatorSpreadInterval = 2;
     private readonly generatorSpreadRadius = 3;
@@ -319,6 +320,10 @@ class Match3Game implements ModeContext {
     onExitGameRequested(handler: () => void): void {
         this.exitGameListener = handler;
         this.hud.onExitGame(handler);
+    }
+
+    onLevelSelectRequested(handler: () => void): void {
+        this.levelSelectListener = handler;
     }
 
     onDeleteProgressRequested(handler: () => void): void {
@@ -829,8 +834,8 @@ class Match3Game implements ModeContext {
                 title,
                 text,
                 buttonText: t('button.continue'),
-                secondaryButtonText: t('button.home'),
-                onSecondary: () => this.requestExitGame(),
+                secondaryButtonText: t('button.candyWorld'),
+                onSecondary: () => this.requestLevelSelect(),
                 onClose: () => {
                     this.switchMode(new LevelModeState(nextLevel));
                     this.createBoard();
@@ -892,6 +897,10 @@ class Match3Game implements ModeContext {
 
     private requestExitGame(): void {
         this.exitGameListener?.();
+    }
+
+    private requestLevelSelect(): void {
+        this.levelSelectListener?.();
     }
 
     private awardScore(basePoints: number): void {

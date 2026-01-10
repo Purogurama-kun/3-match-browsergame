@@ -93,6 +93,7 @@ class GameApp {
         this.tutorialButton.addEventListener('click', () => this.showTutorial());
         this.profileButton.addEventListener('click', () => this.showProfile());
         this.game.onExitGameRequested(() => this.returnToMenu());
+        this.game.onLevelSelectRequested(() => this.returnToLevelSelect());
         this.game.onDeleteProgressRequested(() => {
             void this.handleDeleteProgress();
         });
@@ -229,6 +230,15 @@ class GameApp {
         this.game.stop();
         this.showMainMenu();
         this.startLevelButton.focus();
+    }
+
+    private returnToLevelSelect(): void {
+        this.body.classList.remove('match-app--playing');
+        this.body.classList.remove('match-app--menu');
+        this.hideLeaderboard();
+        this.hideMainMenu();
+        this.game.stop();
+        this.showLevelSelect();
     }
 
     private handleLocaleChange(locale: Locale): void {
