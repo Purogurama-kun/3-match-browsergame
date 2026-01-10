@@ -33,10 +33,12 @@ class OptionsMenu {
         this.exitButton = this.getExitButton();
         this.deleteProgressButton = this.getDeleteProgressButton();
         this.logoutButton = this.getLogoutButton();
+        this.recordingToggle = this.getRecordingToggle();
 
         this.setAudioToggleState(true);
         this.setLanguage('en');
         this.setPerformanceModeEnabled(false);
+        this.setRecordingEnabled(true);
         this.hideOptionsModal();
         this.setLogoutEnabled(false);
     }
@@ -54,10 +56,13 @@ class OptionsMenu {
     private readonly exitButton: HTMLButtonElement;
     private readonly deleteProgressButton: HTMLButtonElement;
     private readonly logoutButton: HTMLButtonElement;
+    private readonly recordingToggle: HTMLButtonElement;
     private performanceModeEnabled = false;
     private performanceModeHandler: ((enabled: boolean) => void) | null = null;
     private audioEnabled = true;
     private currentLocale: Locale = 'en';
+    private recordingEnabled = true;
+    private recordingToggleHandler: ((enabled: boolean) => void) | null = null;
     private readonly handleDocumentClick = (event: MouseEvent): void => {
         if (this.infoPanel.hasAttribute('hidden')) {
             return;
@@ -111,11 +116,17 @@ class OptionsMenu {
             this.setPerformanceModeEnabled(nextState);
             this.performanceModeHandler?.(nextState);
         });
+        this.recordingToggle.addEventListener('click', () => {
+            const nextState = this.recordingToggle.getAttribute('aria-pressed') !== 'true';
+            this.setRecordingEnabled(nextState);
+            this.recordingToggleHandler?.(nextState);
+        });
     }
 
     applyLocale(): void {
         this.setAudioToggleState(this.audioEnabled);
         this.setPerformanceModeEnabled(this.performanceModeEnabled);
+        this.setRecordingEnabled(this.recordingEnabled);
         this.infoButton.setAttribute('aria-label', t('options.info'));
         this.updateInfoLinks(this.currentLocale);
         this.logoutButton.textContent = t('account.logoutGoogle');
@@ -165,6 +176,18 @@ class OptionsMenu {
 
     onPerformanceModeChange(handler: (enabled: boolean) => void): void {
         this.performanceModeHandler = handler;
+    }
+
+    setRecordingEnabled(enabled: boolean): void {
+        this.recordingEnabled = enabled;
+        this.recordingToggle.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+        this.recordingToggle.textContent = enabled
+            ? t('options.recording.on')
+            : t('options.recording.off');
+    }
+
+    onRecordingToggle(handler: (enabled: boolean) => void): void {
+        this.recordingToggleHandler = handler;
     }
 
     onExitGame(handler: () => void): void {
@@ -311,6 +334,10 @@ class OptionsMenu {
 
     private getLogoutButton(): HTMLButtonElement {
         return getRequiredElement<HTMLButtonElement>('logout-button');
+    }
+
+    private getRecordingToggle(): HTMLButtonElement {
+        return getRequiredElement<HTMLButtonElement>('recording-toggle');
     }
 }
 

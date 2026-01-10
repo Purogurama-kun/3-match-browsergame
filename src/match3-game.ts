@@ -237,6 +237,7 @@ class Match3Game implements ModeContext {
                 this.hud.setAudioEnabled(active);
             }
         });
+        this.hud.onRecordingToggle((enabled) => this.setRecordingEnabled(enabled));
         this.hud.onCellShapeModeChange((mode) => this.updateCellShapeMode(mode));
         this.hud.onPerformanceModeChange((enabled) => this.setPerformanceMode(enabled));
         this.setPerformanceMode(this.loadPerformanceModeSetting());
@@ -292,6 +293,7 @@ class Match3Game implements ModeContext {
     private pendingSnapshotMove: SnapshotMove | null = null;
     private matchContext: MatchContext = { swap: null };
     private autoLimitExceeded = false;
+    private recordingEnabled = true;
     private state: GameState;
     private modeState: GameModeState;
     private currentGameMode: GameMode | null = null;
@@ -1089,6 +1091,19 @@ class Match3Game implements ModeContext {
         }
     }
 
+    private setRecordingEnabled(enabled: boolean): void {
+        if (this.recordingEnabled === enabled) return;
+        this.recordingEnabled = enabled;
+        this.stopRecordingAutoPlay();
+        this.recordingHistory = [];
+        this.recordingIndex = 0;
+        this.recordingAvailable = false;
+        this.renderer.setRecordingButtonVisible(false);
+        this.snapshotRecorder.reset();
+        this.pendingSnapshotMove = null;
+        this.autoLimitExceeded = false;
+    }
+
     private getAnimationDelay(duration: number): number {
         if (duration <= 0) return 0;
         if (!this.performanceMode) return duration;
@@ -1129,6 +1144,8 @@ class Match3Game implements ModeContext {
     }
 
     private openRecordingState(): void {
+        if (!this.recordingEnabled) return;
+        if (!this.recordingAvailable) return;
         const history = this.snapshotRecorder.getHistory();
         if (history.length === 0) return;
         this.recordingHistory = history;
@@ -1334,7 +1351,7 @@ class Match3Game implements ModeContext {
     }
 
     private pushSnapshot(move: SnapshotMove | null): void {
-        if (this.autoLimitExceeded) return;
+        if (this.autoLimitExceeded || !this.recordingEnabled) return;
         const result = this.snapshotRecorder.recordSnapshot(this.board, move);
         if (result.limitReached) {
             this.autoLimitExceeded = true;
@@ -1345,7 +1362,7 @@ class Match3Game implements ModeContext {
     private handleAutoLimitReached(): void {
         const state = this.state;
         if (!state) return;
-        if (this.snapshotRecorder.getHistory().length > 0) {
+        if (this.recordingEnabled && this.snapshotRecorder.getHistory().length > 0) {
             this.recordingAvailable = true;
             this.renderer.setRecordingButtonVisible(true);
         }

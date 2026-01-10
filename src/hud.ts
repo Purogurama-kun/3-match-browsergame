@@ -112,12 +112,20 @@ class Hud {
         this.optionsMenu.onAudioToggle(handler);
     }
 
+    onRecordingToggle(handler: (enabled: boolean) => void): void {
+        this.optionsMenu.onRecordingToggle(handler);
+    }
+
     initOptionsMenu(): void {
         this.optionsMenu.initialize();
     }
 
     setAudioEnabled(enabled: boolean): void {
         this.optionsMenu.setAudioEnabled(enabled);
+    }
+
+    setRecordingEnabled(enabled: boolean): void {
+        this.optionsMenu.setRecordingEnabled(enabled);
     }
 
     applyLocale(): void {
