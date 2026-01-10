@@ -5,6 +5,7 @@ import { Renderer } from './renderer.js';
 import { SoundManager } from './sound-manager.js';
 import { t } from './i18n.js';
 import type { GameState, PowerupInventory } from './types.js';
+import type { SnapshotPowerupUsage } from './snapshot-recorder.js';
 
 type PowerupManagerOptions = {
     board: Board;
@@ -24,6 +25,7 @@ type PowerupManagerOptions = {
     resetHintState: () => void;
     onLockChange: () => void;
     isPerformanceMode: () => boolean;
+    recordPowerupUsage?: (usage: SnapshotPowerupUsage) => void;
 };
 
 type PowerupActionResult = 'none' | 'canceled' | 'activated';
@@ -46,6 +48,7 @@ class PowerupManager {
     private resetHintState: () => void;
     private onLockChange: () => void;
     private isPerformanceMode: () => boolean;
+    private recordPowerupUsage: ((usage: SnapshotPowerupUsage) => void) | null;
     private pendingPowerup: TacticalPowerup | null = null;
     private pendingPowerupSelections: number[] = [];
     private powerupInProgress = false;
@@ -70,6 +73,7 @@ class PowerupManager {
         this.resetHintState = options.resetHintState;
         this.onLockChange = options.onLockChange;
         this.isPerformanceMode = options.isPerformanceMode;
+        this.recordPowerupUsage = options.recordPowerupUsage ?? null;
         this.powerupInventory = { ...inventory };
     }
 
@@ -220,6 +224,7 @@ class PowerupManager {
             this.releasePowerupLock();
             return;
         }
+        this.emitPowerupUsage({ powerupType: 'shuffle', coordinates: null });
         this.defer(() => {
             this.checkMatches();
             this.releasePowerupLock();
@@ -245,6 +250,7 @@ class PowerupManager {
                 affected.push(r * GRID_SIZE + c);
             }
         }
+        this.emitPowerupUsage({ powerupType: 'bomb', coordinates: [{ x: col, y: row }] });
         this.sounds.play('radiusBomb');
         if (!this.isPerformanceMode()) {
             this.renderer.screenShake();
@@ -263,6 +269,15 @@ class PowerupManager {
         }
         this.updateHud();
         this.board.swapCells(firstIndex, secondIndex);
+        const firstPos = this.getRowCol(firstIndex);
+        const secondPos = this.getRowCol(secondIndex);
+        this.emitPowerupUsage({
+            powerupType: 'swap',
+            coordinates: [
+                { x: firstPos.col, y: firstPos.row },
+                { x: secondPos.col, y: secondPos.row }
+            ]
+        });
         this.renderer.refreshBoard(this.board);
         this.hud.setStatus(t('hud.status.switchExecuted'), TACTICAL_POWERUPS.switch.icon);
         this.defer(() => {
@@ -275,6 +290,10 @@ class PowerupManager {
         if (!this.powerupInProgress) return;
         this.powerupInProgress = false;
         this.onLockChange();
+    }
+
+    private emitPowerupUsage(usage: SnapshotPowerupUsage): void {
+        this.recordPowerupUsage?.(usage);
     }
 }
 

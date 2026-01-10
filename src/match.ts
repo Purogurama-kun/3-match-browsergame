@@ -8,6 +8,10 @@ import { SugarChestManager } from './sugar-chest-manager.js';
 import type { LineOrientation } from './types.js';
 import type { MatchResult } from './match-scanner.js';
 
+type MatchContext = {
+    swap: { cellA: number; cellB: number } | null;
+};
+
 type MatchOptions = {
     matchScanner: MatchScanner;
     sounds: SoundManager;
@@ -26,6 +30,8 @@ type MatchOptions = {
     finishPowerupIfNeeded: () => void;
     onBoardSettled: () => void;
     scheduleHint: () => void;
+    getMatchContext: () => MatchContext;
+    onMatchesDetected?: (result: MatchResult, context: MatchContext) => void;
 };
 
 class Match {
@@ -46,6 +52,8 @@ class Match {
     private finishPowerupIfNeeded: () => void;
     private onBoardSettled: () => void;
     private scheduleHint: () => void;
+    private getMatchContext: () => MatchContext;
+    private onMatchesDetected: ((result: MatchResult, context: MatchContext) => void) | null;
 
     constructor(options: MatchOptions) {
         this.matchScanner = options.matchScanner;
@@ -65,6 +73,8 @@ class Match {
         this.finishPowerupIfNeeded = options.finishPowerupIfNeeded;
         this.onBoardSettled = options.onBoardSettled;
         this.scheduleHint = options.scheduleHint;
+        this.getMatchContext = options.getMatchContext;
+        this.onMatchesDetected = options.onMatchesDetected ?? null;
     }
 
     findMatches(): MatchResult {
@@ -73,6 +83,8 @@ class Match {
 
     checkMatches(): void {
         const matchResult = this.findMatches();
+        const context = this.getMatchContext();
+        this.onMatchesDetected?.(matchResult, context);
         const { matched, boostersToCreate } = matchResult;
         this.hardCandy.softenAdjacentHardCandies(matched);
         this.sugarChests.advanceNearMatches(matched);
@@ -118,3 +130,4 @@ class Match {
 }
 
 export { Match };
+export type { MatchContext };

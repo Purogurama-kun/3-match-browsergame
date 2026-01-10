@@ -29,8 +29,9 @@ import { Bomb } from './bomb.js';
 import { Candie } from './candie.js';
 import { Generator } from './generator.js';
 import { HardCandy } from './hard-candy.js';
-import { Match } from './match.js';
+import { Match, type MatchContext } from './match.js';
 import type { MatchResult } from './match-scanner.js';
+import { SnapshotRecorder, type SnapshotMove, type SnapshotPowerupUsage, type Position } from './snapshot-recorder.js';
 
 type BoosterActivationOverride = {
     booster: BoosterType;
@@ -124,7 +125,8 @@ class Match3Game implements ModeContext {
                 areAdjacent: (a, b) => this.areAdjacent(a, b),
                 resetHintState: () => this.resetHintState(),
                 onLockChange: () => this.syncPowerupToolbarLock(),
-                isPerformanceMode: () => this.performanceMode
+                isPerformanceMode: () => this.performanceMode,
+                recordPowerupUsage: (usage) => this.handlePowerupTriggered(usage)
             },
             createFreshPowerupInventory()
         );
@@ -193,8 +195,11 @@ class Match3Game implements ModeContext {
             finalizeMoveScore: () => this.finalizeMoveScore(),
             finishPowerupIfNeeded: () => this.powerups.finishPowerupIfNeeded(),
             onBoardSettled: () => this.modeState.handleBoardSettled(this.state, this),
+            getMatchContext: () => this.matchContext,
+            onMatchesDetected: (result, context) => this.handleMatchesDetected(result, context),
             scheduleHint: () => this.scheduleHint()
         });
+        this.snapshotRecorder = new SnapshotRecorder();
         this.hud.onTacticalPowerup((type) => this.handleTacticalPowerup(type));
         this.hud.onAudioToggle((enabled) => {
             const active = this.sounds.setEnabled(enabled);
@@ -239,6 +244,10 @@ class Match3Game implements ModeContext {
     private bomb: Bomb;
     private generator: Generator;
     private matchFlow: Match;
+    private snapshotRecorder: SnapshotRecorder;
+    private pendingSnapshotMove: SnapshotMove | null = null;
+    private matchContext: MatchContext = { swap: null };
+    private autoLimitExceeded = false;
     private state: GameState;
     private modeState: GameModeState;
     private currentGameMode: GameMode | null = null;
@@ -309,6 +318,10 @@ class Match3Game implements ModeContext {
             this.currentGameMode = null;
         }
         this.clearPendingTimers();
+        this.snapshotRecorder.reset();
+        this.pendingSnapshotMove = null;
+        this.autoLimitExceeded = false;
+        this.matchContext.swap = null;
         this.resetHintState();
         this.board.clear();
         this.resetMoveTracking();
@@ -468,6 +481,10 @@ class Match3Game implements ModeContext {
             (index) => this.handleCellClick(index),
             (index, direction) => this.handleCellSwipe(index, direction)
         );
+        this.snapshotRecorder.reset();
+        this.pendingSnapshotMove = null;
+        this.autoLimitExceeded = false;
+        this.captureSnapshot(null);
         this.generator.reset();
         if (this.modeState.onBoardCreated) {
             this.modeState.onBoardCreated(this.state, this);
@@ -564,6 +581,11 @@ class Match3Game implements ModeContext {
 
     private checkMatches(): void {
         this.matchFlow.checkMatches();
+        this.matchContext.swap = null;
+    }
+
+    private setMatchSwap(swap: { cellA: number; cellB: number } | null): void {
+        this.matchContext.swap = swap;
     }
 
     private activateBooster(index: number, consumesMove: boolean, override?: BoosterActivationOverride): void {
@@ -690,7 +712,11 @@ class Match3Game implements ModeContext {
             });
         }
         this.renderer.refreshBoard(this.board);
-        this.defer(() => this.checkMatches(), this.getAnimationDelay(200));
+        this.captureSnapshot(this.pendingSnapshotMove);
+        this.defer(() => {
+            this.setMatchSwap(null);
+            this.checkMatches();
+        }, this.getAnimationDelay(200));
     }
 
     private areAdjacent(aIndex: number, bIndex: number): boolean {
@@ -745,6 +771,10 @@ class Match3Game implements ModeContext {
             this.scheduleHint();
             return;
         }
+        this.autoLimitExceeded = false;
+        this.snapshotRecorder.beginManualSequence();
+        this.pendingSnapshotMove = null;
+        this.setMatchSwap({ cellA: firstIndex, cellB: secondIndex });
         this.modeState.consumeMove(this.state);
         this.beginMove();
         this.updateHud();
@@ -1023,6 +1053,78 @@ class Match3Game implements ModeContext {
             row: Math.floor(index / GRID_SIZE),
             col: index % GRID_SIZE
         };
+    }
+
+    private handleMatchesDetected(result: MatchResult, context: MatchContext): void {
+        if (result.matched.size === 0) return;
+        const cells = Array.from(result.matched).map((index) => this.getCellPosition(index));
+        const swap =
+            context.swap !== null
+                ? {
+                      cellA: this.getCellPosition(context.swap.cellA),
+                      cellB: this.getCellPosition(context.swap.cellB)
+                  }
+                : null;
+        const matchType = context.swap ? 'manuell' : 'auto';
+        this.pendingSnapshotMove = {
+            kind: 'match',
+            matchType,
+            cells,
+            swap
+        };
+        if (matchType === 'manuell') {
+            this.autoLimitExceeded = false;
+            this.snapshotRecorder.beginManualSequence();
+        }
+    }
+
+    private handlePowerupTriggered(usage: SnapshotPowerupUsage): void {
+        const move: SnapshotMove = {
+            kind: 'powerup',
+            powerupType: usage.powerupType,
+            coordinates: usage.coordinates
+        };
+        this.autoLimitExceeded = false;
+        this.snapshotRecorder.beginManualSequence();
+        if (usage.powerupType === 'shuffle') {
+            this.captureSnapshot(move);
+            return;
+        }
+        this.pendingSnapshotMove = move;
+    }
+
+    private captureSnapshot(move: SnapshotMove | null): void {
+        this.pendingSnapshotMove = null;
+        this.pushSnapshot(move);
+    }
+
+    private pushSnapshot(move: SnapshotMove | null): void {
+        if (this.autoLimitExceeded) return;
+        const result = this.snapshotRecorder.recordSnapshot(this.board, move);
+        if (result.limitReached) {
+            this.autoLimitExceeded = true;
+            this.handleAutoLimitReached();
+        }
+    }
+
+    private handleAutoLimitReached(): void {
+        if (!this.state) return;
+        this.clearPendingTimers();
+        if (this.state.mode === 'blocker') {
+            this.finishBlockerRun(this.state.score, this.state.bestScore);
+            return;
+        }
+        if (this.state.mode === 'time') {
+            const finalTime = Math.floor(this.state.survivalTime ?? 0);
+            this.finishTimeRun(finalTime, this.state.bestScore);
+            return;
+        }
+        this.finishLevel('lose', this.state.level);
+    }
+
+    private getCellPosition(index: number): Position {
+        const { row, col } = this.getRowCol(index);
+        return { x: col, y: row };
     }
 
     private formatTime(totalSeconds: number): string {
