@@ -412,7 +412,16 @@ body {
     display: flex;
     gap: 0.65rem;
     justify-content: center;
+    align-items: center;
     flex-wrap: wrap;
+    row-gap: 0.65rem;
+}
+
+.recording-state__control-group {
+    display: flex;
+    gap: 0.65rem;
+    flex-wrap: nowrap;
+    align-items: center;
 }
 
 .recording-state__control {
@@ -442,7 +451,7 @@ body {
     border: none;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 420px) {
     .recording-state__dialog {
         padding: 1.25rem;
     }
