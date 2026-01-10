@@ -1264,7 +1264,7 @@ class Match3Game implements ModeContext {
                 if (isHardCandy) {
                     cell.classList.add('recording-state__cell--hard');
                     cell.style.setProperty('--recording-cell-color', color);
-                    cell.style.backgroundColor = 'transparent';
+                    cell.style.removeProperty('background-color');
                     cell.textContent = '';
                 } else {
                     cell.style.backgroundColor = color;
