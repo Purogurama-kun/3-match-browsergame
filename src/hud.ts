@@ -189,26 +189,15 @@ class Hud {
             button.dataset.powerup = type;
             button.setAttribute('aria-label', t(meta.descriptionKey));
 
-            const metaContainer = document.createElement('span');
-            metaContainer.className = 'tactical-toolbar__meta';
-
             const icon = document.createElement('span');
             icon.className = 'tactical-toolbar__icon';
             icon.textContent = meta.icon;
-
-            const label = document.createElement('span');
-            label.className = 'tactical-toolbar__label';
-            const labelText = t(meta.labelKey);
-            metaContainer.appendChild(icon);
-            label.textContent = labelText;
-            metaContainer.appendChild(label);
 
             const count = document.createElement('span');
             count.className = 'tactical-toolbar__count';
             count.textContent = '0';
 
-            button.appendChild(metaContainer);
-            button.appendChild(count);
+            button.append(icon, count);
             button.addEventListener('click', () => this.powerupHandler?.(type));
 
             this.powerupButtons[type] = button;
