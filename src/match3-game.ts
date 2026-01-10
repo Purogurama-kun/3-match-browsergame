@@ -294,6 +294,7 @@ class Match3Game implements ModeContext {
     private matchContext: MatchContext = { swap: null };
     private autoLimitExceeded = false;
     private recordingEnabled = true;
+    private gameActive = false;
     private state: GameState;
     private modeState: GameModeState;
     private currentGameMode: GameMode | null = null;
@@ -359,6 +360,7 @@ class Match3Game implements ModeContext {
 
     stop(): void {
         this.generation++;
+        this.updateRecordingLock(false);
         if (this.modeState) {
             this.modeState.exit(this);
             this.currentGameMode = null;
@@ -541,6 +543,7 @@ class Match3Game implements ModeContext {
         this.resetMoveTracking();
         this.renderer.renderMultiplierStatus(this.state.comboMultiplier, 0, 0);
         this.updateHud();
+        this.updateRecordingLock(true);
         this.animateBoardEntry();
     }
 
@@ -896,6 +899,8 @@ class Match3Game implements ModeContext {
     }
 
     finishLevel(result: 'win' | 'lose', completedLevel: number): void {
+        this.updateRecordingLock(false);
+        this.showRecordingButtonIfAvailable();
         const rawNextLevel = result === 'win' ? completedLevel + 1 : completedLevel;
         const nextLevel = Math.min(rawNextLevel, LEVELS.length);
         if (result === 'win') {
@@ -943,6 +948,8 @@ class Match3Game implements ModeContext {
     }
 
     finishBlockerRun(finalScore: number, bestScore: number): void {
+        this.updateRecordingLock(false);
+        this.showRecordingButtonIfAvailable();
         this.sounds.play('levelFail');
         this.notifyBlockerAttempt(finalScore);
         const isNewBest = finalScore >= bestScore;
@@ -962,6 +969,8 @@ class Match3Game implements ModeContext {
     }
 
     finishTimeRun(finalTime: number, bestTime: number): void {
+        this.updateRecordingLock(false);
+        this.showRecordingButtonIfAvailable();
         this.sounds.play('levelFail');
         this.notifyTimeAttempt(finalTime);
         const isNewBest = finalTime >= bestTime;
@@ -1092,6 +1101,10 @@ class Match3Game implements ModeContext {
     }
 
     private setRecordingEnabled(enabled: boolean): void {
+        if (enabled && this.gameActive) {
+            this.hud.setRecordingEnabled(false);
+            return;
+        }
         if (this.recordingEnabled === enabled) return;
         this.recordingEnabled = enabled;
         this.stopRecordingAutoPlay();
@@ -1102,6 +1115,11 @@ class Match3Game implements ModeContext {
         this.snapshotRecorder.reset();
         this.pendingSnapshotMove = null;
         this.autoLimitExceeded = false;
+    }
+
+    private updateRecordingLock(active: boolean): void {
+        this.gameActive = active;
+        this.hud.setRecordingToggleLocked(active);
     }
 
     private getAnimationDelay(duration: number): number {
@@ -1145,9 +1163,12 @@ class Match3Game implements ModeContext {
 
     private openRecordingState(): void {
         if (!this.recordingEnabled) return;
-        if (!this.recordingAvailable) return;
         const history = this.snapshotRecorder.getHistory();
-        if (history.length === 0) return;
+        if (history.length === 0) {
+            this.recordingAvailable = false;
+            this.renderer.setRecordingButtonVisible(false);
+            return;
+        }
         this.recordingHistory = history;
         this.recordingIndex = 0;
         this.stopRecordingAutoPlay();
@@ -1359,13 +1380,17 @@ class Match3Game implements ModeContext {
         }
     }
 
+    private showRecordingButtonIfAvailable(): void {
+        const shouldShow = this.recordingEnabled && this.snapshotRecorder.getHistory().length > 0;
+        this.recordingAvailable = shouldShow;
+        this.renderer.setRecordingButtonVisible(shouldShow);
+    }
+
     private handleAutoLimitReached(): void {
+        this.updateRecordingLock(false);
         const state = this.state;
         if (!state) return;
-        if (this.recordingEnabled && this.snapshotRecorder.getHistory().length > 0) {
-            this.recordingAvailable = true;
-            this.renderer.setRecordingButtonVisible(true);
-        }
+        this.showRecordingButtonIfAvailable();
         this.clearPendingTimers();
         if (state.mode === 'blocker') {
             this.finishBlockerRun(state.score, state.bestScore);

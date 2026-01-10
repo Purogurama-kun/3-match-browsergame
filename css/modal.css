@@ -101,6 +101,10 @@
     box-shadow: none;
 }
 
+.modal__button--ghost[hidden] {
+    display: none;
+}
+
 .modal__button--ghost img {
     height: 1rem;
     width: 1rem;

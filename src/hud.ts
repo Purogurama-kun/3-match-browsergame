@@ -128,6 +128,10 @@ class Hud {
         this.optionsMenu.setRecordingEnabled(enabled);
     }
 
+    setRecordingToggleLocked(lock: boolean): void {
+        this.optionsMenu.setRecordingToggleLocked(lock);
+    }
+
     applyLocale(): void {
         this.refreshPowerupButtons();
         this.optionsMenu.applyLocale();

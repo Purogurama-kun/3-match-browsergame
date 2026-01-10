@@ -63,6 +63,7 @@ class OptionsMenu {
     private currentLocale: Locale = 'en';
     private recordingEnabled = true;
     private recordingToggleHandler: ((enabled: boolean) => void) | null = null;
+    private recordingToggleLocked = false;
     private readonly handleDocumentClick = (event: MouseEvent): void => {
         if (this.infoPanel.hasAttribute('hidden')) {
             return;
@@ -184,10 +185,22 @@ class OptionsMenu {
         this.recordingToggle.textContent = enabled
             ? t('options.recording.on')
             : t('options.recording.off');
+        this.refreshRecordingToggleDisabledState();
     }
 
     onRecordingToggle(handler: (enabled: boolean) => void): void {
         this.recordingToggleHandler = handler;
+    }
+
+    setRecordingToggleLocked(locked: boolean): void {
+        this.recordingToggleLocked = locked;
+        this.refreshRecordingToggleDisabledState();
+    }
+
+    private refreshRecordingToggleDisabledState(): void {
+        const disabled = this.recordingToggleLocked && !this.recordingEnabled;
+        this.recordingToggle.disabled = disabled;
+        this.recordingToggle.setAttribute('aria-disabled', disabled ? 'true' : 'false');
     }
 
     onExitGame(handler: () => void): void {
