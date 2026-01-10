@@ -114,9 +114,9 @@ const RECORDING_BOMB_ICONS: Record<SnapshotCell['bomb'], string> = {
     small: '💣',
     medium: '💥',
     large: '☢️',
-    line_horizontal: '↔️',
-    line_vertical: '↕️',
-    line_both: '☸️',
+    line_horizontal: '💣↔️',
+    line_vertical: '💣↕️',
+    line_both: '💣✛',
     none: ''
 };
 
@@ -1240,8 +1240,9 @@ class Match3Game implements ModeContext {
         const highlightIndices = this.buildHighlightIndices(snapshot);
         this.recordingCells.forEach((cell, idx) => {
             const state = snapshot.board[idx];
-            cell.classList.remove('recording-state__cell--sugar-chest');
+            cell.classList.remove('recording-state__cell--sugar-chest', 'recording-state__cell--hard');
             cell.style.removeProperty('--recording-sugar-chest-image');
+            cell.style.removeProperty('--recording-cell-color');
             if (!state) {
                 cell.style.backgroundColor = RECORDING_COLOR_HEX.none;
                 cell.textContent = '';
@@ -1259,8 +1260,16 @@ class Match3Game implements ModeContext {
                 cell.textContent = '';
             } else {
                 const color = RECORDING_COLOR_HEX[state.color] ?? RECORDING_COLOR_HEX.none;
-                cell.style.backgroundColor = color;
-                cell.textContent = this.describeCellIcon(state);
+                const isHardCandy = state.hard && state.bomb === 'none' && !state.generator;
+                if (isHardCandy) {
+                    cell.classList.add('recording-state__cell--hard');
+                    cell.style.setProperty('--recording-cell-color', color);
+                    cell.style.backgroundColor = 'transparent';
+                    cell.textContent = '';
+                } else {
+                    cell.style.backgroundColor = color;
+                    cell.textContent = this.describeCellIcon(state);
+                }
             }
             cell.classList.toggle('recording-state__cell--highlight', highlightIndices.has(idx));
         });
@@ -1324,9 +1333,6 @@ class Match3Game implements ModeContext {
         }
         if (state.generator) {
             return '⚙️';
-        }
-        if (state.hard) {
-            return '🧱';
         }
         return '';
     }
