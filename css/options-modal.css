@@ -249,3 +249,7 @@
 .options-modal__action--danger:hover {
     background: rgba(255, 76, 121, 0.2);
 }
+
+.match-app:not(.match-app--playing) #exit-game {
+    display: none;
+}

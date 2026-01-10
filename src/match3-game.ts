@@ -450,6 +450,7 @@ class Match3Game implements ModeContext {
         this.resetHintState();
         this.boardAnimating = true;
         this.syncPowerupToolbarLock();
+        document.body.classList.add('match-app--playing');
         const boardConfig = this.modeState.getBoardConfig();
         this.board.create(boardConfig);
         if ('getBackground' in this.modeState && typeof this.modeState.getBackground === 'function') {
