@@ -413,15 +413,8 @@ body {
     gap: 0.65rem;
     justify-content: center;
     align-items: center;
-    flex-wrap: wrap;
-    row-gap: 0.65rem;
-}
-
-.recording-state__control-group {
-    display: flex;
-    gap: 0.65rem;
     flex-wrap: nowrap;
-    align-items: center;
+    overflow-x: auto;
 }
 
 .recording-state__control {
@@ -433,6 +426,7 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: transform 0.1s ease, border-color 0.2s ease;
+    flex: 0 0 auto;
 }
 
 .recording-state__control:disabled {
@@ -454,10 +448,6 @@ body {
 @media (max-width: 420px) {
     .recording-state__dialog {
         padding: 1.25rem;
-    }
-
-    .recording-state__controls {
-        flex-direction: column;
     }
 }
 .match-app {
