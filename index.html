@@ -607,16 +607,18 @@
 
     <div id="hud" class="hud">
         <div class="hud__row hud__row--top">
-            <div id="level-card" class="hud__card hud__card--level hud__stat-pill">
-                <div class="hud__level-row">
-                    <span class="hud__label hud__label--inline">Lvl</span>
-                    <span id="level" class="hud__value hud__value--inline">1</span>
+            <div class="hud__top-left">
+                <div id="level-card" class="hud__card hud__card--level hud__stat-pill">
+                    <div class="hud__level-row">
+                        <span class="hud__label hud__label--inline">Lvl</span>
+                        <span id="level" class="hud__value hud__value--inline">1</span>
+                    </div>
+                    <div id="difficulty" class="hud__difficulty" style="display: none">Easy</div>
                 </div>
-                <div id="moves-card" class="hud__moves-chip">
-                    <span id="moves-label" class="hud__label hud__label--inline" data-i18n-key="hud.label.moves">Moves</span>
+                <div id="moves-card" class="hud__moves">
+                    <span id="moves-label" class="hud__label hud__label--moves" data-i18n-key="hud.label.moves">Moves</span>
                     <span id="moves" class="hud__value hud__value--moves">20</span>
                 </div>
-                <div id="difficulty" class="hud__difficulty" style="display: none">Easy</div>
             </div>
 
             <div class="hud__profile-wrapper">
