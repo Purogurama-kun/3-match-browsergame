@@ -202,23 +202,35 @@
 
 .hud__speech-bubble {
     position: absolute;
-    left: 50%;
-    top: calc(100% + 0.35rem);
-    transform: translateX(-50%);
-    padding: 0.25rem 0.5rem;
-    background: rgba(5, 7, 15, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 999px;
+    left: calc(100% - 0.5rem);
+    top: calc(100% - 0.75rem);
+    padding: 0.35rem 0.6rem;
+    background: rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: 12px;
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    font-size: 0.7rem;
-    color: #f5f5ff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #1a1d2e;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     white-space: nowrap;
     opacity: 1;
     transition: opacity 0.3s ease;
     z-index: 10;
+}
+
+.hud__speech-bubble::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: -6px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 7px solid rgba(255, 255, 255, 0.7);
 }
 
 .hud__speech-bubble--fade-out {
