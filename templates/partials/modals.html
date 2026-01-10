@@ -6,6 +6,16 @@
                 <div class="modal__actions">
                     <button id="result-button" class="modal__button modal__button--primary" type="button">Weiter</button>
                     <button id="result-home-button" class="modal__button modal__button--secondary" type="button" hidden>Home</button>
+                    <button
+                        id="result-recording-button"
+                        class="modal__button modal__button--ghost"
+                        type="button"
+                        hidden
+                        aria-label="Replay recording"
+                    >
+                        <img src="assets/images/videocam.svg" alt="" aria-hidden="true" />
+                        Replay recording
+                    </button>
                 </div>
             </div>
         </div>
@@ -23,6 +33,34 @@
                 </button>
                 <button id="confirm-modal-confirm" class="confirm-modal__button confirm-modal__button--primary" type="button">
                     Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div
+        id="recording-state"
+        class="recording-state"
+        hidden
+        role="dialog"
+        aria-modal="true"
+        aria-live="polite"
+        aria-label="Recorded gameplay"
+    >
+        <div class="recording-state__dialog">
+            <div class="recording-state__header">
+                <h3 class="recording-state__title">Recorded gameplay</h3>
+                <button id="recording-close" class="recording-state__close" type="button">Close</button>
+            </div>
+            <p id="recording-progress" class="recording-state__progress"></p>
+            <p id="recording-description" class="recording-state__description"></p>
+            <div id="recording-board" class="recording-state__board" aria-live="polite"></div>
+            <p class="recording-state__hint">Auto play the timeline or step through each snapshot.</p>
+            <div class="recording-state__controls">
+                <button id="recording-prev" class="recording-state__control" type="button">Prev</button>
+                <button id="recording-next" class="recording-state__control" type="button">Next</button>
+                <button id="recording-auto" class="recording-state__control recording-state__control--primary" type="button">
+                    Auto play
                 </button>
             </div>
         </div>

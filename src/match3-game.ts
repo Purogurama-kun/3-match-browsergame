@@ -29,9 +29,17 @@ import { Bomb } from './bomb.js';
 import { Candie } from './candie.js';
 import { Generator } from './generator.js';
 import { HardCandy } from './hard-candy.js';
+import { getRequiredElement } from './dom.js';
 import { Match, type MatchContext } from './match.js';
 import type { MatchResult } from './match-scanner.js';
-import { SnapshotRecorder, type SnapshotMove, type SnapshotPowerupUsage, type Position } from './snapshot-recorder.js';
+import {
+    SnapshotRecorder,
+    type Snapshot,
+    type SnapshotCell,
+    type SnapshotMove,
+    type SnapshotPowerupUsage,
+    type Position
+} from './snapshot-recorder.js';
 
 type BoosterActivationOverride = {
     booster: BoosterType;
@@ -92,6 +100,25 @@ const STORY_CUTSCENES: StoryCutsceneDefinition[] = [
         text: 'Mira: Candy fireworks bloom; the festival cheers.'
     }
 ];
+
+const RECORDING_COLOR_HEX: Record<SnapshotCell['color'], string> = {
+    red: '#ff7b7b',
+    yellow: '#ffd166',
+    blue: '#7dd3fc',
+    pink: '#a78bfa',
+    green: '#6ee7b7',
+    none: '#14182f'
+};
+
+const RECORDING_BOMB_ICONS: Record<SnapshotCell['bomb'], string> = {
+    small: '💣',
+    medium: '💥',
+    large: '☢️',
+    line_horizontal: '↔️',
+    line_vertical: '↕️',
+    line_both: '☸️',
+    none: ''
+};
 
 class Match3Game implements ModeContext {
     constructor() {
@@ -200,6 +227,9 @@ class Match3Game implements ModeContext {
             scheduleHint: () => this.scheduleHint()
         });
         this.snapshotRecorder = new SnapshotRecorder();
+        this.initRecordingView();
+        this.renderer.onRecordingRequested(() => this.openRecordingState());
+        this.renderer.setRecordingButtonVisible(false);
         this.hud.onTacticalPowerup((type) => this.handleTacticalPowerup(type));
         this.hud.onAudioToggle((enabled) => {
             const active = this.sounds.setEnabled(enabled);
@@ -245,6 +275,20 @@ class Match3Game implements ModeContext {
     private generator: Generator;
     private matchFlow: Match;
     private snapshotRecorder: SnapshotRecorder;
+    private recordingOverlay!: HTMLElement;
+    private recordingBoard!: HTMLElement;
+    private recordingCells: HTMLDivElement[] = [];
+    private recordingProgress!: HTMLElement;
+    private recordingDescription!: HTMLElement;
+    private recordingPrevButton!: HTMLButtonElement;
+    private recordingNextButton!: HTMLButtonElement;
+    private recordingAutoButton!: HTMLButtonElement;
+    private recordingCloseButton!: HTMLButtonElement;
+    private recordingHistory: Snapshot[] = [];
+    private recordingIndex = 0;
+    private recordingAutoPlay = false;
+    private recordingAutoTimer: number | null = null;
+    private recordingAvailable = false;
     private pendingSnapshotMove: SnapshotMove | null = null;
     private matchContext: MatchContext = { swap: null };
     private autoLimitExceeded = false;
@@ -481,6 +525,9 @@ class Match3Game implements ModeContext {
             (index) => this.handleCellClick(index),
             (index, direction) => this.handleCellSwipe(index, direction)
         );
+        this.renderer.setRecordingButtonVisible(false);
+        this.recordingAvailable = false;
+        this.closeRecordingState();
         this.snapshotRecorder.reset();
         this.pendingSnapshotMove = null;
         this.autoLimitExceeded = false;
@@ -1048,6 +1095,194 @@ class Match3Game implements ModeContext {
         return Math.max(0, Math.round(duration * 0.35));
     }
 
+    private initRecordingView(): void {
+        this.recordingOverlay = getRequiredElement('recording-state');
+        this.recordingBoard = getRequiredElement('recording-board');
+        this.recordingProgress = getRequiredElement('recording-progress');
+        this.recordingDescription = getRequiredElement('recording-description');
+        this.recordingPrevButton = getRequiredElement('recording-prev');
+        this.recordingNextButton = getRequiredElement('recording-next');
+        this.recordingAutoButton = getRequiredElement('recording-auto');
+        this.recordingCloseButton = getRequiredElement('recording-close');
+        this.recordingPrevButton.addEventListener('click', () => this.advanceRecordingIndex(-1));
+        this.recordingNextButton.addEventListener('click', () => this.advanceRecordingIndex(1));
+        this.recordingAutoButton.addEventListener('click', () => this.toggleRecordingAutoPlay());
+        this.recordingCloseButton.addEventListener('click', () => this.closeRecordingState());
+        this.recordingOverlay.addEventListener('click', (event) => {
+            if (event.target === this.recordingOverlay) {
+                this.closeRecordingState();
+            }
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !this.recordingOverlay.hasAttribute('hidden')) {
+                this.closeRecordingState();
+            }
+        });
+        this.recordingBoard.innerHTML = '';
+        this.recordingCells.length = 0;
+        for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'recording-state__cell';
+            this.recordingBoard.appendChild(cell);
+            this.recordingCells.push(cell);
+        }
+    }
+
+    private openRecordingState(): void {
+        const history = this.snapshotRecorder.getHistory();
+        if (history.length === 0) return;
+        this.recordingHistory = history;
+        this.recordingIndex = 0;
+        this.stopRecordingAutoPlay();
+        this.recordingOverlay.removeAttribute('hidden');
+        this.recordingCloseButton.focus();
+        this.renderRecordingSnapshot();
+    }
+
+    private closeRecordingState(): void {
+        if (this.recordingOverlay.hasAttribute('hidden')) return;
+        this.recordingOverlay.setAttribute('hidden', 'true');
+        this.stopRecordingAutoPlay();
+    }
+
+    private advanceRecordingIndex(delta: number): void {
+        if (this.recordingHistory.length === 0) return;
+        this.stopRecordingAutoPlay();
+        const nextIndex = Math.max(
+            0,
+            Math.min(this.recordingHistory.length - 1, this.recordingIndex + delta)
+        );
+        if (nextIndex === this.recordingIndex) return;
+        this.recordingIndex = nextIndex;
+        this.renderRecordingSnapshot();
+    }
+
+    private toggleRecordingAutoPlay(): void {
+        if (this.recordingAutoPlay) {
+            this.stopRecordingAutoPlay();
+        } else {
+            this.startRecordingAutoPlay();
+        }
+    }
+
+    private startRecordingAutoPlay(): void {
+        if (this.recordingHistory.length <= 1) return;
+        this.stopRecordingAutoPlay();
+        this.recordingAutoPlay = true;
+        this.recordingAutoButton.textContent = 'Pause';
+        this.recordingAutoTimer = window.setInterval(() => {
+            if (this.recordingIndex >= this.recordingHistory.length - 1) {
+                this.stopRecordingAutoPlay();
+                return;
+            }
+            this.recordingIndex++;
+            this.renderRecordingSnapshot();
+            if (this.recordingIndex >= this.recordingHistory.length - 1) {
+                this.stopRecordingAutoPlay();
+            }
+        }, 650);
+    }
+
+    private stopRecordingAutoPlay(): void {
+        if (this.recordingAutoTimer !== null) {
+            clearInterval(this.recordingAutoTimer);
+            this.recordingAutoTimer = null;
+        }
+        this.recordingAutoPlay = false;
+        this.recordingAutoButton.textContent = 'Auto play';
+    }
+
+    private renderRecordingSnapshot(): void {
+        const snapshot = this.recordingHistory[this.recordingIndex];
+        if (!snapshot) {
+            this.recordingProgress.textContent = '';
+            this.recordingDescription.textContent = '';
+            return;
+        }
+        const highlightIndices = this.buildHighlightIndices(snapshot);
+        this.recordingCells.forEach((cell, idx) => {
+            const state = snapshot.board[idx];
+            if (!state) {
+                cell.style.backgroundColor = RECORDING_COLOR_HEX.none;
+                cell.textContent = '';
+                cell.classList.remove('recording-state__cell--highlight');
+                return;
+            }
+            const color = RECORDING_COLOR_HEX[state.color] ?? RECORDING_COLOR_HEX.none;
+            cell.style.backgroundColor = color;
+            cell.textContent = this.describeCellIcon(state);
+            cell.classList.toggle('recording-state__cell--highlight', highlightIndices.has(idx));
+        });
+        this.recordingProgress.textContent = `Snapshot ${this.recordingIndex + 1} / ${this.recordingHistory.length}`;
+        this.recordingDescription.textContent = this.describeSnapshot(snapshot);
+        this.recordingPrevButton.disabled = this.recordingIndex === 0;
+        this.recordingNextButton.disabled = this.recordingIndex >= this.recordingHistory.length - 1;
+    }
+
+    private describeSnapshot(snapshot: Snapshot): string {
+        if (!snapshot.move) {
+            return 'Initial board';
+        }
+        if (snapshot.move.kind === 'match') {
+            const matchType = snapshot.move.matchType === 'manuell' ? 'Manual match' : 'Auto match';
+            const swapInfo = snapshot.move.swap
+                ? ` · swapped ${this.describePosition(snapshot.move.swap.cellA)} + ${this.describePosition(
+                      snapshot.move.swap.cellB
+                  )}`
+                : '';
+            return `${matchType} · ${snapshot.move.cells.length} tiles matched${swapInfo}`;
+        }
+        const label =
+            snapshot.move.powerupType === 'shuffle'
+                ? 'Shuffle powerup'
+                : snapshot.move.powerupType === 'swap'
+                ? 'Swap powerup'
+                : 'Bomb powerup';
+        if (snapshot.move.coordinates && snapshot.move.coordinates.length > 0) {
+            const coords = snapshot.move.coordinates.map((position) => this.describePosition(position));
+            return `${label} · ${coords.join(' + ')}`;
+        }
+        return label;
+    }
+
+    private describePosition(position: Position): string {
+        return `(${position.x}, ${position.y})`;
+    }
+
+    private buildHighlightIndices(snapshot: Snapshot): Set<number> {
+        const highlighted = new Set<number>();
+        if (snapshot.move?.kind === 'match') {
+            snapshot.move.cells.forEach((pos) => {
+                highlighted.add(pos.y * GRID_SIZE + pos.x);
+            });
+            if (snapshot.move.swap) {
+                highlighted.add(snapshot.move.swap.cellA.y * GRID_SIZE + snapshot.move.swap.cellA.x);
+                highlighted.add(snapshot.move.swap.cellB.y * GRID_SIZE + snapshot.move.swap.cellB.x);
+            }
+        } else if (snapshot.move?.kind === 'powerup' && snapshot.move.coordinates) {
+            snapshot.move.coordinates.forEach((pos) => {
+                highlighted.add(pos.y * GRID_SIZE + pos.x);
+            });
+        }
+        return highlighted;
+    }
+
+    private describeCellIcon(state: SnapshotCell): string {
+        if (state.sugarChest !== 'none') {
+            return `🍬${state.sugarChest + 1}`;
+        }
+        if (state.bomb !== 'none') {
+            return RECORDING_BOMB_ICONS[state.bomb];
+        }
+        if (state.generator) {
+            return '⚙️';
+        }
+        if (state.hard) {
+            return '🧱';
+        }
+        return '';
+    }
+
     private getRowCol(index: number): { row: number; col: number } {
         return {
             row: Math.floor(index / GRID_SIZE),
@@ -1108,18 +1343,23 @@ class Match3Game implements ModeContext {
     }
 
     private handleAutoLimitReached(): void {
-        if (!this.state) return;
+        const state = this.state;
+        if (!state) return;
+        if (this.snapshotRecorder.getHistory().length > 0) {
+            this.recordingAvailable = true;
+            this.renderer.setRecordingButtonVisible(true);
+        }
         this.clearPendingTimers();
-        if (this.state.mode === 'blocker') {
-            this.finishBlockerRun(this.state.score, this.state.bestScore);
+        if (state.mode === 'blocker') {
+            this.finishBlockerRun(state.score, state.bestScore);
             return;
         }
-        if (this.state.mode === 'time') {
-            const finalTime = Math.floor(this.state.survivalTime ?? 0);
-            this.finishTimeRun(finalTime, this.state.bestScore);
+        if (state.mode === 'time') {
+            const finalTime = Math.floor(state.survivalTime ?? 0);
+            this.finishTimeRun(finalTime, state.bestScore);
             return;
         }
-        this.finishLevel('lose', this.state.level);
+        this.finishLevel('lose', state.level);
     }
 
     private getCellPosition(index: number): Position {

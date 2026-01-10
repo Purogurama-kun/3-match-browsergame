@@ -88,3 +88,20 @@
     transform: translateY(0);
     box-shadow: 0 6px 16px rgba(59, 69, 107, 0.28);
 }
+
+.modal__button--ghost {
+    border: 1px dashed #5a6399;
+    background: #151931;
+    color: #e2e9ff;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    box-shadow: none;
+}
+
+.modal__button--ghost img {
+    height: 1rem;
+    width: 1rem;
+}

@@ -54,6 +54,8 @@ class Renderer {
     private animationsEnabled = true;
     private readonly particleEffect: ParticleEffect;
     private gameMode: GameMode = 'level';
+    private readonly recordingButton: HTMLButtonElement;
+    private recordingButtonHandler: (() => void) | null = null;
 
     constructor(hud: Hud) {
         this.hud = hud;
@@ -67,6 +69,12 @@ class Renderer {
         this.shuffleNoticeEl = getRequiredElement('shuffle-notice');
         this.shuffleNoticeTextEl = getRequiredElement('shuffle-notice-text');
         this.particleEffect = new ParticleEffect(this.gameEl);
+        this.recordingButton = getRequiredElement('result-recording-button') as HTMLButtonElement;
+        this.recordingButton.addEventListener('click', () => {
+            if (!this.recordingButtonHandler) return;
+            this.recordingButtonHandler();
+        });
+        this.recordingButton.setAttribute('hidden', 'true');
 
         this.modalButton.addEventListener('click', () => this.hideModal());
         this.modalSecondaryButton.addEventListener('click', () => this.hideModal(false, true));
@@ -330,6 +338,18 @@ class Renderer {
         }
         this.modalEl.classList.add('modal--visible');
         this.modalButton.focus();
+    }
+
+    setRecordingButtonVisible(visible: boolean): void {
+        if (visible) {
+            this.recordingButton.removeAttribute('hidden');
+        } else {
+            this.recordingButton.setAttribute('hidden', 'true');
+        }
+    }
+
+    onRecordingRequested(handler: () => void): void {
+        this.recordingButtonHandler = handler;
     }
 
     hideModal(triggerPrimary = true, triggerSecondary = false): void {
