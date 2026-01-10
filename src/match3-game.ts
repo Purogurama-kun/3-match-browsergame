@@ -1411,6 +1411,9 @@ class Match3Game implements ModeContext {
 
     private captureSnapshot(move?: SnapshotMove | null): void {
         const moveToRecord = move === undefined ? this.dequeuePendingSnapshotMove() : move;
+        if (move === undefined && moveToRecord === null) {
+            return;
+        }
         this.pushSnapshot(moveToRecord);
     }
 
