@@ -1240,15 +1240,28 @@ class Match3Game implements ModeContext {
         const highlightIndices = this.buildHighlightIndices(snapshot);
         this.recordingCells.forEach((cell, idx) => {
             const state = snapshot.board[idx];
+            cell.classList.remove('recording-state__cell--sugar-chest');
+            cell.style.removeProperty('--recording-sugar-chest-image');
             if (!state) {
                 cell.style.backgroundColor = RECORDING_COLOR_HEX.none;
                 cell.textContent = '';
                 cell.classList.remove('recording-state__cell--highlight');
                 return;
             }
-            const color = RECORDING_COLOR_HEX[state.color] ?? RECORDING_COLOR_HEX.none;
-            cell.style.backgroundColor = color;
-            cell.textContent = this.describeCellIcon(state);
+            if (state.sugarChest !== 'none') {
+                const stageIndex = String(state.sugarChest + 1).padStart(2, '0');
+                cell.classList.add('recording-state__cell--sugar-chest');
+                cell.style.setProperty(
+                    '--recording-sugar-chest-image',
+                    `url(/assets/images/sugar-chest-${stageIndex}.png)`
+                );
+                cell.style.backgroundColor = 'transparent';
+                cell.textContent = '';
+            } else {
+                const color = RECORDING_COLOR_HEX[state.color] ?? RECORDING_COLOR_HEX.none;
+                cell.style.backgroundColor = color;
+                cell.textContent = this.describeCellIcon(state);
+            }
             cell.classList.toggle('recording-state__cell--highlight', highlightIndices.has(idx));
         });
         this.recordingProgress.textContent = `Snapshot ${this.recordingIndex + 1} / ${this.recordingHistory.length}`;
@@ -1306,9 +1319,6 @@ class Match3Game implements ModeContext {
     }
 
     private describeCellIcon(state: SnapshotCell): string {
-        if (state.sugarChest !== 'none') {
-            return `🍬${state.sugarChest + 1}`;
-        }
         if (state.bomb !== 'none') {
             return RECORDING_BOMB_ICONS[state.bomb];
         }
