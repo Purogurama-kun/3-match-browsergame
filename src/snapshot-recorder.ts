@@ -73,9 +73,15 @@ class SnapshotRecorder {
         if (this.autoMoves >= this.autoLimit) {
             return { limitReached: true };
         }
+        if (move && this.history.length > 0) {
+            const lastSnapshot = this.history[this.history.length - 1];
+            if (lastSnapshot) {
+                lastSnapshot.move = move;
+            }
+        }
         const snapshot: Snapshot = {
             board: this.buildBoardSnapshot(board),
-            move,
+            move: null,
             timestamp: Date.now()
         };
         this.history.push(snapshot);
