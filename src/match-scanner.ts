@@ -139,40 +139,55 @@ class MatchScanner {
     }
 
     private checkLine(indices: number[], accumulator: MatchAccumulator, orientation: LineOrientation): void {
-        let streak = 1;
-        for (let i = 1; i <= indices.length; i++) {
-            const prevIndex = indices[i - 1];
-            const currIndex = i < indices.length ? indices[i] : undefined;
-            if (prevIndex === undefined) {
-                throw new Error('Missing index at position: ' + (i - 1));
+        let streakStart = 0;
+        let streakLength = 0;
+        let streakColor = '';
+
+        const flushStreak = (): void => {
+            if (streakLength < 3) {
+                streakLength = 0;
+                streakColor = '';
+                return;
             }
-            const prevColor = this.getMatchableColor(prevIndex);
-            const currColor = currIndex !== undefined ? this.getMatchableColor(currIndex) : '';
-            if (currColor && currColor === prevColor) {
-                streak++;
-            } else {
-                if (streak >= 3 && prevColor) {
-                    const streakCells = indices.slice(i - streak, i);
-                    if (this.hasNonBombCell(streakCells)) {
-                        streakCells.forEach((idx) => accumulator.matched.add(idx));
-                        if (streak === 4) {
-                            const lineIndex = streakCells[1];
-                            if (lineIndex === undefined) {
-                                throw new Error('Missing line booster index');
-                            }
-                            this.addBoosterSlot(lineIndex, BOOSTERS.LINE, accumulator, orientation);
-                        }
-                        if (streak >= 5) {
-                            const centerIndex = streakCells[Math.floor(streakCells.length / 2)];
-                            if (centerIndex === undefined) {
-                                throw new Error('Missing large blast index');
-                            }
-                            this.addBoosterSlot(centerIndex, BOOSTERS.BURST_LARGE, accumulator);
-                        }
-                        accumulator.largestMatch = Math.max(accumulator.largestMatch, streak);
+            const streakCells = indices.slice(streakStart, streakStart + streakLength);
+            if (this.hasNonBombCell(streakCells)) {
+                streakCells.forEach((idx) => accumulator.matched.add(idx));
+                if (streakLength === 4) {
+                    const lineIndex = streakCells[1];
+                    if (lineIndex === undefined) {
+                        throw new Error('Missing line booster index');
                     }
+                    this.addBoosterSlot(lineIndex, BOOSTERS.LINE, accumulator, orientation);
                 }
-                streak = 1;
+                if (streakLength >= 5) {
+                    const centerIndex = streakCells[Math.floor(streakCells.length / 2)];
+                    if (centerIndex === undefined) {
+                        throw new Error('Missing large blast index');
+                    }
+                    this.addBoosterSlot(centerIndex, BOOSTERS.BURST_LARGE, accumulator);
+                }
+                accumulator.largestMatch = Math.max(accumulator.largestMatch, streakLength);
+            }
+            streakLength = 0;
+            streakColor = '';
+        };
+
+        for (let i = 0; i <= indices.length; i++) {
+            const index = i < indices.length ? indices[i] : undefined;
+            const color = index !== undefined ? this.getMatchableColor(index) : '';
+            const isMatchable = Boolean(color) && index !== undefined && !accumulator.matched.has(index);
+            if (isMatchable && color === streakColor) {
+                streakLength++;
+                continue;
+            }
+            flushStreak();
+            if (isMatchable) {
+                streakColor = color;
+                streakLength = 1;
+                streakStart = i;
+            } else {
+                streakColor = '';
+                streakLength = 0;
             }
         }
     }
