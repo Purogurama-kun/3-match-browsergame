@@ -73,17 +73,18 @@ class SnapshotRecorder {
         if (this.autoMoves >= this.autoLimit) {
             return { limitReached: true };
         }
-        if (move && this.history.length > 0) {
-            const lastSnapshot = this.history[this.history.length - 1];
-            if (lastSnapshot) {
-                lastSnapshot.move = move;
-            }
-        }
         const snapshot: Snapshot = {
             board: this.buildBoardSnapshot(board),
             move: null,
             timestamp: Date.now()
         };
+        const lastSnapshot = this.history[this.history.length - 1];
+        if (move && lastSnapshot && this.areBoardsEqual(lastSnapshot.board, snapshot.board)) {
+            return { limitReached: false };
+        }
+        if (move && lastSnapshot) {
+            lastSnapshot.move = move;
+        }
         this.history.push(snapshot);
         let limitReached = false;
         if (move?.kind === 'match' && move.matchType === 'auto') {
@@ -98,6 +99,24 @@ class SnapshotRecorder {
 
     getHistory(): Snapshot[] {
         return [...this.history];
+    }
+
+    private areBoardsEqual(a: SnapshotCell[], b: SnapshotCell[]): boolean {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+            const cellA = a[i]!;
+            const cellB = b[i]!;
+            if (
+                cellA.color !== cellB.color ||
+                cellA.sugarChest !== cellB.sugarChest ||
+                cellA.bomb !== cellB.bomb ||
+                cellA.hard !== cellB.hard ||
+                cellA.generator !== cellB.generator
+            ) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private buildBoardSnapshot(board: Board): SnapshotCell[] {
