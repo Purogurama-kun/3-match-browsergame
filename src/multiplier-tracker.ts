@@ -73,7 +73,7 @@ class MultiplierTracker {
     }
 
     private getMoveEvaluationMessage(baseMoveScore: number): string {
-        if (baseMoveScore >= 1600) return 'Candy Chaos!';
+        if (baseMoveScore >= 1000) return 'Candy Chaos!';
         if (baseMoveScore >= 800) return 'Sweetplosion!';
         if (baseMoveScore >= 400) return 'Candy Blast!';
         if (baseMoveScore >= 200) return 'Candy Frenzy!';
