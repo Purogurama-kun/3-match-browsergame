@@ -58,7 +58,7 @@ class MultiplierTracker {
     finalizeMoveScore(): boolean {
         if (!this.moveActive) return false;
         const state = this.getState();
-        const delta = this.calculateMultiplierDelta(this.currentMoveScore);
+        const delta = this.calculateMultiplierDelta(this.currentMoveBaseScore);
         state.comboMultiplier = this.clampMultiplier(state.comboMultiplier + delta);
         this.renderer.renderMultiplierStatus(state.comboMultiplier, delta, this.currentMoveScore);
         this.showMoveEvaluation(this.currentMoveBaseScore);
@@ -81,12 +81,13 @@ class MultiplierTracker {
         return '';
     }
 
-    private calculateMultiplierDelta(moveScore: number): number {
-        if (moveScore >= 150) return 0.5;
-        if (moveScore >= 90) return 0.35;
-        if (moveScore >= 60) return 0.2;
-        if (moveScore === 0) return -0.3;
-        if (moveScore < 30) return -0.15;
+    // Base move score maps directly to cell clears, so multiplier adjustments ignore any combo boost.
+    private calculateMultiplierDelta(baseMoveScore: number): number {
+        if (baseMoveScore >= 150) return 0.5;
+        if (baseMoveScore >= 90) return 0.35;
+        if (baseMoveScore >= 60) return 0.2;
+        if (baseMoveScore === 0) return -0.3;
+        if (baseMoveScore < 30) return -0.15;
         return 0;
     }
 
