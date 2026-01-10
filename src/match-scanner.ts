@@ -153,22 +153,24 @@ class MatchScanner {
             } else {
                 if (streak >= 3 && prevColor) {
                     const streakCells = indices.slice(i - streak, i);
-                    streakCells.forEach((idx) => accumulator.matched.add(idx));
-                    if (streak === 4) {
-                        const lineIndex = streakCells[1];
-                        if (lineIndex === undefined) {
-                            throw new Error('Missing line booster index');
+                    if (this.hasNonBombCell(streakCells)) {
+                        streakCells.forEach((idx) => accumulator.matched.add(idx));
+                        if (streak === 4) {
+                            const lineIndex = streakCells[1];
+                            if (lineIndex === undefined) {
+                                throw new Error('Missing line booster index');
+                            }
+                            this.addBoosterSlot(lineIndex, BOOSTERS.LINE, accumulator, orientation);
                         }
-                        this.addBoosterSlot(lineIndex, BOOSTERS.LINE, accumulator, orientation);
-                    }
-                    if (streak >= 5) {
-                        const centerIndex = streakCells[Math.floor(streakCells.length / 2)];
-                        if (centerIndex === undefined) {
-                            throw new Error('Missing large blast index');
+                        if (streak >= 5) {
+                            const centerIndex = streakCells[Math.floor(streakCells.length / 2)];
+                            if (centerIndex === undefined) {
+                                throw new Error('Missing large blast index');
+                            }
+                            this.addBoosterSlot(centerIndex, BOOSTERS.BURST_LARGE, accumulator);
                         }
-                        this.addBoosterSlot(centerIndex, BOOSTERS.BURST_LARGE, accumulator);
+                        accumulator.largestMatch = Math.max(accumulator.largestMatch, streak);
                     }
-                    accumulator.largestMatch = Math.max(accumulator.largestMatch, streak);
                 }
                 streak = 1;
             }
@@ -223,6 +225,9 @@ class MatchScanner {
             if (cellColor !== color) return;
             indices.push(this.indexAt(row, col));
         }
+        if (!this.hasNonBombCell(indices)) {
+            return;
+        }
         indices.forEach((idx) => accumulator.matched.add(idx));
         if (boosterOffset && boosterType) {
             const boosterIndex = this.indexAt(originRow + boosterOffset.row, originCol + boosterOffset.col);
@@ -245,6 +250,10 @@ class MatchScanner {
         }
         accumulator.boostersToCreate.push(creation);
         accumulator.createdBoosterTypes.add(type);
+    }
+
+    private hasNonBombCell(indices: number[]): boolean {
+        return indices.some((index) => this.board.getCellBooster(index) === BOOSTERS.NONE);
     }
 
     private getMatchableColor(index: number): string {
