@@ -36,6 +36,7 @@ import {
     SnapshotRecorder,
     type Snapshot,
     type SnapshotCell,
+    type SnapshotMatchMove,
     type SnapshotMove,
     type SnapshotPowerupUsage,
     type Position
@@ -290,7 +291,7 @@ class Match3Game implements ModeContext {
     private recordingAutoPlay = false;
     private recordingAutoTimer: number | null = null;
     private recordingAvailable = false;
-    private pendingSnapshotMove: SnapshotMove | null = null;
+    private pendingSnapshotMoves: SnapshotMove[] = [];
     private matchContext: MatchContext = { swap: null };
     private autoLimitExceeded = false;
     private recordingEnabled = true;
@@ -367,7 +368,7 @@ class Match3Game implements ModeContext {
         }
         this.clearPendingTimers();
         this.snapshotRecorder.reset();
-        this.pendingSnapshotMove = null;
+        this.clearPendingSnapshotMoves();
         this.autoLimitExceeded = false;
         this.matchContext.swap = null;
         this.resetHintState();
@@ -533,7 +534,7 @@ class Match3Game implements ModeContext {
         this.recordingAvailable = false;
         this.closeRecordingState();
         this.snapshotRecorder.reset();
-        this.pendingSnapshotMove = null;
+        this.clearPendingSnapshotMoves();
         this.autoLimitExceeded = false;
         this.captureSnapshot(null);
         this.generator.reset();
@@ -764,7 +765,7 @@ class Match3Game implements ModeContext {
             });
         }
         this.renderer.refreshBoard(this.board);
-        this.captureSnapshot(this.pendingSnapshotMove);
+        this.captureSnapshot();
         this.defer(() => {
             this.setMatchSwap(null);
             this.checkMatches();
@@ -825,7 +826,7 @@ class Match3Game implements ModeContext {
         }
         this.autoLimitExceeded = false;
         this.snapshotRecorder.beginManualSequence();
-        this.pendingSnapshotMove = null;
+        this.clearPendingSnapshotMoves();
         this.setMatchSwap({ cellA: firstIndex, cellB: secondIndex });
         this.modeState.consumeMove(this.state);
         this.beginMove();
@@ -1113,7 +1114,7 @@ class Match3Game implements ModeContext {
         this.recordingAvailable = false;
         this.renderer.setRecordingButtonVisible(false);
         this.snapshotRecorder.reset();
-        this.pendingSnapshotMove = null;
+        this.clearPendingSnapshotMoves();
         this.autoLimitExceeded = false;
     }
 
@@ -1368,12 +1369,13 @@ class Match3Game implements ModeContext {
                   }
                 : null;
         const matchType = context.swap ? 'manuell' : 'auto';
-        this.pendingSnapshotMove = {
+        const move: SnapshotMatchMove = {
             kind: 'match',
             matchType,
             cells,
             swap
         };
+        this.enqueuePendingSnapshotMove(move);
         if (matchType === 'manuell') {
             this.autoLimitExceeded = false;
             this.snapshotRecorder.beginManualSequence();
@@ -1392,12 +1394,24 @@ class Match3Game implements ModeContext {
             this.captureSnapshot(move);
             return;
         }
-        this.pendingSnapshotMove = move;
+        this.enqueuePendingSnapshotMove(move);
     }
 
-    private captureSnapshot(move: SnapshotMove | null): void {
-        this.pendingSnapshotMove = null;
-        this.pushSnapshot(move);
+    private enqueuePendingSnapshotMove(move: SnapshotMove): void {
+        this.pendingSnapshotMoves.push(move);
+    }
+
+    private dequeuePendingSnapshotMove(): SnapshotMove | null {
+        return this.pendingSnapshotMoves.shift() ?? null;
+    }
+
+    private clearPendingSnapshotMoves(): void {
+        this.pendingSnapshotMoves.length = 0;
+    }
+
+    private captureSnapshot(move?: SnapshotMove | null): void {
+        const moveToRecord = move === undefined ? this.dequeuePendingSnapshotMove() : move;
+        this.pushSnapshot(moveToRecord);
     }
 
     private pushSnapshot(move: SnapshotMove | null): void {
