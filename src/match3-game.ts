@@ -9,7 +9,7 @@ import {
 import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
 import { Board } from './board.js';
-import { CellShapeMode, GameState, PowerupInventory, SwipeDirection } from './types.js';
+import { CellShapeMode, GameMode, GameState, PowerupInventory, SwipeDirection } from './types.js';
 import type { LineOrientation } from './types.js';
 import { Renderer } from './renderer.js';
 import { CutsceneManager, type CutsceneScene } from './cutscene.js';
@@ -241,6 +241,7 @@ class Match3Game implements ModeContext {
     private matchFlow: Match;
     private state: GameState;
     private modeState: GameModeState;
+    private currentGameMode: GameMode | null = null;
     private generation: number;
     private pendingTimers: number[];
     private readonly baseCellPoints = 10;
@@ -305,6 +306,7 @@ class Match3Game implements ModeContext {
         this.generation++;
         if (this.modeState) {
             this.modeState.exit(this);
+            this.currentGameMode = null;
         }
         this.clearPendingTimers();
         this.resetHintState();
@@ -336,6 +338,10 @@ class Match3Game implements ModeContext {
 
     setLogoutEnabled(enabled: boolean): void {
         this.hud.setLogoutEnabled(enabled);
+    }
+
+    getCurrentMode(): GameMode | null {
+        return this.currentGameMode;
     }
 
     onLanguageChange(handler: (locale: Locale) => void): void {
@@ -398,6 +404,7 @@ class Match3Game implements ModeContext {
         }
         this.modeState = modeState;
         this.state = this.modeState.enter(this);
+        this.currentGameMode = this.state.mode;
         this.powerups.applyInventoryToState();
         this.multiplierTracker.setState(this.state);
         this.renderer.setGameMode(this.state.mode);

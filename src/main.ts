@@ -19,7 +19,7 @@ import { LevelSelectView } from './level-select.js';
 import { TutorialView } from './tutorial.js';
 import { onLocaleChange, setLocale, t } from './i18n.js';
 import type { Locale } from './i18n.js';
-import type { LeaderboardIdentity, LeaderboardMode, PowerupInventory } from './types.js';
+import type { GameMode, LeaderboardIdentity, LeaderboardMode, PowerupInventory } from './types.js';
 import { isDebugMode, isLocalDebugHost } from './debug.js';
 
 class GameApp {
@@ -92,7 +92,7 @@ class GameApp {
         this.shopButton.addEventListener('click', () => this.showShop());
         this.tutorialButton.addEventListener('click', () => this.showTutorial());
         this.profileButton.addEventListener('click', () => this.showProfile());
-        this.game.onExitGameRequested(() => this.returnToMenu());
+        this.game.onExitGameRequested(() => this.handleExitGame());
         this.game.onLevelSelectRequested(() => this.returnToLevelSelect());
         this.game.onDeleteProgressRequested(() => {
             void this.handleDeleteProgress();
@@ -230,6 +230,15 @@ class GameApp {
         this.game.stop();
         this.showMainMenu();
         this.startLevelButton.focus();
+    }
+
+    private handleExitGame(): void {
+        const mode: GameMode | null = this.game.getCurrentMode();
+        if (mode === 'level') {
+            this.returnToLevelSelect();
+            return;
+        }
+        this.returnToMenu();
     }
 
     private returnToLevelSelect(): void {
