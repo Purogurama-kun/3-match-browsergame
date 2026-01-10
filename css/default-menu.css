@@ -10,6 +10,13 @@
     z-index: 40;
 }
 
+@media (max-width: 720px) {
+    .default-menu {
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+    }
+}
+
 .default-menu:not([hidden]) {
     display: flex;
 }
