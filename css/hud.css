@@ -12,6 +12,19 @@
     align-items: stretch;
 }
 
+.hud__row--top {
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: linear-gradient(135deg, #0b0f1d 0%, #05070f 100%);
+    border: 1px solid #2f3654;
+    border-radius: 18px;
+    padding: 0.35rem 0.65rem;
+    box-shadow:
+        0 8px 18px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
 .hud__card {
     min-width: 2rem;
     background: #111624;
@@ -21,10 +34,26 @@
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
 }
 
+.hud__stat-pill {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.15);
+    padding: 0.3rem 0.45rem 0.25rem;
+    min-width: 2.6rem;
+    min-height: 2.6rem;
+    font-size: 0.85rem;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+}
+
 .hud__card--level {
-    display: grid;
-    gap: 0.2rem;
-    justify-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    width: 9rem;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -112,39 +141,129 @@
     font-weight: 800;
 }
 
-.hud__status-bar {
+.hud__level-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+}
+
+.hud__label--inline {
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #d0d8ff;
+}
+
+.hud__value--inline {
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+.hud__moves-chip {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    width: min(44rem, 100%);
-    padding: 0.6rem 0.75rem;
-    background: linear-gradient(135deg, #111624 0%, #0c101f 100%);
-    border: 1px solid #2f3654;
-    border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-    color: #e5e7ff;
-    font-size: clamp(0.95rem, 0.3vw + 0.95rem, 1.1rem);
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.2rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(15, 23, 42, 0.6);
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    color: #e0e7ff;
 }
 
-.hud__status-icon {
-    width: 2.4rem;
-    height: 2.4rem;
-    display: grid;
-    place-items: center;
-    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0) 60%);
-    border: 1px solid #2f3654;
-    border-radius: 12px;
-    color: #f0f4ff;
-    font-size: 1.2rem;
-    box-shadow:
-        inset 0 3px 0 rgba(255, 255, 255, 0.12),
-        inset 0 -3px 8px rgba(0, 0, 0, 0.35);
+.hud__value--moves {
+    font-size: 0.9rem;
+    font-weight: 700;
 }
 
-.hud__status-text {
+.hud__profile-wrapper {
     flex: 1;
-    line-height: 1.3;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hud__profile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.hud__profile-image {
+    width: 4.8rem;
+    height: 4.8rem;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    object-fit: cover;
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.hud__speech-bubble {
+    position: absolute;
+    left: 50%;
+    bottom: -2.25rem;
+    transform: translateX(-50%);
+    padding: 0.35rem 0.6rem;
+    background: rgba(5, 7, 15, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    color: #f5f5ff;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.55);
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+}
+
+.hud__speech-bubble--fade-out {
+    opacity: 0;
+}
+
+.hud__speech-bubble[hidden] {
+    display: none;
+}
+
+.hud__speech-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+}
+
+.hud__multiplier-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+    flex-shrink: 0;
+    min-width: 3.6rem;
+    color: #cfd5ff;
+}
+
+.hud__multiplier-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.hud__multiplier-value {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #9fb7ff;
 }
 
 .hud__progress {

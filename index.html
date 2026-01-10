@@ -606,21 +606,32 @@
     </div>
 
     <div id="hud" class="hud">
-        <div class="hud__row">
-            <div id="level-card" class="hud__card hud__card--stat hud__card--level">
-                <div class="hud__label">Lvl</div>
-                <div id="level" class="hud__value">1</div>
+        <div class="hud__row hud__row--top">
+            <div id="level-card" class="hud__card hud__card--level hud__stat-pill">
+                <div class="hud__level-row">
+                    <span class="hud__label hud__label--inline">Lvl</span>
+                    <span id="level" class="hud__value hud__value--inline">1</span>
+                </div>
+                <div id="moves-card" class="hud__moves-chip">
+                    <span id="moves-label" class="hud__label hud__label--inline" data-i18n-key="hud.label.moves">Moves</span>
+                    <span id="moves" class="hud__value hud__value--moves">20</span>
+                </div>
                 <div id="difficulty" class="hud__difficulty" style="display: none">Easy</div>
             </div>
 
-        <div id="moves-card" class="hud__card hud__card--stat">
-                <div id="moves-label" class="hud__label" data-i18n-key="hud.label.moves">Moves</div>
-                <div id="moves" class="hud__value">20</div>
+            <div class="hud__profile-wrapper">
+                <div class="hud__profile">
+                    <img src="assets/images/mira-profile.png" alt="Mira" class="hud__profile-image" />
+                    <div id="hud-speech-bubble" class="hud__speech-bubble" hidden>
+                        <span id="hud-speech-icon" class="hud__speech-icon" aria-hidden="true"></span>
+                        <span id="hud-speech-text" class="hud__speech-text"></span>
+                    </div>
+                </div>
             </div>
 
-            <div class="hud__status-bar" aria-live="polite">
-                <div id="status-icon" class="hud__status-icon" aria-hidden="true">✨</div>
-                <div id="status-text" class="hud__status-text">Bereit für Kombos!</div>
+            <div class="hud__multiplier-pill">
+                <span class="hud__multiplier-label" data-i18n-key="hud.label.multiplier">Mult.</span>
+                <span id="hud-multiplier" class="hud__multiplier-value">x1.00</span>
             </div>
         </div>
 

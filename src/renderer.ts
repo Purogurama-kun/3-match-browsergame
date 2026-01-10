@@ -224,14 +224,13 @@ class Renderer {
     renderMultiplierStatus(comboMultiplier: number, delta: number, moveScore: number): void {
         const icon = delta > 0 ? '⬆️' : delta < 0 ? '⬇️' : '✨';
         const formattedMultiplier = 'x' + comboMultiplier.toFixed(2);
+        this.hud.setMultiplier(comboMultiplier);
+        if (delta === 0) {
+            return;
+        }
         const scorePart = moveScore > 0 ? t('renderer.points', { points: moveScore }) : '';
-        const prefix =
-            delta > 0
-                ? t('renderer.comboIncrease')
-                : delta < 0
-                    ? t('renderer.comboDecrease')
-                    : t('renderer.comboNeutral');
-        this.hud.setStatus(prefix + ' ' + formattedMultiplier + scorePart, icon);
+        const prefix = delta > 0 ? t('renderer.comboIncrease') : t('renderer.comboDecrease');
+        this.hud.setStatus(prefix + ' ' + formattedMultiplier + scorePart, icon, prefix);
     }
 
     showMoveEvaluation(message: string, speechEnabled: boolean): void {

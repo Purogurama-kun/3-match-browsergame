@@ -28,11 +28,13 @@ class Hud {
         this.movesCard = this.getMovesCard();
         this.scoreProgress = getRequiredElement('score-progress');
         this.scoreProgressFill = getRequiredElement('score-progress-fill');
-        this.statusText = getRequiredElement('status-text');
-        this.statusIcon = getRequiredElement('status-icon');
         this.goalsList = this.getGoalsListElement();
         this.tacticalToolbar = this.getTacticalToolbar();
         this.timeHint = this.getTimeHintElement();
+        this.speechBubble = getRequiredElement('hud-speech-bubble');
+        this.speechIcon = getRequiredElement('hud-speech-icon');
+        this.speechText = getRequiredElement('hud-speech-text');
+        this.multiplierValue = getRequiredElement('hud-multiplier');
         this.powerupButtons = {} as Record<TacticalPowerup, HTMLButtonElement>;
         this.powerupCountNodes = {} as Record<TacticalPowerup, HTMLElement>;
         this.initPowerupButtons();
@@ -48,11 +50,13 @@ class Hud {
     private movesCard: HTMLElement;
     private scoreProgress: HTMLElement;
     private scoreProgressFill: HTMLElement;
-    private statusText: HTMLElement;
-    private statusIcon: HTMLElement;
     private goalsList: HTMLUListElement;
     private difficultyLabel: HTMLElement;
     private timeHint: HTMLElement;
+    private speechBubble: HTMLElement;
+    private speechIcon: HTMLElement;
+    private speechText: HTMLElement;
+    private multiplierValue: HTMLElement;
     private readonly optionsMenu: OptionsMenu;
     private cellShapeMode: CellShapeMode = 'square';
     private tacticalToolbar: HTMLElement;
@@ -62,6 +66,9 @@ class Hud {
     private toolbarBlocked = false;
     private lastPowerupInventory: PowerupInventory | null = null;
     private pendingPowerupType: TacticalPowerup | null = null;
+    private speechTimeout: ReturnType<typeof window.setTimeout> | null = null;
+    private lastStatusKey: string | null = null;
+    private statusLockUntil = 0;
     render(state: GameState): void {
         const isTimeMode = state.mode === 'time';
         const shouldShowMovesCard = state.mode === 'level';
@@ -128,9 +135,50 @@ class Hud {
         this.updateToolbarState();
     }
 
-    setStatus(text: string, icon: string): void {
-        this.statusText.textContent = text;
-        this.statusIcon.textContent = icon;
+    private restartSpeechTimer(): void {
+        if (this.speechTimeout !== null) {
+            window.clearTimeout(this.speechTimeout);
+            this.speechTimeout = null;
+        }
+        this.speechTimeout = window.setTimeout(() => {
+            this.speechBubble.classList.add('hud__speech-bubble--fade-out');
+            this.speechTimeout = window.setTimeout(() => {
+                this.speechBubble.hidden = true;
+                this.speechBubble.classList.remove('hud__speech-bubble--fade-out');
+                this.statusLockUntil = this.getNow() + 1200;
+                this.lastStatusKey = null;
+                this.speechTimeout = null;
+            }, 300);
+        }, 2800);
+    }
+
+    setStatus(text: string, icon: string, key?: string): void {
+        const statusKey = icon + '|' + (key ?? text);
+        const now = this.getNow();
+        const isVisible = !this.speechBubble.hidden;
+        if (isVisible && this.lastStatusKey === statusKey) {
+            this.restartSpeechTimer();
+            return;
+        }
+        if (!isVisible && now < this.statusLockUntil) {
+            return;
+        }
+        this.lastStatusKey = statusKey;
+        this.speechIcon.textContent = icon;
+        this.speechText.textContent = text;
+        if (!isVisible) {
+            this.speechBubble.hidden = false;
+            this.speechBubble.classList.remove('hud__speech-bubble--fade-out');
+        }
+        this.restartSpeechTimer();
+    }
+
+    private getNow(): number {
+        return typeof window !== 'undefined' && window.performance ? window.performance.now() : Date.now();
+    }
+
+    setMultiplier(value: number): void {
+        this.multiplierValue.textContent = 'x' + value.toFixed(2);
     }
 
     setPendingPowerup(type: TacticalPowerup | null): void {
