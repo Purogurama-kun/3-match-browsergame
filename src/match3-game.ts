@@ -1360,7 +1360,7 @@ class Match3Game implements ModeContext {
 
     private handleMatchesDetected(result: MatchResult, context: MatchContext): void {
         if (result.matched.size === 0) return;
-        const cells = Array.from(result.matched).map((index) => this.getCellPosition(index));
+        const cells = this.buildMatchCells(result);
         const swap =
             context.swap !== null
                 ? {
@@ -1380,6 +1380,42 @@ class Match3Game implements ModeContext {
             this.autoLimitExceeded = false;
             this.snapshotRecorder.beginManualSequence();
         }
+    }
+
+    private buildMatchCells(result: MatchResult): Position[] {
+        const matchedIndices = Array.from(result.matched);
+        if (matchedIndices.length === 0) return [];
+
+        const squareIndices = this.collectBurstSmallIndices(result);
+        if (squareIndices.size === 0) {
+            return matchedIndices.map((index) => this.getCellPosition(index));
+        }
+
+        const extraIndices = matchedIndices.filter((index) => !squareIndices.has(index));
+        if (extraIndices.length > 0 && extraIndices.length < 3) {
+            return Array.from(squareIndices).map((index) => this.getCellPosition(index));
+        }
+
+        const combined = new Set<number>(squareIndices);
+        extraIndices.forEach((index) => combined.add(index));
+        return Array.from(combined).map((index) => this.getCellPosition(index));
+    }
+
+    private collectBurstSmallIndices(result: MatchResult): Set<number> {
+        const squareIndices = new Set<number>();
+        result.boostersToCreate.forEach((creation) => {
+            if (creation.type !== BOOSTERS.BURST_SMALL) return;
+            const { row, col } = this.getRowCol(creation.index);
+            for (let rowOffset = 0; rowOffset <= 1; rowOffset++) {
+                for (let colOffset = 0; colOffset <= 1; colOffset++) {
+                    const cellRow = row + rowOffset;
+                    const cellCol = col + colOffset;
+                    if (cellRow >= GRID_SIZE || cellCol >= GRID_SIZE) continue;
+                    squareIndices.add(this.indexAt(cellRow, cellCol));
+                }
+            }
+        });
+        return squareIndices;
     }
 
     private handlePowerupTriggered(usage: SnapshotPowerupUsage): void {
