@@ -393,6 +393,19 @@ body {
     text-shadow: 0 0 4px rgba(0, 0, 0, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.08);
     transition: box-shadow 0.15s ease, transform 0.15s ease;
+    position: relative;
+}
+
+.recording-state__bomb-center {
+    font-size: 0.7rem;
+}
+
+.recording-state__bomb-corner {
+    position: absolute;
+    bottom: 1px;
+    right: 2px;
+    font-size: 0.45rem;
+    line-height: 1;
 }
 
 .recording-state__cell--sugar-chest {

@@ -110,14 +110,14 @@ const RECORDING_COLOR_HEX: Record<SnapshotCell['color'], string> = {
     none: '#14182f'
 };
 
-const RECORDING_BOMB_ICONS: Record<SnapshotCell['bomb'], string> = {
-    small: '💣',
-    medium: '💥',
-    large: '☢️',
-    line_horizontal: '💣↔️',
-    line_vertical: '💣↕️',
-    line_both: '💣✛',
-    none: ''
+const RECORDING_BOMB_ICONS: Record<SnapshotCell['bomb'], { center: string; corner: string }> = {
+    small: { center: '💣', corner: '' },
+    medium: { center: '💥', corner: '' },
+    large: { center: '☢️', corner: '' },
+    line_horizontal: { center: '💣', corner: '↔️' },
+    line_vertical: { center: '💣', corner: '↕️' },
+    line_both: { center: '💣', corner: '✛' },
+    none: { center: '', corner: '' }
 };
 
 class Match3Game implements ModeContext {
@@ -1268,7 +1268,7 @@ class Match3Game implements ModeContext {
                     cell.textContent = '';
                 } else {
                     cell.style.backgroundColor = color;
-                    cell.textContent = this.describeCellIcon(state);
+                    this.renderCellIcon(cell, state);
                 }
             }
             cell.classList.toggle('recording-state__cell--highlight', highlightIndices.has(idx));
@@ -1327,14 +1327,27 @@ class Match3Game implements ModeContext {
         return highlighted;
     }
 
-    private describeCellIcon(state: SnapshotCell): string {
+    private renderCellIcon(cell: HTMLElement, state: SnapshotCell): void {
+        cell.textContent = '';
         if (state.bomb !== 'none') {
-            return RECORDING_BOMB_ICONS[state.bomb];
+            const icons = RECORDING_BOMB_ICONS[state.bomb];
+            if (icons.center) {
+                const centerSpan = document.createElement('span');
+                centerSpan.className = 'recording-state__bomb-center';
+                centerSpan.textContent = icons.center;
+                cell.appendChild(centerSpan);
+            }
+            if (icons.corner) {
+                const cornerSpan = document.createElement('span');
+                cornerSpan.className = 'recording-state__bomb-corner';
+                cornerSpan.textContent = icons.corner;
+                cell.appendChild(cornerSpan);
+            }
+            return;
         }
         if (state.generator) {
-            return '⚙️';
+            cell.textContent = '⚙️';
         }
-        return '';
     }
 
     private getRowCol(index: number): { row: number; col: number } {
