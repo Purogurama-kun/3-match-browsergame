@@ -292,7 +292,7 @@ class Match3Game implements ModeContext {
     private recordingColumnLabels!: HTMLElement;
     private recordingRowLabels!: HTMLElement;
     private recordingShowLabels = false;
-    private recordingShowAxis = true;
+    private recordingShowAxis = false;
     private recordingHistory: Snapshot[] = [];
     private recordingIndex = 0;
     private recordingAutoPlay = false;

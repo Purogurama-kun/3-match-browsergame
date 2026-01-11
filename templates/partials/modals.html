@@ -54,18 +54,18 @@
             </div>
             <p id="recording-progress" class="recording-state__progress"></p>
             <p id="recording-description" class="recording-state__description"></p>
-            <div id="recording-board-wrapper" class="recording-state__board-wrapper">
-                <div id="recording-column-labels" class="recording-state__column-labels" aria-hidden="true">
+            <div id="recording-board-wrapper" class="recording-state__board-wrapper recording-state__board-wrapper--no-axis">
+                <div id="recording-column-labels" class="recording-state__column-labels recording-state__column-labels--hidden" aria-hidden="true">
                     <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span>
                 </div>
-                <div id="recording-row-labels" class="recording-state__row-labels" aria-hidden="true">
+                <div id="recording-row-labels" class="recording-state__row-labels recording-state__row-labels--hidden" aria-hidden="true">
                     <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span>
                 </div>
                 <div id="recording-board" class="recording-state__board" aria-live="polite"></div>
             </div>
             <div class="recording-state__toggle-row">
-                <button id="recording-axis-toggle" class="recording-state__toggle recording-state__toggle--active" type="button">
-                    Hide axis labels
+                <button id="recording-axis-toggle" class="recording-state__toggle" type="button">
+                    Show axis labels
                 </button>
                 <button id="recording-labels-toggle" class="recording-state__toggle" type="button">
                     Show cell labels
