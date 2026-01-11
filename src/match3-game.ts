@@ -494,6 +494,7 @@ class Match3Game implements ModeContext {
         this.refreshGoalDescriptions();
         this.updateHud();
         this.hud.resetStatus();
+        this.applyRecordingLocale();
     }
 
     private refreshGoalDescriptions(): void {
@@ -1180,7 +1181,7 @@ class Match3Game implements ModeContext {
             this.recordingBoard.appendChild(cell);
             this.recordingCells.push(cell);
         }
-        this.updateRecordingModeTag();
+        this.applyRecordingLocale();
     }
 
     private openRecordingState(): void {
@@ -1229,7 +1230,7 @@ class Match3Game implements ModeContext {
         if (this.recordingHistory.length <= 1) return;
         this.stopRecordingAutoPlay();
         this.recordingAutoPlay = true;
-        this.recordingAutoButton.textContent = 'Pause';
+        this.updateRecordingAutoButtonText();
         this.updateRecordingModeTag();
         this.recordingAutoTimer = window.setInterval(() => {
             if (this.recordingIndex >= this.recordingHistory.length - 1) {
@@ -1250,7 +1251,20 @@ class Match3Game implements ModeContext {
             this.recordingAutoTimer = null;
         }
         this.recordingAutoPlay = false;
-        this.recordingAutoButton.textContent = 'Auto play';
+        this.updateRecordingAutoButtonText();
+        this.updateRecordingModeTag();
+    }
+
+    private updateRecordingAutoButtonText(): void {
+        if (!this.recordingAutoButton) return;
+        const key = this.recordingAutoPlay ? 'recording.control.pause' : 'recording.control.auto';
+        this.recordingAutoButton.textContent = t(key);
+    }
+
+    private applyRecordingLocale(): void {
+        if (!this.recordingOverlay) return;
+        this.recordingOverlay.setAttribute('aria-label', t('recording.title'));
+        this.updateRecordingAutoButtonText();
         this.updateRecordingModeTag();
     }
 
@@ -1279,11 +1293,15 @@ class Match3Game implements ModeContext {
         const isManualMatch = matchMove !== null && matchMove.matchType === 'manuell';
         const isPowerupMove = move.kind === 'powerup';
         const isManualMove = isManualMatch || isPowerupMove;
-        let modeText = isManualMove ? 'manual' : 'auto';
+        let modeText = isManualMove ? t('recording.mode.manual') : t('recording.mode.auto');
         if (isPowerupMove) {
-            if (move.powerupType === 'shuffle') modeText = '🔀 shuffle powerup';
-            else if (move.powerupType === 'swap') modeText = '🔁 swap powerup';
-            else if (move.powerupType === 'bomb') modeText = '💣 bomb powerup';
+            if (move.powerupType === 'shuffle') {
+                modeText = t('recording.mode.powerup.shuffle');
+            } else if (move.powerupType === 'swap') {
+                modeText = t('recording.mode.powerup.swap');
+            } else if (move.powerupType === 'bomb') {
+                modeText = t('recording.mode.powerup.bomb');
+            }
         }
 
         if (this.recordingModeText) {

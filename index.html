@@ -748,9 +748,11 @@
     >
         <div class="recording-state__dialog">
             <div class="recording-state__header">
-                <h3 class="recording-state__title">Recorded gameplay</h3>
+                <h3 class="recording-state__title" data-i18n-key="recording.title">Recorded gameplay</h3>
                 <p id="recording-progress" class="recording-state__progress"></p>
-                <button id="recording-close" class="recording-state__close" type="button">Close</button>
+                <button id="recording-close" class="recording-state__close" type="button" data-i18n-key="recording.close">
+                    Close
+                </button>
             </div>
             <div class="recording-state__toolbar">
                 <div id="recording-mode-row" class="recording-state__mode-row">
@@ -777,9 +779,9 @@
                     </span>
                 </div>
                 <select id="recording-label-select" class="recording-state__label-select">
-                    <option value="none" selected>No labels</option>
-                    <option value="axis">Axis labels</option>
-                    <option value="cell">Cell labels</option>
+                    <option value="none" selected data-i18n-key="recording.label.none">No labels</option>
+                    <option value="axis" data-i18n-key="recording.label.axis">Axis labels</option>
+                    <option value="cell" data-i18n-key="recording.label.cell">Cell labels</option>
                 </select>
             </div>
             <div id="recording-board-wrapper" class="recording-state__board-wrapper recording-state__board-wrapper--no-axis">
@@ -792,8 +794,12 @@
                 <div id="recording-board" class="recording-state__board" aria-live="polite"></div>
             </div>
             <div class="recording-state__controls">
-                <button id="recording-prev" class="recording-state__control" type="button">Prev</button>
-                <button id="recording-next" class="recording-state__control" type="button">Next</button>
+                <button id="recording-prev" class="recording-state__control" type="button" data-i18n-key="recording.control.prev">
+                    Prev
+                </button>
+                <button id="recording-next" class="recording-state__control" type="button" data-i18n-key="recording.control.next">
+                    Next
+                </button>
                 <button id="recording-auto" class="recording-state__control recording-state__control--primary" type="button">
                     Auto play
                 </button>
