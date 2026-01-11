@@ -386,6 +386,7 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+    white-space: nowrap;
 }
 
 .recording-state__mode-text {
@@ -401,6 +402,7 @@ body {
     letter-spacing: normal;
     text-transform: none;
     font-size: 0.75rem;
+    white-space: nowrap;
 }
 
 .recording-state__title {

@@ -286,6 +286,7 @@ class Match3Game implements ModeContext {
     private recordingModeText!: HTMLElement;
     private recordingModePosition!: HTMLElement;
     private recordingMatchCount!: HTMLElement;
+    private recordingMatchCountContainer!: HTMLElement;
     private recordingPrevButton!: HTMLButtonElement;
     private recordingNextButton!: HTMLButtonElement;
     private recordingAutoButton!: HTMLButtonElement;
@@ -1149,6 +1150,7 @@ class Match3Game implements ModeContext {
         this.recordingModeText = getRequiredElement('recording-mode-text');
         this.recordingModePosition = getRequiredElement('recording-mode-position');
         this.recordingMatchCount = getRequiredElement('recording-match-count');
+        this.recordingMatchCountContainer = getRequiredElement('recording-match-count-container');
         this.recordingPrevButton = getRequiredElement('recording-prev');
         this.recordingNextButton = getRequiredElement('recording-next');
         this.recordingAutoButton = getRequiredElement('recording-auto');
@@ -1258,22 +1260,45 @@ class Match3Game implements ModeContext {
 
     private updateRecordingModeTag(snapshot?: Snapshot | null): void {
         if (!this.recordingModeTag) return;
-        const currentSnapshot = snapshot ?? this.recordingHistory[this.recordingIndex] ?? null;
+        const currentSnapshot =
+            snapshot === null
+                ? null
+                : snapshot ?? this.recordingHistory[this.recordingIndex] ?? null;
         const move = currentSnapshot?.move ?? null;
+        if (!move) {
+            this.recordingModeTag.hidden = true;
+            if (this.recordingModeText) {
+                this.recordingModeText.textContent = '';
+            }
+            if (this.recordingModePosition) {
+                this.recordingModePosition.textContent = '';
+            }
+            return;
+        }
+        this.recordingModeTag.hidden = false;
         let matchMove: SnapshotMatchMove | null = null;
-        if (move?.kind === 'match') {
+        if (move.kind === 'match') {
             matchMove = move;
         }
         const isManualMatch = matchMove !== null && matchMove.matchType === 'manuell';
-        const modeText = isManualMatch ? 'manual' : 'auto';
+        const isPowerupMove = move.kind === 'powerup';
+        const isManualMove = isManualMatch || isPowerupMove;
+        const modeText = isManualMove ? 'manual' : 'auto';
+
         if (this.recordingModeText) {
             this.recordingModeText.textContent = modeText;
         }
-        this.recordingModeTag.classList.remove('recording-state__mode-tag--auto');
         if (!this.recordingModePosition) return;
         if (isManualMatch && matchMove?.swap) {
             const from = this.describePosition(matchMove.swap.cellA);
             const to = this.describePosition(matchMove.swap.cellB);
+            this.recordingModePosition.textContent = `${from} 🡘 ${to}`;
+            return;
+        }
+        if (isPowerupMove && move.powerupType === 'swap' && move.coordinates && move.coordinates.length >= 2) {
+            const coords = move.coordinates;
+            const from = this.describePosition(coords[0]!);
+            const to = this.describePosition(coords[1]!);
             this.recordingModePosition.textContent = `${from} 🡘 ${to}`;
             return;
         }
@@ -1301,11 +1326,18 @@ class Match3Game implements ModeContext {
         if (!snapshot) {
             this.recordingProgress.textContent = '';
             this.recordingDescription.textContent = '';
+            if (this.recordingMatchCountContainer) {
+                this.recordingMatchCountContainer.hidden = true;
+            }
+            this.updateRecordingModeTag(null);
             return;
         }
         const matchedTiles = snapshot.move?.kind === 'match' ? snapshot.move.cells.length : 0;
         if (this.recordingMatchCount) {
             this.recordingMatchCount.textContent = String(matchedTiles);
+        }
+        if (this.recordingMatchCountContainer) {
+            this.recordingMatchCountContainer.hidden = matchedTiles === 0;
         }
         const highlightIndices = this.buildHighlightIndices(snapshot);
         const swapIndices = this.buildSwapIndices(snapshot);
