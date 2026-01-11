@@ -10,6 +10,11 @@
     touch-action: none;
 }
 
+.match-app--playing .board {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
 .board__particles {
     position: absolute;
     inset: 0;
