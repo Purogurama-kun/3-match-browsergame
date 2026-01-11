@@ -283,7 +283,7 @@
 .hud__speech-bubble {
     position: absolute;
     left: calc(100% - 0.5rem);
-    top: calc(100% - 0.75rem);
+    top: calc(100% - 0.1rem);
     padding: 0.35rem 0.6rem;
     background: rgba(255, 255, 255, 0.7);
     border: none;
