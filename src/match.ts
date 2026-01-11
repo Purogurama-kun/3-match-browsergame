@@ -90,20 +90,7 @@ class Match {
         this.sugarChests.advanceNearMatches(matched);
 
         if (matched.size > 0) {
-            const hasBlastBooster = boostersToCreate.some(
-                (boost) =>
-                    boost.type === BOOSTERS.BURST_SMALL ||
-                    boost.type === BOOSTERS.BURST_MEDIUM ||
-                    boost.type === BOOSTERS.BURST_LARGE
-            );
-            const hasLineMatch = boostersToCreate.some((boost) => boost.type === BOOSTERS.LINE);
-            if (hasBlastBooster) {
-                this.sounds.play('radiusBomb');
-            } else if (hasLineMatch) {
-                this.sounds.play('lineBomb');
-            } else {
-                this.sounds.play('match');
-            }
+            this.sounds.play('match');
             if (!this.isPerformanceMode()) {
                 this.renderer.screenShake();
             }
