@@ -1356,12 +1356,6 @@ class Match3Game implements ModeContext {
             cell.style.removeProperty('--recording-sugar-chest-image');
             cell.style.removeProperty('--recording-cell-color');
 
-            if (this.recordingShowLabels) {
-                this.renderCellLabel(cell, idx);
-                cell.classList.remove('recording-state__cell--highlight');
-                return;
-            }
-
             if (!state) {
                 cell.style.backgroundColor = RECORDING_COLOR_HEX.none;
                 cell.textContent = '';
@@ -1392,6 +1386,9 @@ class Match3Game implements ModeContext {
             }
             cell.classList.toggle('recording-state__cell--highlight', highlightIndices.has(idx));
             cell.classList.toggle('recording-state__cell--swap', swapIndices.has(idx));
+            if (this.recordingShowLabels) {
+                this.renderCellLabel(cell, idx);
+            }
         });
         this.recordingProgress.textContent = `(${this.recordingIndex + 1}/${this.recordingHistory.length})`;
         this.recordingPrevButton.disabled = this.recordingIndex === 0;
@@ -1467,8 +1464,6 @@ class Match3Game implements ModeContext {
         const { row, col } = this.getRowCol(index);
         const columnLetter = String.fromCharCode(65 + col);
         const rowNumber = row + 1;
-        cell.textContent = '';
-        cell.style.backgroundColor = '#1e2444';
         const label = document.createElement('span');
         label.className = 'recording-state__cell-label';
         label.textContent = `${columnLetter}${rowNumber}`;

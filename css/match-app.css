@@ -518,13 +518,6 @@ body {
     50% { box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.6), 0 0 22px 6px rgba(255, 255, 255, 0.7); }
 }
 
-.recording-state__hint {
-    margin: 0;
-    font-size: 0.85rem;
-    color: #9fb3ff;
-    text-align: center;
-}
-
 .recording-state__controls {
     display: flex;
     gap: 0.65rem;
@@ -659,11 +652,18 @@ body {
 }
 
 .recording-state__cell-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 0.65rem;
     font-weight: 700;
-    color: #0b0f1d;
-    text-shadow: none;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
     letter-spacing: 0.02em;
+    background: rgba(0, 0, 0, 0.45);
+    border-radius: 8px;
 }
 
 @media (max-width: 420px) {
