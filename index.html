@@ -620,14 +620,21 @@
                 </div>
             </div>
 
-            <div class="hud__top-stat hud__top-stat--level">
-                <span id="level" class="hud__top-stat-value">1</span>
-                <span class="hud__top-stat-label">Lvl</span>
-            </div>
-
-            <div id="moves-card" class="hud__top-stat hud__top-stat--moves">
-                <span id="moves" class="hud__top-stat-value">20</span>
-                <span id="moves-label" class="hud__top-stat-label" data-i18n-key="hud.label.moves">Moves</span>
+            <div class="hud__top-right">
+                <div class="hud__top-meta">
+                    <span class="hud__top-meta-item">
+                        <span class="hud__top-meta-label">Lvl</span>
+                        <span id="level" class="hud__top-meta-value">1</span>
+                    </span>
+                    <span id="moves-card" class="hud__top-meta-item">
+                        <span id="moves-label" class="hud__top-meta-label" data-i18n-key="hud.label.moves">Moves</span>
+                        <span id="moves" class="hud__top-meta-value">20</span>
+                    </span>
+                </div>
+                <div class="hud__card hud__card--goals hud__card--goals-compact">
+                    <div id="hud-time-hint" class="hud__time-hint" hidden></div>
+                    <ul id="goals-list" class="hud__goals-list"></ul>
+                </div>
             </div>
 
         </div>
@@ -643,13 +650,6 @@
         </div>
         </div>
 
-        <div class="hud__card hud__card--goals">
-            <div class="hud__label" data-i18n-key="hud.label.goals">Goals</div>
-
-            <div id="hud-time-hint" class="hud__time-hint" hidden></div>
-
-            <ul id="goals-list" class="hud__goals-list"></ul>
-        </div>
     </div>
     <div id="game" class="board"></div>
     <div id="tactical-toolbar" class="tactical-toolbar" role="toolbar" aria-label="Taktische Werkzeuge"></div>
