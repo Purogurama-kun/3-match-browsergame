@@ -1285,7 +1285,12 @@ class Match3Game implements ModeContext {
         const isManualMatch = matchMove !== null && matchMove.matchType === 'manuell';
         const isPowerupMove = move.kind === 'powerup';
         const isManualMove = isManualMatch || isPowerupMove;
-        const modeText = isManualMove ? 'manual' : 'auto';
+        let modeText = isManualMove ? 'manual' : 'auto';
+        if (isPowerupMove) {
+            if (move.powerupType === 'shuffle') modeText = '🔀 shuffle powerup';
+            else if (move.powerupType === 'swap') modeText = '🔁 swap powerup';
+            else if (move.powerupType === 'bomb') modeText = '💣 bomb powerup';
+        }
 
         if (this.recordingModeText) {
             this.recordingModeText.textContent = modeText;
