@@ -147,16 +147,19 @@
 }
 
 .hud__card--goals {
-    display: grid;
-    gap: 0.4rem;
-    padding: 0.6rem 0.75rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+    padding: 0.3rem 0.5rem;
 }
 
 .hud__label {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
     color: #9da5c7;
     letter-spacing: 0.03em;
+    line-height: 1;
 }
 
 .hud__value {
@@ -359,36 +362,36 @@
     margin: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem;
-    justify-content: center;
+    gap: 0.2rem;
+    justify-content: flex-start;
 }
 
 .hud__goal {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 3.4rem;
-    height: 3.4rem;
+    width: 3rem;
+    height: 3rem;
     background: #0c0f1b;
     border: 1px solid #2f3654;
     border-radius: 12px;
     position: relative;
     padding: 0;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
 }
 
 .hud__goal-chip {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.3rem;
-    height: 2.3rem;
-    border-radius: 12px;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow:
         inset 0 3px 0 rgba(255, 255, 255, 0.18),
         inset 0 -3px 8px rgba(0, 0, 0, 0.35);
-    font-size: 1.35rem;
+    font-size: 1.15rem;
     color: #0b0f1d;
 }
 
@@ -409,15 +412,15 @@
 .hud__goal-count {
     font-weight: 700;
     color: #f5f5ff;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     letter-spacing: 0.02em;
     background: rgba(15, 23, 42, 0.9);
     border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 999px;
-    padding: 0 0.35rem;
+    padding: 0 0.3rem;
     position: absolute;
-    bottom: 0.3rem;
-    right: 0.25rem;
+    bottom: 0.2rem;
+    right: 0.2rem;
     line-height: 1.3;
     text-align: center;
 }
