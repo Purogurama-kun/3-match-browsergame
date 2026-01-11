@@ -1239,9 +1239,14 @@ class Match3Game implements ModeContext {
             return;
         }
         const highlightIndices = this.buildHighlightIndices(snapshot);
+        const swapIndices = this.buildSwapIndices(snapshot);
         this.recordingCells.forEach((cell, idx) => {
             const state = snapshot.board[idx];
-            cell.classList.remove('recording-state__cell--sugar-chest', 'recording-state__cell--hard');
+            cell.classList.remove(
+                'recording-state__cell--sugar-chest',
+                'recording-state__cell--hard',
+                'recording-state__cell--swap'
+            );
             cell.style.removeProperty('--recording-sugar-chest-image');
             cell.style.removeProperty('--recording-cell-color');
             if (!state) {
@@ -1273,6 +1278,7 @@ class Match3Game implements ModeContext {
                 }
             }
             cell.classList.toggle('recording-state__cell--highlight', highlightIndices.has(idx));
+            cell.classList.toggle('recording-state__cell--swap', swapIndices.has(idx));
         });
         this.recordingProgress.textContent = `Snapshot ${this.recordingIndex + 1} / ${this.recordingHistory.length}`;
         this.recordingDescription.textContent = this.describeSnapshot(snapshot);
@@ -1326,6 +1332,23 @@ class Match3Game implements ModeContext {
             });
         }
         return highlighted;
+    }
+
+    private buildSwapIndices(snapshot: Snapshot): Set<number> {
+        const swapIndices = new Set<number>();
+        if (snapshot.move?.kind === 'match' && snapshot.move.swap) {
+            swapIndices.add(snapshot.move.swap.cellA.y * GRID_SIZE + snapshot.move.swap.cellA.x);
+            swapIndices.add(snapshot.move.swap.cellB.y * GRID_SIZE + snapshot.move.swap.cellB.x);
+        } else if (
+            snapshot.move?.kind === 'powerup' &&
+            snapshot.move.powerupType === 'swap' &&
+            snapshot.move.coordinates
+        ) {
+            snapshot.move.coordinates.forEach((pos) => {
+                swapIndices.add(pos.y * GRID_SIZE + pos.x);
+            });
+        }
+        return swapIndices;
     }
 
     private renderCellIcon(cell: HTMLElement, state: SnapshotCell): void {
