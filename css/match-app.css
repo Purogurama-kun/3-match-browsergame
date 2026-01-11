@@ -336,25 +336,14 @@ body {
 
 .recording-state__header {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+    align-items: center;
     gap: 0.75rem;
 }
 
-.recording-state__heading {
+.recording-state__toolbar {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 0.75rem;
-    flex: 1;
-    min-width: 0;
-}
-
-.recording-state__heading-text {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    flex: 1;
-    min-width: 0;
 }
 
 .recording-state__mode-row {

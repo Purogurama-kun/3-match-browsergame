@@ -748,41 +748,39 @@
     >
         <div class="recording-state__dialog">
             <div class="recording-state__header">
-                <div class="recording-state__heading">
-                    <div class="recording-state__heading-text">
-                        <h3 class="recording-state__title">Recorded gameplay</h3>
-                        <div id="recording-mode-row" class="recording-state__mode-row">
-                            <span id="recording-match-count-container" class="recording-state__match-count">
-                                <img
-                                    src="assets/images/cell.svg"
-                                    class="recording-state__match-icon"
-                                    alt=""
-                                    aria-hidden="true"
-                                />
-                                <span id="recording-match-count">0</span>
-                            </span>
-                            <span
-                                id="recording-mode-tag"
-                                class="recording-state__mode-tag"
-                                aria-live="polite"
-                            >
-                                <span id="recording-mode-text" class="recording-state__mode-text">manual</span>
-                                <span
-                                    id="recording-mode-position"
-                                    class="recording-state__mode-position"
-                                    aria-live="polite"
-                                ></span>
-                            </span>
-                            <select id="recording-label-select" class="recording-state__label-select">
-                                <option value="none" selected>No labels</option>
-                                <option value="axis">Axis labels</option>
-                                <option value="cell">Cell labels</option>
-                            </select>
-                        </div>
-                    </div>
-                    <p id="recording-progress" class="recording-state__progress"></p>
-                </div>
+                <h3 class="recording-state__title">Recorded gameplay</h3>
+                <p id="recording-progress" class="recording-state__progress"></p>
                 <button id="recording-close" class="recording-state__close" type="button">Close</button>
+            </div>
+            <div class="recording-state__toolbar">
+                <div id="recording-mode-row" class="recording-state__mode-row">
+                    <span id="recording-match-count-container" class="recording-state__match-count">
+                        <img
+                            src="assets/images/cell.svg"
+                            class="recording-state__match-icon"
+                            alt=""
+                            aria-hidden="true"
+                        />
+                        <span id="recording-match-count">0</span>
+                    </span>
+                    <span
+                        id="recording-mode-tag"
+                        class="recording-state__mode-tag"
+                        aria-live="polite"
+                    >
+                        <span id="recording-mode-text" class="recording-state__mode-text">manual</span>
+                        <span
+                            id="recording-mode-position"
+                            class="recording-state__mode-position"
+                            aria-live="polite"
+                        ></span>
+                    </span>
+                </div>
+                <select id="recording-label-select" class="recording-state__label-select">
+                    <option value="none" selected>No labels</option>
+                    <option value="axis">Axis labels</option>
+                    <option value="cell">Cell labels</option>
+                </select>
             </div>
             <div id="recording-board-wrapper" class="recording-state__board-wrapper recording-state__board-wrapper--no-axis">
                 <div id="recording-column-labels" class="recording-state__column-labels recording-state__column-labels--hidden" aria-hidden="true">
