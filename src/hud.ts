@@ -302,7 +302,9 @@ class Hud {
             this.scoreProgress.setAttribute('aria-valuenow', remaining.toFixed(1));
             this.scoreProgress.setAttribute('aria-valuemax', capacity.toFixed(1));
             this.scoreProgress.setAttribute('aria-valuetext', ariaText);
-            this.scoreProgressFill.style.width = (ratio * 100).toFixed(1) + '%';
+            const percent = (ratio * 100).toFixed(1) + '%';
+            this.scoreProgressFill.style.width = percent;
+            this.scoreProgress.style.setProperty('--progress', percent);
             this.score.textContent = this.formatTime(remaining);
             return;
         }
@@ -325,7 +327,9 @@ class Hud {
         this.scoreProgress.setAttribute('aria-valuenow', clampedScore.toString());
         this.scoreProgress.setAttribute('aria-valuemax', target.toString());
         this.scoreProgress.setAttribute('aria-valuetext', ariaText);
-        this.scoreProgressFill.style.width = (ratio * 100).toFixed(1) + '%';
+        const percent = (ratio * 100).toFixed(1) + '%';
+        this.scoreProgressFill.style.width = percent;
+        this.scoreProgress.style.setProperty('--progress', percent);
     }
 
     private renderGoals(goals: GoalProgress[], mode: GameMode, state: GameState): void {

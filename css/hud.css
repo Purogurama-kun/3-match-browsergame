@@ -310,6 +310,7 @@
     overflow: hidden;
     border: 1px solid #2f3654;
     position: relative;
+    --progress: 0%;
 }
 
 .hud__progress-fill {
@@ -336,10 +337,20 @@
     align-items: center;
     justify-content: flex-end;
     font-size: 0.7rem;
-    color: #e5ebff;
+    color: transparent;
     text-shadow: 0 0 6px rgba(7, 10, 18, 0.8);
     pointer-events: none;
     padding-right: 1.2rem;
+    background: linear-gradient(
+        90deg,
+        #0a0f19 0%,
+        #0a0f19 var(--progress),
+        #e5ebff var(--progress),
+        #e5ebff 100%
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .hud__goals-list {
