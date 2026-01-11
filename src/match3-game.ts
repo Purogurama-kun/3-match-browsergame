@@ -1334,11 +1334,9 @@ class Match3Game implements ModeContext {
         }
         const hasMove = snapshot.move !== null;
         this.recordingModeRow.hidden = !hasMove;
-        if (hasMove) {
-            const matchedTiles = snapshot.move?.kind === 'match' ? snapshot.move.cells.length : 0;
-            this.recordingMatchCount.textContent = String(matchedTiles);
-            this.recordingMatchCountContainer.hidden = matchedTiles === 0;
-        }
+        const matchedTiles = hasMove && snapshot.move?.kind === 'match' ? snapshot.move.cells.length : 0;
+        this.recordingMatchCount.textContent = String(matchedTiles);
+        this.recordingMatchCountContainer.hidden = matchedTiles === 0;
         const highlightIndices = this.buildHighlightIndices(snapshot);
         const swapIndices = this.buildSwapIndices(snapshot);
         this.recordingCells.forEach((cell, idx) => {
