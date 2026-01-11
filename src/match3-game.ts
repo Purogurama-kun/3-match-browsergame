@@ -1350,7 +1350,9 @@ class Match3Game implements ModeContext {
     }
 
     private describePosition(position: Position): string {
-        return `(${position.x}, ${position.y})`;
+        const columnLetter = String.fromCharCode(65 + position.x);
+        const rowNumber = position.y + 1;
+        return `${columnLetter}${rowNumber}`;
     }
 
     private buildHighlightIndices(snapshot: Snapshot): Set<number> {
