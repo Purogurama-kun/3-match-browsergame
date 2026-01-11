@@ -443,13 +443,6 @@ body {
     flex: 0 0 auto;
 }
 
-.recording-state__description {
-    margin: 0;
-    color: #f8fafc;
-    font-size: 1rem;
-    min-height: 1.2rem;
-}
-
 .recording-state__board {
     display: grid;
     grid-template-columns: repeat(8, minmax(0, var(--recording-cell-size, clamp(2rem, 2.5vw, 3rem))));

@@ -281,7 +281,6 @@ class Match3Game implements ModeContext {
     private recordingBoard!: HTMLElement;
     private recordingCells: HTMLDivElement[] = [];
     private recordingProgress!: HTMLElement;
-    private recordingDescription!: HTMLElement;
     private recordingModeRow!: HTMLElement;
     private recordingModeTag!: HTMLElement;
     private recordingModeText!: HTMLElement;
@@ -1146,7 +1145,6 @@ class Match3Game implements ModeContext {
         this.recordingOverlay = getRequiredElement('recording-state');
         this.recordingBoard = getRequiredElement('recording-board');
         this.recordingProgress = getRequiredElement('recording-progress');
-        this.recordingDescription = getRequiredElement('recording-description');
         this.recordingModeRow = getRequiredElement('recording-mode-row');
         this.recordingModeTag = getRequiredElement('recording-mode-tag');
         this.recordingModeText = getRequiredElement('recording-mode-text');
@@ -1337,7 +1335,6 @@ class Match3Game implements ModeContext {
         const snapshot = this.recordingHistory[this.recordingIndex];
         if (!snapshot) {
             this.recordingProgress.textContent = '';
-            this.recordingDescription.textContent = '';
             this.recordingModeRow.hidden = true;
             this.updateRecordingModeTag(null);
             return;
@@ -1397,36 +1394,9 @@ class Match3Game implements ModeContext {
             cell.classList.toggle('recording-state__cell--swap', swapIndices.has(idx));
         });
         this.recordingProgress.textContent = `(${this.recordingIndex + 1}/${this.recordingHistory.length})`;
-        this.recordingDescription.textContent = this.describeSnapshot(snapshot);
         this.recordingPrevButton.disabled = this.recordingIndex === 0;
         this.recordingNextButton.disabled = this.recordingIndex >= this.recordingHistory.length - 1;
         this.updateRecordingModeTag(snapshot);
-    }
-
-    private describeSnapshot(snapshot: Snapshot): string {
-        if (!snapshot.move) {
-            return '';
-        }
-        if (snapshot.move.kind === 'match') {
-            const matchType = snapshot.move.matchType === 'manuell' ? 'Manual match' : 'Auto match';
-            const swapInfo = snapshot.move.swap
-                ? ` 🔁 ${this.describePosition(snapshot.move.swap.cellA)} 🡘 ${this.describePosition(
-                      snapshot.move.swap.cellB
-                  )}`
-                : '';
-            return `${matchType}${swapInfo} · ${snapshot.move.cells.length} tiles matched`;
-        }
-        const label =
-            snapshot.move.powerupType === 'shuffle'
-                ? 'Shuffle powerup'
-                : snapshot.move.powerupType === 'swap'
-                ? 'Swap powerup'
-                : 'Bomb powerup';
-        if (snapshot.move.coordinates && snapshot.move.coordinates.length > 0) {
-            const coords = snapshot.move.coordinates.map((position) => this.describePosition(position));
-            return `${label} · ${coords.join(' + ')}`;
-        }
-        return label;
     }
 
     private describePosition(position: Position): string {
