@@ -773,6 +773,11 @@
                                     aria-live="polite"
                                 ></span>
                             </span>
+                            <select id="recording-label-select" class="recording-state__label-select">
+                                <option value="none" selected>No labels</option>
+                                <option value="axis">Axis labels</option>
+                                <option value="cell">Cell labels</option>
+                            </select>
                         </div>
                     </div>
                     <p id="recording-progress" class="recording-state__progress"></p>
@@ -787,14 +792,6 @@
                     <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span>
                 </div>
                 <div id="recording-board" class="recording-state__board" aria-live="polite"></div>
-            </div>
-            <div class="recording-state__toggle-row">
-                <button id="recording-axis-toggle" class="recording-state__toggle" type="button">
-                    Show axis labels
-                </button>
-                <button id="recording-labels-toggle" class="recording-state__toggle" type="button">
-                    Show cell labels
-                </button>
             </div>
             <div class="recording-state__controls">
                 <button id="recording-prev" class="recording-state__control" type="button">Prev</button>

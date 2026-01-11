@@ -291,13 +291,11 @@ class Match3Game implements ModeContext {
     private recordingNextButton!: HTMLButtonElement;
     private recordingAutoButton!: HTMLButtonElement;
     private recordingCloseButton!: HTMLButtonElement;
-    private recordingLabelsToggle!: HTMLButtonElement;
-    private recordingAxisToggle!: HTMLButtonElement;
+    private recordingLabelSelect!: HTMLSelectElement;
     private recordingBoardWrapper!: HTMLElement;
     private recordingColumnLabels!: HTMLElement;
     private recordingRowLabels!: HTMLElement;
-    private recordingShowLabels = false;
-    private recordingShowAxis = false;
+    private recordingLabelMode: 'none' | 'axis' | 'cell' = 'none';
     private recordingHistory: Snapshot[] = [];
     private recordingIndex = 0;
     private recordingAutoPlay = false;
@@ -1155,8 +1153,7 @@ class Match3Game implements ModeContext {
         this.recordingNextButton = getRequiredElement('recording-next');
         this.recordingAutoButton = getRequiredElement('recording-auto');
         this.recordingCloseButton = getRequiredElement('recording-close');
-        this.recordingLabelsToggle = getRequiredElement('recording-labels-toggle') as HTMLButtonElement;
-        this.recordingAxisToggle = getRequiredElement('recording-axis-toggle') as HTMLButtonElement;
+        this.recordingLabelSelect = getRequiredElement('recording-label-select') as HTMLSelectElement;
         this.recordingBoardWrapper = getRequiredElement('recording-board-wrapper');
         this.recordingColumnLabels = getRequiredElement('recording-column-labels');
         this.recordingRowLabels = getRequiredElement('recording-row-labels');
@@ -1164,8 +1161,7 @@ class Match3Game implements ModeContext {
         this.recordingNextButton.addEventListener('click', () => this.advanceRecordingIndex(1));
         this.recordingAutoButton.addEventListener('click', () => this.toggleRecordingAutoPlay());
         this.recordingCloseButton.addEventListener('click', () => this.closeRecordingState());
-        this.recordingLabelsToggle.addEventListener('click', () => this.toggleRecordingLabels());
-        this.recordingAxisToggle.addEventListener('click', () => this.toggleRecordingAxis());
+        this.recordingLabelSelect.addEventListener('change', () => this.handleLabelModeChange());
         this.recordingOverlay.addEventListener('click', (event) => {
             if (event.target === this.recordingOverlay) {
                 this.closeRecordingState();
@@ -1315,20 +1311,13 @@ class Match3Game implements ModeContext {
         this.recordingModePosition.textContent = '';
     }
 
-    private toggleRecordingLabels(): void {
-        this.recordingShowLabels = !this.recordingShowLabels;
-        this.recordingLabelsToggle.textContent = this.recordingShowLabels ? 'Show board' : 'Show cell labels';
-        this.recordingLabelsToggle.classList.toggle('recording-state__toggle--active', this.recordingShowLabels);
+    private handleLabelModeChange(): void {
+        this.recordingLabelMode = this.recordingLabelSelect.value as 'none' | 'axis' | 'cell';
+        const showAxis = this.recordingLabelMode === 'axis';
+        this.recordingBoardWrapper.classList.toggle('recording-state__board-wrapper--no-axis', !showAxis);
+        this.recordingColumnLabels.classList.toggle('recording-state__column-labels--hidden', !showAxis);
+        this.recordingRowLabels.classList.toggle('recording-state__row-labels--hidden', !showAxis);
         this.renderRecordingSnapshot();
-    }
-
-    private toggleRecordingAxis(): void {
-        this.recordingShowAxis = !this.recordingShowAxis;
-        this.recordingAxisToggle.textContent = this.recordingShowAxis ? 'Hide axis labels' : 'Show axis labels';
-        this.recordingAxisToggle.classList.toggle('recording-state__toggle--active', this.recordingShowAxis);
-        this.recordingBoardWrapper.classList.toggle('recording-state__board-wrapper--no-axis', !this.recordingShowAxis);
-        this.recordingColumnLabels.classList.toggle('recording-state__column-labels--hidden', !this.recordingShowAxis);
-        this.recordingRowLabels.classList.toggle('recording-state__row-labels--hidden', !this.recordingShowAxis);
     }
 
     private renderRecordingSnapshot(): void {
@@ -1386,7 +1375,7 @@ class Match3Game implements ModeContext {
             }
             cell.classList.toggle('recording-state__cell--highlight', highlightIndices.has(idx));
             cell.classList.toggle('recording-state__cell--swap', swapIndices.has(idx));
-            if (this.recordingShowLabels) {
+            if (this.recordingLabelMode === 'cell') {
                 this.renderCellLabel(cell, idx);
             }
         });
