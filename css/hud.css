@@ -63,10 +63,6 @@
     min-width: 3.5rem;
 }
 
-.hud__top-stat--multiplier {
-    min-width: 4rem;
-}
-
 .hud__top-stat-value {
     font-size: 1.25rem;
     font-weight: 700;
@@ -344,6 +340,7 @@
     text-shadow: 0 0 6px rgba(7, 10, 18, 0.8);
     pointer-events: none;
     padding-right: 1.2rem;
+    z-index: 1;
     background: linear-gradient(
         90deg,
         #0a0f19 0%,
@@ -354,6 +351,19 @@
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+}
+
+.hud__progress-multiplier {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #e5ebff;
+    text-shadow: 0 0 6px rgba(7, 10, 18, 0.8);
+    pointer-events: none;
+    z-index: 2;
 }
 
 .hud__goals-list {
