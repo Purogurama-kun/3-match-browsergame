@@ -389,6 +389,10 @@ body {
     white-space: nowrap;
 }
 
+.recording-state__mode-tag[hidden] {
+    display: none;
+}
+
 .recording-state__mode-text {
     font-size: 0.7rem;
     letter-spacing: 0.1em;

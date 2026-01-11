@@ -282,6 +282,7 @@ class Match3Game implements ModeContext {
     private recordingCells: HTMLDivElement[] = [];
     private recordingProgress!: HTMLElement;
     private recordingDescription!: HTMLElement;
+    private recordingModeRow!: HTMLElement;
     private recordingModeTag!: HTMLElement;
     private recordingModeText!: HTMLElement;
     private recordingModePosition!: HTMLElement;
@@ -1146,6 +1147,7 @@ class Match3Game implements ModeContext {
         this.recordingBoard = getRequiredElement('recording-board');
         this.recordingProgress = getRequiredElement('recording-progress');
         this.recordingDescription = getRequiredElement('recording-description');
+        this.recordingModeRow = getRequiredElement('recording-mode-row');
         this.recordingModeTag = getRequiredElement('recording-mode-tag');
         this.recordingModeText = getRequiredElement('recording-mode-text');
         this.recordingModePosition = getRequiredElement('recording-mode-position');
@@ -1326,17 +1328,15 @@ class Match3Game implements ModeContext {
         if (!snapshot) {
             this.recordingProgress.textContent = '';
             this.recordingDescription.textContent = '';
-            if (this.recordingMatchCountContainer) {
-                this.recordingMatchCountContainer.hidden = true;
-            }
+            this.recordingModeRow.hidden = true;
             this.updateRecordingModeTag(null);
             return;
         }
-        const matchedTiles = snapshot.move?.kind === 'match' ? snapshot.move.cells.length : 0;
-        if (this.recordingMatchCount) {
+        const hasMove = snapshot.move !== null;
+        this.recordingModeRow.hidden = !hasMove;
+        if (hasMove) {
+            const matchedTiles = snapshot.move?.kind === 'match' ? snapshot.move.cells.length : 0;
             this.recordingMatchCount.textContent = String(matchedTiles);
-        }
-        if (this.recordingMatchCountContainer) {
             this.recordingMatchCountContainer.hidden = matchedTiles === 0;
         }
         const highlightIndices = this.buildHighlightIndices(snapshot);
@@ -1397,7 +1397,7 @@ class Match3Game implements ModeContext {
 
     private describeSnapshot(snapshot: Snapshot): string {
         if (!snapshot.move) {
-            return 'Initial board';
+            return '';
         }
         if (snapshot.move.kind === 'match') {
             const matchType = snapshot.move.matchType === 'manuell' ? 'Manual match' : 'Auto match';
