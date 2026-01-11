@@ -112,7 +112,7 @@ const RECORDING_COLOR_HEX: Record<SnapshotCell['color'], string> = {
 };
 
 const RECORDING_BOMB_ICONS: Record<SnapshotCell['bomb'], { center: string; corner: string }> = {
-    small: { center: '💣', corner: '' },
+    small: { center: '🧨', corner: '' },
     medium: { center: '💥', corner: '' },
     large: { center: '☢️', corner: '' },
     line_horizontal: { center: '💣', corner: '↔️' },
