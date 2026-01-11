@@ -501,6 +501,8 @@ body {
 
 .recording-state__board-wrapper {
     display: grid;
+    width: fit-content;
+    margin-inline: auto;
     grid-template-columns: auto 1fr;
     grid-template-rows: auto 1fr;
     gap: 0.25rem;
