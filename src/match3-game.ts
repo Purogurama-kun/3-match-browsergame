@@ -221,7 +221,10 @@ class Match3Game implements ModeContext {
             getCellBooster: (index) => this.board.getCellBooster(index),
             dropCells: () => this.dropCells(),
             finalizeMoveScore: () => this.finalizeMoveScore(),
-            finishPowerupIfNeeded: () => this.powerups.finishPowerupIfNeeded(),
+            finishPowerupIfNeeded: () => {
+                this.captureSnapshot();
+                this.powerups.finishPowerupIfNeeded();
+            },
             onBoardSettled: () => this.modeState.handleBoardSettled(this.state, this),
             getMatchContext: () => this.matchContext,
             onMatchesDetected: (result, context) => this.handleMatchesDetected(result, context),
