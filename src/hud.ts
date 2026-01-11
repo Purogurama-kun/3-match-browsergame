@@ -28,6 +28,7 @@ class Hud {
         this.movesCard = this.getMovesCard();
         this.scoreProgress = getRequiredElement('score-progress');
         this.scoreProgressFill = getRequiredElement('score-progress-fill');
+        this.goalsCard = this.getGoalsCardElement();
         this.goalsList = this.getGoalsListElement();
         this.tacticalToolbar = this.getTacticalToolbar();
         this.timeHint = this.getTimeHintElement();
@@ -50,6 +51,7 @@ class Hud {
     private movesCard: HTMLElement;
     private scoreProgress: HTMLElement;
     private scoreProgressFill: HTMLElement;
+    private goalsCard: HTMLElement;
     private goalsList: HTMLUListElement;
     private difficultyLabel: HTMLElement;
     private timeHint: HTMLElement;
@@ -231,6 +233,14 @@ class Hud {
         return getRequiredElement<HTMLUListElement>('goals-list');
     }
 
+    private getGoalsCardElement(): HTMLElement {
+        const element = document.querySelector('.hud__card--goals');
+        if (!element) {
+            throw new Error('Missing element: hud__card--goals');
+        }
+        return element as HTMLElement;
+    }
+
     private getTimeHintElement(): HTMLElement {
         return getRequiredElement<HTMLElement>('hud-time-hint');
     }
@@ -336,8 +346,15 @@ class Hud {
         this.goalsList.innerHTML = '';
         if (mode === 'blocker' || mode === 'time') {
             this.hideTimeModeHint();
+            this.goalsCard.style.display = 'none';
             return;
         }
+        if (goals.length === 0) {
+            this.hideTimeModeHint();
+            this.goalsCard.style.display = 'none';
+            return;
+        }
+        this.goalsCard.style.display = '';
         if (mode === 'level' && state.timeRemaining !== undefined && state.timeCapacity !== undefined) {
             this.renderLevelTimeHint(state);
         } else {
