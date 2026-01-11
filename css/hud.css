@@ -331,11 +331,12 @@
     inset: 0;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     font-size: 0.8rem;
     color: #e5ebff;
     text-shadow: 0 0 6px rgba(7, 10, 18, 0.8);
     pointer-events: none;
+    padding-right: 0.5rem;
 }
 
 .hud__goals-list {
