@@ -76,7 +76,7 @@ class Hud {
         this.score.textContent = isTimeMode
             ? this.formatTime(state.timeRemaining ?? 0)
             : state.mode === 'blocker'
-                ? state.score + ' '
+                ? this.formatBlockerScore(state.score, state.bestScore)
                 : state.score + '/' + state.targetScore;
         this.level.textContent = String(state.level);
         this.movesLabel.textContent = isTimeMode ? t('hud.label.time') : t('hud.label.moves');
@@ -331,9 +331,6 @@ class Hud {
     private renderGoals(goals: GoalProgress[], mode: GameMode, state: GameState): void {
         this.goalsList.innerHTML = '';
         if (mode === 'blocker' || mode === 'time') {
-            if (mode === 'blocker') {
-                this.renderBlockerModeHighscore(state.bestScore);
-            }
             this.hideTimeModeHint();
             return;
         }
@@ -440,16 +437,6 @@ class Hud {
         this.levelCard.setAttribute('aria-label', 'Level ' + this.level.textContent + ' – ' + label);
     }
 
-    private renderBlockerModeHighscore(highscore: number): void {
-        const item = document.createElement('li');
-        item.className = 'hud__goal hud__goal--hint';
-        const label = document.createElement('span');
-        label.className = 'hud__goal-label';
-        label.textContent = t('hud.blockerHighscore', { score: highscore });
-        item.appendChild(label);
-        this.goalsList.appendChild(item);
-    }
-
     private renderTimeModeHint(state: GameState): void {
         const survived = this.formatTime(state.survivalTime ?? 0);
         const best = this.formatTime(state.bestScore ?? 0);
@@ -493,6 +480,11 @@ class Hud {
             nightmare: 'Nightmare'
         };
         return labelMap[difficulty];
+    }
+
+    private formatBlockerScore(current: number, highscore: number): string {
+        const safeHighscore = Math.max(0, highscore);
+        return `${current}\u00a0/\u00a0${safeHighscore}`;
     }
 
     private formatTime(totalSeconds: number): string {
