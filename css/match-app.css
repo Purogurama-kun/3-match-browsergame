@@ -572,15 +572,16 @@ body {
 }
 
 .recording-state__toggle {
-    padding: 0.35rem 0.9rem;
-    border-radius: 8px;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
     border: 1px solid #3f4a7e;
     background: #181f3e;
     color: #cbd5ff;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 500;
     cursor: pointer;
     transition: border-color 0.2s ease, background 0.2s ease;
+    white-space: nowrap;
 }
 
 .recording-state__toggle:hover {
