@@ -215,7 +215,10 @@
     font-weight: 500;
     color: #1a1d2e;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    white-space: nowrap;
+    width: max-content;
+    max-width: calc(100vw - 6rem);
+    white-space: normal;
+    overflow-wrap: break-word;
     opacity: 1;
     transition: opacity 0.3s ease;
     z-index: 10;
