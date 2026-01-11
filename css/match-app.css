@@ -342,8 +342,8 @@ body {
 
 .recording-state__heading {
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    align-items: baseline;
+    gap: 0.75rem;
 }
 
 .recording-state__title {
