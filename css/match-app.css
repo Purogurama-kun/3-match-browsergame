@@ -310,7 +310,7 @@ body {
     display: none;
     align-items: flex-start;
     justify-content: center;
-    padding: 1.5rem;
+    padding: 1.5rem 1rem;
     z-index: 320;
     overflow-y: auto;
     pointer-events: none;
