@@ -427,14 +427,26 @@ body {
 }
 
 .recording-state__cell--highlight {
-    box-shadow: 0 0 10px rgba(255, 215, 153, 0.8);
-    transform: scale(1.06);
-    border-color: rgba(255, 205, 115, 0.8);
+    transform: scale(0.8);
+    outline: 3px solid #fff;
+    outline-offset: -1px;
+    box-shadow:
+        0 0 0 5px rgba(0, 0, 0, 0.6),
+        0 0 16px 4px rgba(255, 255, 255, 0.5);
+    animation: recording-highlight-pulse 0.8s ease-in-out infinite;
 }
 
 .recording-state__cell--swap {
-    outline: 2px solid #38bdf8;
-    outline-offset: -2px;
+    outline: 3px solid #fff;
+    outline-offset: -1px;
+    box-shadow:
+        0 0 0 5px rgba(0, 0, 0, 0.6),
+        0 0 12px 2px rgba(255, 255, 255, 0.4);
+}
+
+@keyframes recording-highlight-pulse {
+    0%, 100% { box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.6), 0 0 16px 4px rgba(255, 255, 255, 0.5); }
+    50% { box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.6), 0 0 22px 6px rgba(255, 255, 255, 0.7); }
 }
 
 .recording-state__hint {
