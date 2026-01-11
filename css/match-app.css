@@ -91,6 +91,22 @@ body {
     position: relative;
 }
 
+.match-app--mode-time.match-app--playing {
+    background-color: #0a1b2b;
+    background-image:
+        radial-gradient(circle at 20% 20%, rgba(83, 198, 255, 0.35), transparent 55%),
+        radial-gradient(circle at 85% 25%, rgba(90, 221, 187, 0.3), transparent 50%),
+        linear-gradient(160deg, rgba(6, 21, 38, 0.95) 0%, rgba(10, 32, 48, 0.95) 100%);
+}
+
+.match-app--mode-blocker.match-app--playing {
+    background-color: #27110f;
+    background-image:
+        radial-gradient(circle at 15% 30%, rgba(255, 182, 193, 0.25), transparent 55%),
+        radial-gradient(circle at 80% 10%, rgba(255, 168, 102, 0.3), transparent 50%),
+        linear-gradient(160deg, rgba(34, 10, 12, 0.96) 0%, rgba(44, 18, 12, 0.96) 100%);
+}
+
 .match-app--playing::before {
     content: '';
     position: fixed;
@@ -98,6 +114,14 @@ body {
     background: rgba(3, 1, 10, 0.65);
     pointer-events: none;
     z-index: 0;
+}
+
+.match-app--mode-time.match-app--playing::before {
+    background: linear-gradient(180deg, rgba(3, 9, 18, 0.35) 0%, rgba(3, 9, 18, 0.55) 100%);
+}
+
+.match-app--mode-blocker.match-app--playing::before {
+    background: linear-gradient(180deg, rgba(14, 5, 6, 0.35) 0%, rgba(14, 5, 6, 0.55) 100%);
 }
 
 .match-app--playing > * {

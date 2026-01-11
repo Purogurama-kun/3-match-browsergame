@@ -92,6 +92,12 @@ class Renderer {
 
     setGameMode(mode: GameMode): void {
         this.gameMode = mode;
+        document.body.classList.remove('match-app--mode-time', 'match-app--mode-blocker');
+        if (mode === 'time') {
+            document.body.classList.add('match-app--mode-time');
+        } else if (mode === 'blocker') {
+            document.body.classList.add('match-app--mode-blocker');
+        }
     }
 
     screenShake(): void {
