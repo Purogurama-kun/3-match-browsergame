@@ -49,10 +49,12 @@
     >
         <div class="recording-state__dialog">
             <div class="recording-state__header">
-                <h3 class="recording-state__title">Recorded gameplay</h3>
+                <div class="recording-state__heading">
+                    <h3 class="recording-state__title">Recorded gameplay</h3>
+                    <p id="recording-progress" class="recording-state__progress"></p>
+                </div>
                 <button id="recording-close" class="recording-state__close" type="button">Close</button>
             </div>
-            <p id="recording-progress" class="recording-state__progress"></p>
             <p id="recording-description" class="recording-state__description"></p>
             <div id="recording-board-wrapper" class="recording-state__board-wrapper recording-state__board-wrapper--no-axis">
                 <div id="recording-column-labels" class="recording-state__column-labels recording-state__column-labels--hidden" aria-hidden="true">

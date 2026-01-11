@@ -1317,7 +1317,7 @@ class Match3Game implements ModeContext {
             cell.classList.toggle('recording-state__cell--highlight', highlightIndices.has(idx));
             cell.classList.toggle('recording-state__cell--swap', swapIndices.has(idx));
         });
-        this.recordingProgress.textContent = `Snapshot ${this.recordingIndex + 1} / ${this.recordingHistory.length}`;
+        this.recordingProgress.textContent = `(${this.recordingIndex + 1}/${this.recordingHistory.length})`;
         this.recordingDescription.textContent = this.describeSnapshot(snapshot);
         this.recordingPrevButton.disabled = this.recordingIndex === 0;
         this.recordingNextButton.disabled = this.recordingIndex >= this.recordingHistory.length - 1;
