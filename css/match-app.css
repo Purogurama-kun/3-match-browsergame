@@ -342,14 +342,20 @@ body {
 
 .recording-state__heading {
     display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
 }
 
 .recording-state__title {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: clamp(1rem, 2vw, 1.1rem);
     letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1 1 auto;
 }
 
 .recording-state__close {
@@ -368,6 +374,8 @@ body {
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: none;
+    white-space: nowrap;
+    flex: 0 0 auto;
 }
 
 .recording-state__description {
