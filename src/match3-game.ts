@@ -1330,7 +1330,7 @@ class Match3Game implements ModeContext {
         if (snapshot.move.kind === 'match') {
             const matchType = snapshot.move.matchType === 'manuell' ? 'Manual match' : 'Auto match';
             const swapInfo = snapshot.move.swap
-                ? ` · swapped ${this.describePosition(snapshot.move.swap.cellA)} + ${this.describePosition(
+                ? ` · 🔁 ${this.describePosition(snapshot.move.swap.cellA)} 🡘 ${this.describePosition(
                       snapshot.move.swap.cellB
                   )}`
                 : '';
