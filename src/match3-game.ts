@@ -1297,12 +1297,17 @@ class Match3Game implements ModeContext {
             this.recordingModePosition.textContent = `${from} 🡘 ${to}`;
             return;
         }
-        if (isPowerupMove && move.powerupType === 'swap' && move.coordinates && move.coordinates.length >= 2) {
-            const coords = move.coordinates;
-            const from = this.describePosition(coords[0]!);
-            const to = this.describePosition(coords[1]!);
-            this.recordingModePosition.textContent = `${from} 🡘 ${to}`;
-            return;
+        if (isPowerupMove && move.coordinates && move.coordinates.length > 0) {
+            if (move.powerupType === 'swap' && move.coordinates.length >= 2) {
+                const from = this.describePosition(move.coordinates[0]!);
+                const to = this.describePosition(move.coordinates[1]!);
+                this.recordingModePosition.textContent = `${from} 🡘 ${to}`;
+                return;
+            }
+            if (move.powerupType === 'bomb') {
+                this.recordingModePosition.textContent = this.describePosition(move.coordinates[0]!);
+                return;
+            }
         }
         this.recordingModePosition.textContent = '';
     }
