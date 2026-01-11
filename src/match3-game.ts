@@ -1330,11 +1330,11 @@ class Match3Game implements ModeContext {
         if (snapshot.move.kind === 'match') {
             const matchType = snapshot.move.matchType === 'manuell' ? 'Manual match' : 'Auto match';
             const swapInfo = snapshot.move.swap
-                ? ` · 🔁 ${this.describePosition(snapshot.move.swap.cellA)} 🡘 ${this.describePosition(
+                ? ` 🔁 ${this.describePosition(snapshot.move.swap.cellA)} 🡘 ${this.describePosition(
                       snapshot.move.swap.cellB
                   )}`
                 : '';
-            return `${matchType} · ${snapshot.move.cells.length} tiles matched${swapInfo}`;
+            return `${matchType}${swapInfo} · ${snapshot.move.cells.length} tiles matched`;
         }
         const label =
             snapshot.move.powerupType === 'shuffle'
