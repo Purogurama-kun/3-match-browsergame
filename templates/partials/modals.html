@@ -50,7 +50,32 @@
         <div class="recording-state__dialog">
             <div class="recording-state__header">
                 <div class="recording-state__heading">
-                    <h3 class="recording-state__title">Recorded gameplay</h3>
+                    <div class="recording-state__heading-text">
+                        <h3 class="recording-state__title">Recorded gameplay</h3>
+                        <div class="recording-state__mode-row">
+                            <span class="recording-state__match-count">
+                                <img
+                                    src="assets/images/cell.svg"
+                                    class="recording-state__match-icon"
+                                    alt=""
+                                    aria-hidden="true"
+                                />
+                                <span id="recording-match-count">0</span>
+                            </span>
+                            <span
+                                id="recording-mode-tag"
+                                class="recording-state__mode-tag"
+                                aria-live="polite"
+                            >
+                                <span id="recording-mode-text" class="recording-state__mode-text">manual</span>
+                                <span
+                                    id="recording-mode-position"
+                                    class="recording-state__mode-position"
+                                    aria-live="polite"
+                                ></span>
+                            </span>
+                        </div>
+                    </div>
                     <p id="recording-progress" class="recording-state__progress"></p>
                 </div>
                 <button id="recording-close" class="recording-state__close" type="button">Close</button>

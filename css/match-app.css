@@ -342,10 +342,65 @@ body {
 
 .recording-state__heading {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 0.5rem;
-    flex-wrap: nowrap;
+    gap: 0.75rem;
+}
+
+.recording-state__heading-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.recording-state__mode-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.recording-state__match-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #e2e8f0;
+    font-size: 0.85rem;
+}
+
+.recording-state__match-icon {
+    width: 1rem;
+    height: 1rem;
+    display: block;
+}
+
+.recording-state__mode-tag {
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    padding: 0.15rem 0.85rem;
+    font-size: 0.7rem;
+    letter-spacing: normal;
+    text-transform: none;
+    color: #e2e8f0;
+    background: rgba(148, 163, 184, 0.12);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.recording-state__mode-text {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: lowercase;
+    display: inline-block;
+}
+
+.recording-state__mode-position {
+    color: #fbbf24;
+    font-weight: 600;
+    letter-spacing: normal;
+    text-transform: none;
+    font-size: 0.75rem;
 }
 
 .recording-state__title {

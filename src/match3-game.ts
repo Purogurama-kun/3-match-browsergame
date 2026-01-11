@@ -282,6 +282,10 @@ class Match3Game implements ModeContext {
     private recordingCells: HTMLDivElement[] = [];
     private recordingProgress!: HTMLElement;
     private recordingDescription!: HTMLElement;
+    private recordingModeTag!: HTMLElement;
+    private recordingModeText!: HTMLElement;
+    private recordingModePosition!: HTMLElement;
+    private recordingMatchCount!: HTMLElement;
     private recordingPrevButton!: HTMLButtonElement;
     private recordingNextButton!: HTMLButtonElement;
     private recordingAutoButton!: HTMLButtonElement;
@@ -1141,6 +1145,10 @@ class Match3Game implements ModeContext {
         this.recordingBoard = getRequiredElement('recording-board');
         this.recordingProgress = getRequiredElement('recording-progress');
         this.recordingDescription = getRequiredElement('recording-description');
+        this.recordingModeTag = getRequiredElement('recording-mode-tag');
+        this.recordingModeText = getRequiredElement('recording-mode-text');
+        this.recordingModePosition = getRequiredElement('recording-mode-position');
+        this.recordingMatchCount = getRequiredElement('recording-match-count');
         this.recordingPrevButton = getRequiredElement('recording-prev');
         this.recordingNextButton = getRequiredElement('recording-next');
         this.recordingAutoButton = getRequiredElement('recording-auto');
@@ -1174,6 +1182,7 @@ class Match3Game implements ModeContext {
             this.recordingBoard.appendChild(cell);
             this.recordingCells.push(cell);
         }
+        this.updateRecordingModeTag();
     }
 
     private openRecordingState(): void {
@@ -1223,6 +1232,7 @@ class Match3Game implements ModeContext {
         this.stopRecordingAutoPlay();
         this.recordingAutoPlay = true;
         this.recordingAutoButton.textContent = 'Pause';
+        this.updateRecordingModeTag();
         this.recordingAutoTimer = window.setInterval(() => {
             if (this.recordingIndex >= this.recordingHistory.length - 1) {
                 this.stopRecordingAutoPlay();
@@ -1243,6 +1253,31 @@ class Match3Game implements ModeContext {
         }
         this.recordingAutoPlay = false;
         this.recordingAutoButton.textContent = 'Auto play';
+        this.updateRecordingModeTag();
+    }
+
+    private updateRecordingModeTag(snapshot?: Snapshot | null): void {
+        if (!this.recordingModeTag) return;
+        const currentSnapshot = snapshot ?? this.recordingHistory[this.recordingIndex] ?? null;
+        const move = currentSnapshot?.move ?? null;
+        let matchMove: SnapshotMatchMove | null = null;
+        if (move?.kind === 'match') {
+            matchMove = move;
+        }
+        const isManualMatch = matchMove !== null && matchMove.matchType === 'manuell';
+        const modeText = isManualMatch ? 'manual' : 'auto';
+        if (this.recordingModeText) {
+            this.recordingModeText.textContent = modeText;
+        }
+        this.recordingModeTag.classList.remove('recording-state__mode-tag--auto');
+        if (!this.recordingModePosition) return;
+        if (isManualMatch && matchMove?.swap) {
+            const from = this.describePosition(matchMove.swap.cellA);
+            const to = this.describePosition(matchMove.swap.cellB);
+            this.recordingModePosition.textContent = `${from} 🡘 ${to}`;
+            return;
+        }
+        this.recordingModePosition.textContent = '';
     }
 
     private toggleRecordingLabels(): void {
@@ -1267,6 +1302,10 @@ class Match3Game implements ModeContext {
             this.recordingProgress.textContent = '';
             this.recordingDescription.textContent = '';
             return;
+        }
+        const matchedTiles = snapshot.move?.kind === 'match' ? snapshot.move.cells.length : 0;
+        if (this.recordingMatchCount) {
+            this.recordingMatchCount.textContent = String(matchedTiles);
         }
         const highlightIndices = this.buildHighlightIndices(snapshot);
         const swapIndices = this.buildSwapIndices(snapshot);
@@ -1321,6 +1360,7 @@ class Match3Game implements ModeContext {
         this.recordingDescription.textContent = this.describeSnapshot(snapshot);
         this.recordingPrevButton.disabled = this.recordingIndex === 0;
         this.recordingNextButton.disabled = this.recordingIndex >= this.recordingHistory.length - 1;
+        this.updateRecordingModeTag(snapshot);
     }
 
     private describeSnapshot(snapshot: Snapshot): string {
