@@ -368,6 +368,10 @@ body {
     font-size: 0.85rem;
 }
 
+.recording-state__match-count[hidden] {
+    display: none;
+}
+
 .recording-state__match-icon {
     width: 1rem;
     height: 1rem;
