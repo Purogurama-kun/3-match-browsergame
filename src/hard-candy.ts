@@ -34,6 +34,7 @@ class HardCandy {
                 if (this.board.isBlockedIndex(neighbor)) return;
                 if (!this.board.isHardCandy(neighbor)) return;
                 this.board.softenCandy(neighbor);
+                this.renderer.emitHardCandyBreak(neighbor);
                 softened.add(neighbor);
                 this.renderer.updateCell(neighbor, this.board.getCellState(neighbor));
                 this.softenedHandler?.(neighbor);

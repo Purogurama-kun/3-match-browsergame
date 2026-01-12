@@ -77,6 +77,14 @@
     will-change: transform, opacity;
 }
 
+.board__particle--hard-shell {
+    width: 12px;
+    height: 8px;
+    border-radius: 3px;
+    background: linear-gradient(140deg, #fff, var(--particle-color, #fef3c7));
+    box-shadow: 0 0 14px rgba(250, 204, 21, 0.55);
+}
+
 .board__particle::after {
     content: '';
     position: absolute;

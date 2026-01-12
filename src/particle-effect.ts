@@ -6,6 +6,7 @@ export type ParticleOptions = {
     maxDuration?: number;
     delayVariance?: number;
     accentColor?: string;
+    modifierClass?: string;
 };
 
 export type ShockwaveType = 'line' | 'small' | 'medium' | 'large';
@@ -41,7 +42,9 @@ class ParticleEffect {
 
         for (let i = 0; i < count; i++) {
             const particle = document.createElement('span');
-            particle.className = 'board__particle';
+            particle.className = options.modifierClass
+                ? `board__particle ${options.modifierClass}`
+                : 'board__particle';
             particle.style.left = `${centerX}px`;
             particle.style.top = `${centerY}px`;
             particle.style.setProperty('--particle-color', baseColor);

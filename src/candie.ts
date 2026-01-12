@@ -59,6 +59,7 @@ class Candie {
                 this.renderer.animateGeneratorHit(index);
             }
             this.board.softenCandy(index);
+            this.renderer.emitHardCandyBreak(index);
             this.renderer.updateCell(index, this.board.getCellState(index));
             this.hardCandyHitHandler?.();
             return;

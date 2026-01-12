@@ -310,6 +310,20 @@ class Renderer {
         this.particleEffect.emitFromCell(cell, resolvedColor, options);
     }
 
+    emitHardCandyBreak(index: number): void {
+        if (!this.animationsEnabled) return;
+        const cell = this.getCellElement(index);
+        this.particleEffect.emitFromCell(cell, '#fef3c7', {
+            count: 22,
+            minDistance: 18,
+            maxDistance: 40,
+            minDuration: 0.4,
+            maxDuration: 0.8,
+            delayVariance: 0.12,
+            modifierClass: 'board__particle--hard-shell'
+        });
+    }
+
     animateBombActivation(index: number, _boosterType: BoosterType): void {
         if (!this.animationsEnabled) return;
         const cell = this.getCellElement(index);
