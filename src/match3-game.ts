@@ -1314,14 +1314,14 @@ class Match3Game implements ModeContext {
         if (isManualMatch && matchMove?.swap) {
             const from = this.describePosition(matchMove.swap.cellA);
             const to = this.describePosition(matchMove.swap.cellB);
-            this.recordingModePosition.textContent = `${from} 🡘 ${to}`;
+            this.recordingModePosition.textContent = `${from} ⇄ ${to}`;
             return;
         }
         if (isPowerupMove && move.coordinates && move.coordinates.length > 0) {
             if (move.powerupType === 'swap' && move.coordinates.length >= 2) {
                 const from = this.describePosition(move.coordinates[0]!);
                 const to = this.describePosition(move.coordinates[1]!);
-                this.recordingModePosition.textContent = `${from} 🡘 ${to}`;
+                this.recordingModePosition.textContent = `${from} ⇄ ${to}`;
                 return;
             }
             if (move.powerupType === 'bomb') {
