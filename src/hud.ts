@@ -36,7 +36,8 @@ class Hud {
         this.speechIcon = getRequiredElement('hud-speech-icon');
         this.speechText = getRequiredElement('hud-speech-text');
         this.multiplierValue = getRequiredElement('hud-multiplier');
-        this.multiplierSlot = getRequiredElement('hud-multiplier-slot');
+        this.scoreMultiplierSlot = getRequiredElement('hud-score-multiplier-slot');
+        this.scoreMultiplierValue = getRequiredElement('hud-score-multiplier');
         this.multiplierProgressSlot = getRequiredElement('hud-multiplier-progress-slot');
         this.powerupButtons = {} as Record<TacticalPowerup, HTMLButtonElement>;
         this.powerupCountNodes = {} as Record<TacticalPowerup, HTMLElement>;
@@ -61,10 +62,12 @@ class Hud {
     private speechIcon: HTMLElement;
     private speechText: HTMLElement;
     private multiplierValue: HTMLElement;
-    private multiplierSlot: HTMLElement;
+    private scoreMultiplierSlot: HTMLElement;
+    private scoreMultiplierValue: HTMLElement;
     private multiplierProgressSlot: HTMLElement;
     private readonly optionsMenu: OptionsMenu;
     private cellShapeMode: CellShapeMode = 'square';
+    private currentMode: GameMode = 'level';
     private tacticalToolbar: HTMLElement;
     private powerupButtons: Record<TacticalPowerup, HTMLButtonElement>;
     private powerupCountNodes: Record<TacticalPowerup, HTMLElement>;
@@ -79,7 +82,9 @@ class Hud {
         const isTimeMode = state.mode === 'time';
         const shouldShowMovesCard = state.mode === 'level';
         this.movesCard.style.display = shouldShowMovesCard ? '' : 'none';
-        this.updateMultiplierPlacement(isTimeMode);
+        this.currentMode = state.mode;
+        this.updateMultiplierPlacement();
+        this.updateMultiplierDisplay(state);
         this.score.textContent = isTimeMode
             ? this.formatTime(state.timeRemaining ?? 0)
             : state.mode === 'blocker'
@@ -197,14 +202,29 @@ class Hud {
     }
 
     setMultiplier(value: number): void {
+        if (this.currentMode === 'time') {
+            this.scoreMultiplierValue.textContent = 'x' + value.toFixed(2);
+            return;
+        }
         this.multiplierValue.textContent = 'x' + value.toFixed(2);
     }
 
-    private updateMultiplierPlacement(isTimeMode: boolean): void {
-        this.multiplierSlot.hidden = !isTimeMode;
-        const target = isTimeMode ? this.multiplierSlot : this.multiplierProgressSlot;
+    private updateMultiplierPlacement(): void {
+        const target = this.multiplierProgressSlot;
         if (this.multiplierValue.parentElement === target) return;
         target.appendChild(this.multiplierValue);
+    }
+
+    private updateMultiplierDisplay(state: GameState): void {
+        if (state.mode === 'time') {
+            const timeMultiplier = state.timeDrainMultiplier ?? 1;
+            this.multiplierValue.textContent = 'x' + timeMultiplier.toFixed(2);
+            this.scoreMultiplierSlot.hidden = false;
+            this.scoreMultiplierValue.textContent = 'x' + state.comboMultiplier.toFixed(2);
+            return;
+        }
+        this.scoreMultiplierSlot.hidden = true;
+        this.multiplierValue.textContent = 'x' + state.comboMultiplier.toFixed(2);
     }
 
     setPendingPowerup(type: TacticalPowerup | null): void {

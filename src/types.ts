@@ -82,6 +82,7 @@ type GameState = {
     timeRemaining?: number;
     survivalTime?: number;
     timeCapacity?: number;
+    timeDrainMultiplier?: number;
     powerups: PowerupInventory;
     cellShapeMode: CellShapeMode;
 };

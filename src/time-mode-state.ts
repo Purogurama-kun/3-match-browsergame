@@ -51,6 +51,7 @@ class TimeModeState implements GameModeState {
             timeRemaining: this.startingTime,
             survivalTime: 0,
             timeCapacity: this.startingTime,
+            timeDrainMultiplier: this.getDrainMultiplier(),
             powerups: createFreshPowerupInventory()
             ,
             cellShapeMode: 'square'
@@ -154,6 +155,7 @@ class TimeModeState implements GameModeState {
         this.state.timeRemaining = remaining;
         this.state.survivalTime = (this.state.survivalTime ?? 0) + deltaSeconds;
         this.updateDifficulty(this.state);
+        this.state.timeDrainMultiplier = this.getDrainMultiplier();
         if (remaining <= 0) {
             this.endRun(context);
             return;

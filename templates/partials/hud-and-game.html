@@ -22,9 +22,9 @@
                         <span id="moves-label" class="hud__top-meta-label" data-i18n-key="hud.label.moves">Moves</span>
                         <span id="moves" class="hud__top-meta-value">20</span>
                     </span>
-                    <span id="hud-multiplier-slot" class="hud__top-meta-item hud__top-meta-item--multiplier" hidden>
+                    <span id="hud-score-multiplier-slot" class="hud__top-meta-item hud__top-meta-item--multiplier" hidden>
                         <span class="hud__top-meta-label" data-i18n-key="hud.label.multiplier">Mult.</span>
-                        <span id="hud-multiplier" class="hud__top-meta-value hud__multiplier">x1.00</span>
+                        <span id="hud-score-multiplier" class="hud__top-meta-value hud__multiplier">x1.00</span>
                     </span>
                 </div>
                 <div class="hud__card hud__card--goals hud__card--goals-compact">
@@ -38,7 +38,9 @@
         <div class="hud__progress">
             <div id="score-progress" class="hud__progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0">
                 <div id="score-progress-fill" class="hud__progress-fill"></div>
-                <span id="hud-multiplier-progress-slot" class="hud__progress-multiplier-slot"></span>
+                <span id="hud-multiplier-progress-slot" class="hud__progress-multiplier-slot">
+                    <span id="hud-multiplier" class="hud__multiplier">x1.00</span>
+                </span>
                 <span class="hud__progress-value">
                     <span id="score" class="hud__value-strong">0/300</span>
                 </span>
