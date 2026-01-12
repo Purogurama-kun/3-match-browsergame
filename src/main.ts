@@ -4,6 +4,7 @@ import { getRequiredElement } from './dom.js';
 import { GoogleAuth, GoogleUser } from './google-auth.js';
 import { ProgressStore, StoredProgress } from './progress-store.js';
 import { LocalProgressStore } from './local-progress-store.js';
+import { LocalOptionsStore } from './local-options-store.js';
 import { LocalAttemptStore } from './local-attempt-store.js';
 import { ShopView, getNextPowerupPrice, type ShopState } from './shop.js';
 import {
@@ -19,6 +20,8 @@ import { LevelSelectView } from './level-select.js';
 import { TutorialView } from './tutorial.js';
 import { onLocaleChange, setLocale, t } from './i18n.js';
 import type { Locale } from './i18n.js';
+import { OptionsStore } from './options-store.js';
+import { normalizeGameOptions, type GameOptions } from './game-options.js';
 import type { GameMode, LeaderboardIdentity, LeaderboardMode, PowerupInventory } from './types.js';
 import { isDebugMode, isLocalDebugHost } from './debug.js';
 
@@ -44,6 +47,9 @@ class GameApp {
         this.progressStore = new ProgressStore();
         this.localProgress = new LocalProgressStore();
         this.localAttemptStore = new LocalAttemptStore();
+        this.localOptionsStore = new LocalOptionsStore();
+        this.optionsStore = new OptionsStore();
+        this.options = this.localOptionsStore.load();
         this.guestProfileStore = new GuestProfileStore();
         this.profileState = new ProfileState({
             onExit: () => this.handleAccountExit()
@@ -55,7 +61,11 @@ class GameApp {
             void this.handleDeleteAccount();
         });
         this.game = new Match3Game();
-        this.game.onLanguageChange((locale) => setLocale(locale));
+        this.game.onLanguageChange((locale) => {
+            this.handleOptionsChange({ locale });
+            setLocale(locale);
+        });
+        this.game.onOptionsChange((change) => this.handleOptionsChange(change));
         this.googleAuth = new GoogleAuth({
             loginButtonId: 'google-login',
             errorId: 'auth-error',
@@ -110,6 +120,8 @@ class GameApp {
         this.game.onPowerupInventoryChange((inventory) => this.handlePowerupInventoryChange(inventory));
 
         onLocaleChange((locale) => this.handleLocaleChange(locale));
+        this.applyOptions(this.options);
+        setLocale(this.options.locale);
         this.showMainMenu();
     }
 
@@ -130,10 +142,13 @@ class GameApp {
     private progressStore: ProgressStore;
     private localProgress: LocalProgressStore;
     private localAttemptStore: LocalAttemptStore;
+    private localOptionsStore: LocalOptionsStore;
+    private optionsStore: OptionsStore;
     private currentUser: GoogleUser | null = null;
     private isProgressLoading = false;
     private isProfileNameSaving = false;
     private progress: StoredProgress;
+    private options: GameOptions;
     private game: Match3Game;
     private googleLoginInfoButton: HTMLButtonElement;
     private googleLoginTooltip: HTMLElement;
@@ -406,6 +421,70 @@ class GameApp {
         this.refreshPowerupsAndShop();
     }
 
+    private applyOptions(options: GameOptions): void {
+        const normalized = normalizeGameOptions(options);
+        const audioEnabled = this.game.setAudioEnabled(normalized.audioEnabled);
+        this.game.setPerformanceMode(normalized.performanceModeEnabled);
+        this.game.setRecordingEnabled(normalized.recordingEnabled);
+        this.game.setCellShapeMode(normalized.cellShapeMode);
+        this.options = normalizeGameOptions({
+            ...normalized,
+            audioEnabled
+        });
+    }
+
+    private handleOptionsChange(change: Partial<GameOptions>): void {
+        const next = normalizeGameOptions({ ...this.options, ...change });
+        if (this.areOptionsEqual(this.options, next)) {
+            return;
+        }
+        this.options = next;
+        if (this.currentUser) {
+            void this.persistOptions(this.currentUser.id, next);
+            return;
+        }
+        this.localOptionsStore.save(next);
+    }
+
+    private areOptionsEqual(left: GameOptions, right: GameOptions): boolean {
+        return (
+            left.locale === right.locale &&
+            left.cellShapeMode === right.cellShapeMode &&
+            left.audioEnabled === right.audioEnabled &&
+            left.performanceModeEnabled === right.performanceModeEnabled &&
+            left.recordingEnabled === right.recordingEnabled
+        );
+    }
+
+    private async loadOptions(userId: string): Promise<void> {
+        try {
+            const result = await this.optionsStore.load(userId, this.options);
+            if (!this.isCurrentUser(userId)) {
+                return;
+            }
+            this.options = result.options;
+            this.applyOptions(this.options);
+            setLocale(this.options.locale);
+            if (!result.hasRemote) {
+                void this.persistOptions(userId, this.options);
+            }
+        } catch (error) {
+            console.error('Failed to load options', error);
+        }
+    }
+
+    private async persistOptions(userId: string, options: GameOptions): Promise<void> {
+        try {
+            const stored = await this.optionsStore.save(userId, options);
+            if (!this.isCurrentUser(userId)) {
+                return;
+            }
+            this.options = stored;
+        } catch (error) {
+            console.error('Failed to save options', error);
+        }
+    }
+
     private getLevelButton(): HTMLButtonElement {
         const element = getRequiredElement('start-level');
         if (!(element instanceof HTMLButtonElement)) {
@@ -503,6 +582,7 @@ class GameApp {
         this.googleAuth.clearError();
         this.getGoogleLoginInfoWrapper().hidden = true;
         this.updateStartButtonState();
+        void this.loadOptions(user.id);
         void this.loadProgress(user.id, localProgress);
     }
 
@@ -773,6 +853,7 @@ class GameApp {
         }
         this.game.closeOptions();
         this.progress = this.localProgress.save(this.progress);
+        this.options = this.localOptionsStore.save(this.options);
         this.currentUser = null;
         this.googleAuth.signOut();
         this.googleAuth.setLoggedOut();
@@ -847,7 +928,6 @@ class GameApp {
     }
 }
 
-setLocale('en');
 new GameApp();
 
 if ('serviceWorker' in navigator && !isLocalDebugHost()) {

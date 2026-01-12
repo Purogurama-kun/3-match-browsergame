@@ -32,6 +32,7 @@ import { HardCandy } from './hard-candy.js';
 import { getRequiredElement } from './dom.js';
 import { Match, type MatchContext } from './match.js';
 import type { MatchResult } from './match-scanner.js';
+import type { GameOptions } from './game-options.js';
 import {
     SnapshotRecorder,
     type Snapshot,
@@ -236,15 +237,21 @@ class Match3Game implements ModeContext {
         this.renderer.setRecordingButtonVisible(false);
         this.hud.onTacticalPowerup((type) => this.handleTacticalPowerup(type));
         this.hud.onAudioToggle((enabled) => {
-            const active = this.sounds.setEnabled(enabled);
-            if (active !== enabled) {
-                this.hud.setAudioEnabled(active);
-            }
+            const active = this.setAudioEnabled(enabled);
+            this.optionsChangeListener?.({ audioEnabled: active });
         });
-        this.hud.onRecordingToggle((enabled) => this.setRecordingEnabled(enabled));
-        this.hud.onCellShapeModeChange((mode) => this.updateCellShapeMode(mode));
-        this.hud.onPerformanceModeChange((enabled) => this.setPerformanceMode(enabled));
-        this.setPerformanceMode(this.loadPerformanceModeSetting());
+        this.hud.onRecordingToggle((enabled) => {
+            this.setRecordingEnabled(enabled);
+            this.optionsChangeListener?.({ recordingEnabled: this.recordingEnabled });
+        });
+        this.hud.onCellShapeModeChange((mode) => {
+            this.updateCellShapeMode(mode);
+            this.optionsChangeListener?.({ cellShapeMode: this.cellShapeMode });
+        });
+        this.hud.onPerformanceModeChange((enabled) => {
+            this.setPerformanceMode(enabled);
+            this.optionsChangeListener?.({ performanceModeEnabled: this.performanceMode });
+        });
         this.hud.initOptionsMenu();
         this.hud.setAudioEnabled(this.sounds.isEnabled());
         this.renderer.setCellShapesEnabled(true);
@@ -308,6 +315,7 @@ class Match3Game implements ModeContext {
     private matchContext: MatchContext = { swap: null };
     private autoLimitExceeded = false;
     private recordingEnabled = true;
+    private optionsChangeListener: ((change: Partial<GameOptions>) => void) | null = null;
     private gameActive = false;
     private state: GameState;
     private modeState: GameModeState;
@@ -333,7 +341,6 @@ class Match3Game implements ModeContext {
     private readonly generatorSpreadInterval = 2;
     private readonly generatorSpreadRadius = 3;
     private performanceMode = false;
-    private readonly performanceModeStorageKey = 'match3-performance-mode';
     private readonly hintDelayMs = 10000;
 
     async startLevel(level: number): Promise<void> {
@@ -423,6 +430,10 @@ class Match3Game implements ModeContext {
         this.hud.onLanguageChange(handler);
     }
 
+    onOptionsChange(handler: (change: Partial<GameOptions>) => void): void {
+        this.optionsChangeListener = handler;
+    }
+
     onProgressChange(handler: (highestUnlockedLevel: number) => void): void {
         this.progressListener = handler;
     }
@@ -457,6 +468,23 @@ class Match3Game implements ModeContext {
 
     setPowerupInventory(inventory: PowerupInventory): void {
         this.powerups.setPowerupInventory(inventory);
+    }
+
+    applyOptions(options: GameOptions): void {
+        this.setAudioEnabled(options.audioEnabled);
+        this.setPerformanceMode(options.performanceModeEnabled);
+        this.setRecordingEnabled(options.recordingEnabled);
+        this.setCellShapeMode(options.cellShapeMode);
+    }
+
+    setAudioEnabled(enabled: boolean): boolean {
+        const active = this.sounds.setEnabled(enabled);
+        this.hud.setAudioEnabled(active);
+        return active;
+    }
+
+    setCellShapeMode(mode: CellShapeMode): void {
+        this.updateCellShapeMode(mode);
     }
 
     showLeaderboard(options: LeaderboardStateOptions): void {
@@ -1100,30 +1128,13 @@ class Match3Game implements ModeContext {
         }, this.getAnimationDelay(duration));
     }
 
-    private setPerformanceMode(enabled: boolean): void {
+    setPerformanceMode(enabled: boolean): void {
         this.performanceMode = enabled;
         this.hud.setPerformanceModeEnabled(enabled);
         this.renderer.setAnimationsEnabled(!enabled);
-        this.savePerformanceModeSetting(enabled);
     }
 
-    private savePerformanceModeSetting(enabled: boolean): void {
-        try {
-            window.localStorage.setItem(this.performanceModeStorageKey, enabled ? 'true' : 'false');
-        } catch {
-            // ignore quota or permission issues
-        }
-    }
-
-    private loadPerformanceModeSetting(): boolean {
-        try {
-            return window.localStorage.getItem(this.performanceModeStorageKey) === 'true';
-        } catch {
-            return false;
-        }
-    }
-
-    private setRecordingEnabled(enabled: boolean): void {
+    setRecordingEnabled(enabled: boolean): void {
         if (enabled && this.gameActive) {
             this.hud.setRecordingEnabled(false);
             return;
