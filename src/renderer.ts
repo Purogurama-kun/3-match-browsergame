@@ -623,7 +623,9 @@ class Renderer {
         cell.style.setProperty('--drop-distance', `${distance}px`);
         cell.style.animationDuration = `${duration}ms`;
         void cell.offsetWidth;
-        cell.classList.add('board__cell--drop');
+        requestAnimationFrame(() => {
+            cell.classList.add('board__cell--drop');
+        });
         cell.addEventListener(
             'animationend',
             () => {

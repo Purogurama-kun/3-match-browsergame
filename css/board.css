@@ -127,8 +127,10 @@
 }
 
 .board__cell--drop {
-    transform: translateY(calc(var(--drop-distance, 0px) * -1)) scale(0.98);
-    animation: cell-fall 0.35s ease-out forwards;
+    transform: translateY(calc(var(--drop-distance, 0px) * -1));
+    animation: cell-fall 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    transition: none;
+    will-change: transform;
 }
 
 .board__cell--void {
@@ -259,6 +261,7 @@
 
 .board__cell--explode {
     animation: explode 0.35s ease-out forwards;
+    transition: none;
 }
 
 .board__cell--shake {
@@ -340,9 +343,8 @@
 }
 
 @keyframes cell-fall {
-    0% { transform: translateY(calc(var(--drop-distance, 0px) * -1)) scale(0.98); }
-    70% { transform: translateY(6%) scale(1.01); }
-    100% { transform: translateY(0) scale(1); }
+    0% { transform: translateY(calc(var(--drop-distance, 0px) * -1)); }
+    100% { transform: translateY(0); }
 }
 
 @keyframes explode {
