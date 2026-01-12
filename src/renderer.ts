@@ -298,9 +298,13 @@ class Renderer {
         indices.forEach((index) => {
             const cell = this.getCellElement(index);
             cell.classList.add('board__cell--bomb-explode-combo');
+            cell.style.setProperty('--combo-strength', String(Math.min(Math.max(strength, 0.2), 1)));
             cell.addEventListener(
                 'animationend',
-                () => cell.classList.remove('board__cell--bomb-explode-combo'),
+                () => {
+                    cell.classList.remove('board__cell--bomb-explode-combo');
+                    cell.style.removeProperty('--combo-strength');
+                },
                 { once: true }
             );
         });

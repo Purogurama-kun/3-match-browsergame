@@ -739,12 +739,12 @@
         box-shadow: 0 0 40px 20px rgba(168, 85, 247, 0.9);
     }
     30% {
-        transform: scale(2);
+        transform: scale(calc(1.2 + 1.8 * var(--combo-strength, 0.6)));
         opacity: 0.9;
         filter: brightness(2.5);
     }
     100% {
-        transform: scale(3.5);
+        transform: scale(calc(1.8 + 2.4 * var(--combo-strength, 0.6)));
         opacity: 0;
         filter: brightness(1);
         box-shadow: 0 0 0 0 rgba(168, 85, 247, 0);
