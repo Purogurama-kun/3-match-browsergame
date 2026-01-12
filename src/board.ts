@@ -241,7 +241,7 @@ class Board {
         state.hard = false;
         state.generator = false;
         delete state.lineOrientation;
-        const normalized = Math.max(1, Math.min(4, Math.floor(stage)));
+        const normalized = Math.max(1, Math.min(3, Math.floor(stage)));
         state.sugarChestStage = normalized;
     }
 

@@ -1396,7 +1396,7 @@ class Match3Game implements ModeContext {
                 cell.classList.add('recording-state__cell--sugar-chest');
                 cell.style.setProperty(
                     '--recording-sugar-chest-image',
-                    `url(/assets/images/sugar-chest-${stageIndex}.png)`
+                    `url(/assets/images/sugar-chest-${stageIndex}.webp)`
                 );
                 cell.style.backgroundColor = 'transparent';
                 cell.textContent = '';

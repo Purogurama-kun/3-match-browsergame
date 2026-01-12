@@ -24,7 +24,7 @@ type SnapshotMove = SnapshotMatchMove | SnapshotPowerupMove;
 
 type SnapshotCell = {
     color: 'green' | 'yellow' | 'blue' | 'red' | 'pink' | 'none';
-    sugarChest: 0 | 1 | 2 | 3 | 'none';
+    sugarChest: 0 | 1 | 2 | 'none';
     bomb: 'small' | 'medium' | 'large' | 'line_horizontal' | 'line_vertical' | 'line_both' | 'none';
     hard: boolean;
     generator: boolean;
@@ -144,7 +144,7 @@ class SnapshotRecorder {
 
     private normalizeSugarChest(stage?: number): SnapshotCell['sugarChest'] {
         if (typeof stage !== 'number') return 'none';
-        const normalized = Math.max(0, Math.min(3, Math.floor(stage) - 1));
+        const normalized = Math.max(0, Math.min(2, Math.floor(stage) - 1));
         return normalized as SnapshotCell['sugarChest'];
     }
 

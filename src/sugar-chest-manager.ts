@@ -52,7 +52,7 @@ class SugarChestManager {
     handleHit(index: number, triggeredByMatch: boolean): boolean {
         if (!this.board.isSugarChest(index)) return false;
         const stage = this.board.getSugarChestStage(index) ?? 1;
-        if (stage >= 4) {
+        if (stage >= 3) {
             if (triggeredByMatch) {
                 this.destroy(index);
             }
