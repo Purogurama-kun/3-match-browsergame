@@ -8,6 +8,8 @@ export type ParticleOptions = {
     accentColor?: string;
 };
 
+export type ShockwaveType = 'line' | 'small' | 'medium' | 'large';
+
 class ParticleEffect {
     private container: HTMLDivElement = this.createContainer();
 
@@ -55,6 +57,27 @@ class ParticleEffect {
             particle.addEventListener('animationend', () => particle.remove(), { once: true });
             this.container.appendChild(particle);
         }
+    }
+
+    emitShockwave(cell: HTMLDivElement, type: ShockwaveType): void {
+        const boardRect = this.boardEl.getBoundingClientRect();
+        const cellRect = cell.getBoundingClientRect();
+        const centerX = cellRect.left + cellRect.width / 2 - boardRect.left;
+        const centerY = cellRect.top + cellRect.height / 2 - boardRect.top;
+
+        const shockwave = document.createElement('div');
+        shockwave.className = `board__shockwave board__shockwave--${type}`;
+        shockwave.style.left = `${centerX}px`;
+        shockwave.style.top = `${centerY}px`;
+        shockwave.addEventListener('animationend', () => shockwave.remove(), { once: true });
+        this.container.appendChild(shockwave);
+    }
+
+    emitFlash(type: ShockwaveType): void {
+        const flash = document.createElement('div');
+        flash.className = `board__flash board__flash--${type}`;
+        flash.addEventListener('animationend', () => flash.remove(), { once: true });
+        this.boardEl.appendChild(flash);
     }
 
     private createContainer(): HTMLDivElement {

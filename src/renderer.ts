@@ -14,7 +14,7 @@ import {
 import type { ColorKey } from './constants.js';
 import { t } from './i18n.js';
 import { ParticleEffect } from './particle-effect.js';
-import type { ParticleOptions } from './particle-effect.js';
+import type { ParticleOptions, ShockwaveType } from './particle-effect.js';
 
 type ModalOptions = {
     title: string;
@@ -257,6 +257,46 @@ class Renderer {
             options.accentColor ||
             null;
         this.particleEffect.emitFromCell(cell, resolvedColor, options);
+    }
+
+    animateBombActivation(index: number, _boosterType: BoosterType): void {
+        if (!this.animationsEnabled) return;
+        const cell = this.getCellElement(index);
+        cell.classList.add('board__cell--bomb-activate');
+        cell.addEventListener(
+            'animationend',
+            () => cell.classList.remove('board__cell--bomb-activate'),
+            { once: true }
+        );
+    }
+
+    animateBombExplosion(index: number, boosterType: BoosterType): void {
+        if (!this.animationsEnabled) return;
+        const cell = this.getCellElement(index);
+        const shockwaveType = this.getShockwaveType(boosterType);
+        if (!shockwaveType) return;
+
+        const explosionClass = `board__cell--bomb-explode-${shockwaveType}`;
+        cell.classList.add(explosionClass);
+        cell.addEventListener(
+            'animationend',
+            () => cell.classList.remove(explosionClass),
+            { once: true }
+        );
+
+        this.particleEffect.emitShockwave(cell, shockwaveType);
+
+        if (boosterType === BOOSTERS.BURST_MEDIUM || boosterType === BOOSTERS.BURST_LARGE) {
+            this.particleEffect.emitFlash(shockwaveType);
+        }
+    }
+
+    private getShockwaveType(boosterType: BoosterType): ShockwaveType | null {
+        if (boosterType === BOOSTERS.LINE) return 'line';
+        if (boosterType === BOOSTERS.BURST_SMALL) return 'small';
+        if (boosterType === BOOSTERS.BURST_MEDIUM) return 'medium';
+        if (boosterType === BOOSTERS.BURST_LARGE) return 'large';
+        return null;
     }
 
     isCellExploding(index: number): boolean {

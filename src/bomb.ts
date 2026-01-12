@@ -32,6 +32,10 @@ class Bomb {
         overrideOrientation?: LineOrientation
     ): void {
         const sourceIndex = this.indexAt(row, col);
+
+        this.renderer.animateBombActivation(sourceIndex, booster);
+        this.renderer.animateBombExplosion(sourceIndex, booster);
+
         if (booster === BOOSTERS.LINE) {
             this.sounds.play('lineBomb');
             const orientation =
