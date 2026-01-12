@@ -60,6 +60,10 @@
     letter-spacing: 0.05em;
 }
 
+.hud__top-meta-item[hidden] {
+    display: none;
+}
+
 .hud__top-meta-label {
     font-size: 0.65rem;
     color: #8b92b0;
@@ -432,17 +436,24 @@
     -webkit-text-fill-color: transparent;
 }
 
-.hud__progress-multiplier {
+.hud__progress-multiplier-slot {
     position: absolute;
     left: 0.75rem;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #e5ebff;
-    text-shadow: 0 0 6px rgba(7, 10, 18, 0.8);
     pointer-events: none;
     z-index: 2;
+}
+
+.hud__multiplier {
+    font-weight: 700;
+    color: #f8fafc;
+    text-shadow: 0 0 6px rgba(7, 10, 18, 0.8);
+}
+
+.hud__progress-multiplier-slot .hud__multiplier {
+    font-size: 0.7rem;
+    color: #e5ebff;
 }
 
 .hud__goals-list {

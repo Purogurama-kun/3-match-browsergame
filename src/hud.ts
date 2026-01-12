@@ -36,6 +36,8 @@ class Hud {
         this.speechIcon = getRequiredElement('hud-speech-icon');
         this.speechText = getRequiredElement('hud-speech-text');
         this.multiplierValue = getRequiredElement('hud-multiplier');
+        this.multiplierSlot = getRequiredElement('hud-multiplier-slot');
+        this.multiplierProgressSlot = getRequiredElement('hud-multiplier-progress-slot');
         this.powerupButtons = {} as Record<TacticalPowerup, HTMLButtonElement>;
         this.powerupCountNodes = {} as Record<TacticalPowerup, HTMLElement>;
         this.initPowerupButtons();
@@ -59,6 +61,8 @@ class Hud {
     private speechIcon: HTMLElement;
     private speechText: HTMLElement;
     private multiplierValue: HTMLElement;
+    private multiplierSlot: HTMLElement;
+    private multiplierProgressSlot: HTMLElement;
     private readonly optionsMenu: OptionsMenu;
     private cellShapeMode: CellShapeMode = 'square';
     private tacticalToolbar: HTMLElement;
@@ -75,6 +79,7 @@ class Hud {
         const isTimeMode = state.mode === 'time';
         const shouldShowMovesCard = state.mode === 'level';
         this.movesCard.style.display = shouldShowMovesCard ? '' : 'none';
+        this.updateMultiplierPlacement(isTimeMode);
         this.score.textContent = isTimeMode
             ? this.formatTime(state.timeRemaining ?? 0)
             : state.mode === 'blocker'
@@ -193,6 +198,13 @@ class Hud {
 
     setMultiplier(value: number): void {
         this.multiplierValue.textContent = 'x' + value.toFixed(2);
+    }
+
+    private updateMultiplierPlacement(isTimeMode: boolean): void {
+        this.multiplierSlot.hidden = !isTimeMode;
+        const target = isTimeMode ? this.multiplierSlot : this.multiplierProgressSlot;
+        if (this.multiplierValue.parentElement === target) return;
+        target.appendChild(this.multiplierValue);
     }
 
     setPendingPowerup(type: TacticalPowerup | null): void {
