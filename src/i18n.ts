@@ -212,8 +212,10 @@ const TRANSLATIONS = {
         'tutorial.matches.fourText': 'Creates a line bomb.',
         'tutorial.matches.fiveTitle': 'Match 5',
         'tutorial.matches.fiveText': 'Creates a large blast bomb. A match 5 bomb is activated by clicking on it.',
-        'tutorial.matches.ltTitle': 'L or T',
-        'tutorial.matches.ltText': 'Creates a medium blast bomb.',
+        'tutorial.matches.lTitle': 'L Match',
+        'tutorial.matches.lText': 'Creates a medium blast bomb.',
+        'tutorial.matches.tTitle': 'T Match',
+        'tutorial.matches.tText': 'Creates a medium blast bomb.',
         'tutorial.matches.squareTitle': 'Square (2x2)',
         'tutorial.matches.squareText': 'Creates a small blast bomb.',
         'tutorial.mechanics.multiplierText':
@@ -455,8 +457,10 @@ const TRANSLATIONS = {
         'tutorial.matches.fiveTitle': 'Match 5',
         'tutorial.matches.fiveText':
             'Erzeugt eine große Explosionsbombe. Eine Match-5-Bombe wird durch Anklicken aktiviert.',
-        'tutorial.matches.ltTitle': 'L oder T',
-        'tutorial.matches.ltText': 'Erzeugt eine mittlere Explosionsbombe.',
+        'tutorial.matches.lTitle': 'L-Match',
+        'tutorial.matches.lText': 'Erzeugt eine mittlere Explosionsbombe.',
+        'tutorial.matches.tTitle': 'T-Match',
+        'tutorial.matches.tText': 'Erzeugt eine mittlere Explosionsbombe.',
         'tutorial.matches.squareTitle': 'Quadrat (2x2)',
         'tutorial.matches.squareText': 'Erzeugt eine kleine Explosionsbombe.',
         'tutorial.mechanics.multiplierText':
