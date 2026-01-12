@@ -14,6 +14,7 @@
     "watch:templates": "python3 scripts/watch-templates.py",
     "server": "npm run render && php -c backend/php.ini -S 0.0.0.0:5500 -t .",
     "docs": "jsdoc -c jsdoc.json",
+    "publish": "node scripts/publish.cjs",
     "codex": "codex --model gpt-5.1-codex-mini",
     "codex:exec": "codex exec --model gpt-5.1-codex-mini",
     "codex:apply": "codex apply"
