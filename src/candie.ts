@@ -73,9 +73,9 @@ class Candie {
             this.renderer.animateGeneratorHit(index);
         }
         this.renderer.markCellExploding(index);
+        this.board.clearCell(index);
         this.defer(() => {
             this.renderer.clearCellExplosion(index);
-            this.board.clearCell(index);
             this.awardScore(this.baseCellPoints);
             if (color) {
                 this.onColorCleared(color);

@@ -738,75 +738,7 @@
         </div>
     </div>
 
-    <div
-        id="recording-state"
-        class="recording-state"
-        hidden
-        role="dialog"
-        aria-modal="true"
-        aria-live="polite"
-        aria-label="Recorded gameplay"
-    >
-        <div class="recording-state__dialog">
-            <div class="recording-state__header">
-                <h3 class="recording-state__title" data-i18n-key="recording.title">Recorded gameplay</h3>
-                <p id="recording-progress" class="recording-state__progress"></p>
-                <button id="recording-close" class="recording-state__close" type="button" data-i18n-key="recording.close">
-                    Close
-                </button>
-            </div>
-            <div class="recording-state__toolbar">
-                <div id="recording-mode-row" class="recording-state__mode-row">
-                    <span id="recording-match-count-container" class="recording-state__match-count">
-                        <img
-                            src="assets/images/cell.svg"
-                            class="recording-state__match-icon"
-                            alt=""
-                            aria-hidden="true"
-                        />
-                        <span id="recording-match-count">0</span>
-                    </span>
-                    <span
-                        id="recording-mode-tag"
-                        class="recording-state__mode-tag"
-                        aria-live="polite"
-                    >
-                        <span id="recording-mode-text" class="recording-state__mode-text">manual</span>
-                        <span
-                            id="recording-mode-position"
-                            class="recording-state__mode-position"
-                            aria-live="polite"
-                        ></span>
-                    </span>
-                </div>
-                <select id="recording-label-select" class="recording-state__label-select">
-                    <option value="none" selected data-i18n-key="recording.label.none">No labels</option>
-                    <option value="axis" data-i18n-key="recording.label.axis">Axis labels</option>
-                    <option value="cell" data-i18n-key="recording.label.cell">Cell labels</option>
-                </select>
-            </div>
-            <div id="recording-board-wrapper" class="recording-state__board-wrapper recording-state__board-wrapper--no-axis">
-                <div id="recording-column-labels" class="recording-state__column-labels recording-state__column-labels--hidden" aria-hidden="true">
-                    <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span>
-                </div>
-                <div id="recording-row-labels" class="recording-state__row-labels recording-state__row-labels--hidden" aria-hidden="true">
-                    <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span>
-                </div>
-                <div id="recording-board" class="recording-state__board" aria-live="polite"></div>
-            </div>
-            <div class="recording-state__controls">
-                <button id="recording-prev" class="recording-state__control" type="button" data-i18n-key="recording.control.prev">
-                    Prev
-                </button>
-                <button id="recording-next" class="recording-state__control" type="button" data-i18n-key="recording.control.next">
-                    Next
-                </button>
-                <button id="recording-auto" class="recording-state__control recording-state__control--primary" type="button">
-                    Auto play
-                </button>
-            </div>
-        </div>
-    </div>
+    
 
     
 

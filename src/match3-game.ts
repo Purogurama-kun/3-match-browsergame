@@ -656,6 +656,7 @@ class Match3Game implements ModeContext {
     }
 
     private activateBooster(index: number, consumesMove: boolean, override?: BoosterActivationOverride): void {
+        if (this.board.isHardCandy(index)) return;
         const { row, col } = this.getRowCol(index);
         const booster = override?.booster ?? this.board.getCellBooster(index);
         if (booster === BOOSTERS.NONE) return;
@@ -869,6 +870,9 @@ class Match3Game implements ModeContext {
     private getBombInfo(
         index: number
     ): { row: number; col: number; booster: BoosterType; orientation?: LineOrientation } | null {
+        if (this.board.isHardCandy(index)) {
+            return null;
+        }
         const booster = this.board.getCellBooster(index);
         if (!this.isBombBooster(booster)) {
             return null;

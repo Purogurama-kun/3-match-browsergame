@@ -257,6 +257,7 @@ class MatchScanner {
         accumulator: MatchAccumulator,
         orientation?: LineOrientation
     ): void {
+        if (this.board.isBlockerGenerator(index)) return;
         if (accumulator.boosterSlots.has(index)) return;
         accumulator.boosterSlots.add(index);
         const creation: BoosterCreation = { index, type };

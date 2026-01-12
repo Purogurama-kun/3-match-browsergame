@@ -63,6 +63,7 @@ class Bomb {
     }
 
     createBooster(index: number, type: BoosterType, orientation?: LineOrientation): void {
+        if (this.board.isBlockerGenerator(index)) return;
         if (type === BOOSTERS.BURST_LARGE) {
             this.board.setCellColor(index, BLACK_BOMB_COLOR);
         } else {
@@ -78,6 +79,7 @@ class Bomb {
     }
 
     spawnFallingBomb(index: number): void {
+        if (this.board.isBlockerGenerator(index)) return;
         this.board.setCellColor(index, randomColor());
         this.board.setBooster(index, BOOSTERS.BURST_SMALL);
         this.renderer.updateCell(index, this.board.getCellState(index));
