@@ -1,6 +1,6 @@
 import { Hud } from './hud.js';
 import { getRequiredElement } from './dom.js';
-import { Board, CellState } from './board.js';
+import { Board, CellState, type DropMove } from './board.js';
 import { SwipeDirection } from './types.js';
 import type { GameMode, LineOrientation } from './types.js';
 import {
@@ -166,6 +166,34 @@ class Renderer {
         if (this.selectedIndex === index) {
             this.getCellElement(index).classList.add('board__cell--selected');
         }
+    }
+
+    animateDrops(moves: DropMove[], spawnedIndices: number[]): void {
+        if (!this.animationsEnabled) {
+            return;
+        }
+        if (moves.length === 0 && spawnedIndices.length === 0) {
+            return;
+        }
+        const rowStep = this.getRowStep();
+        if (rowStep <= 0) {
+            return;
+        }
+        const animatedIndices = new Set<number>();
+        moves.forEach((move) => {
+            const fromRow = this.getRowCol(move.from).row;
+            const toRow = this.getRowCol(move.to).row;
+            const deltaRows = toRow - fromRow;
+            if (deltaRows <= 0) return;
+            this.applyDropAnimation(move.to, deltaRows, rowStep);
+            animatedIndices.add(move.to);
+        });
+        spawnedIndices.forEach((index) => {
+            if (animatedIndices.has(index)) return;
+            const row = this.getRowCol(index).row;
+            const deltaRows = Math.max(1, row + 1);
+            this.applyDropAnimation(index, deltaRows, rowStep);
+        });
     }
 
     showInvalidMove(index: number): void {
@@ -571,6 +599,40 @@ class Renderer {
         notification.addEventListener('animationend', removeNotification);
         this.gameEl.appendChild(notification);
         window.setTimeout(removeNotification, 1200);
+    }
+
+    private getRowStep(): number {
+        const firstCell = this.cells[0];
+        const nextRowCell = this.cells[GRID_SIZE];
+        if (!firstCell) return 0;
+        if (nextRowCell) {
+            const delta = nextRowCell.getBoundingClientRect().top - firstCell.getBoundingClientRect().top;
+            if (delta > 0) {
+                return delta;
+            }
+        }
+        return firstCell.getBoundingClientRect().height;
+    }
+
+    private applyDropAnimation(index: number, deltaRows: number, rowStep: number): void {
+        if (deltaRows <= 0 || rowStep <= 0) return;
+        const cell = this.getCellElement(index);
+        const distance = deltaRows * rowStep;
+        const duration = Math.min(520, 160 + deltaRows * 55);
+        cell.classList.remove('board__cell--drop');
+        cell.style.setProperty('--drop-distance', `${distance}px`);
+        cell.style.animationDuration = `${duration}ms`;
+        void cell.offsetWidth;
+        cell.classList.add('board__cell--drop');
+        cell.addEventListener(
+            'animationend',
+            () => {
+                cell.classList.remove('board__cell--drop');
+                cell.style.removeProperty('--drop-distance');
+                cell.style.removeProperty('animation-duration');
+            },
+            { once: true }
+        );
     }
 
     private getRowCol(index: number): { row: number; col: number } {

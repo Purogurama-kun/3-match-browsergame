@@ -8,7 +8,7 @@ import {
 } from './constants.js';
 import { SoundManager } from './sound-manager.js';
 import { Hud } from './hud.js';
-import { Board } from './board.js';
+import { Board, type DropMove } from './board.js';
 import { CellShapeMode, GameMode, GameState, PowerupInventory, SwipeDirection } from './types.js';
 import type { LineOrientation } from './types.js';
 import { Renderer } from './renderer.js';
@@ -792,9 +792,13 @@ class Match3Game implements ModeContext {
     }
 
     private dropCells(): void {
+        const moves: DropMove[] = [];
+        const spawnedIndices: number[] = [];
         for (let col = 0; col < GRID_SIZE; col++) {
-            const emptyIndices = this.board.collapseColumn(col);
+            const { emptyIndices, moves: columnMoves } = this.board.collapseColumn(col);
+            moves.push(...columnMoves);
             emptyIndices.forEach((index) => {
+                spawnedIndices.push(index);
                 if (this.board.trySpawnSugarChest(index)) return;
                 const spawnHardCandy = this.shouldSpawnHardCandy();
                 if (this.shouldSpawnBombFromDrop()) {
@@ -808,6 +812,7 @@ class Match3Game implements ModeContext {
             });
         }
         this.renderer.refreshBoard(this.board);
+        this.renderer.animateDrops(moves, spawnedIndices);
         this.captureSnapshot();
         this.defer(() => {
             this.setMatchSwap(null);

@@ -22,6 +22,16 @@ type ColumnEntry = {
     sugarChestStage?: number;
 };
 
+type DropMove = {
+    from: number;
+    to: number;
+};
+
+type CollapseResult = {
+    emptyIndices: number[];
+    moves: DropMove[];
+};
+
 class Board {
     private cellStates: CellState[] = [];
     private blockedIndices: Set<number> = new Set();
@@ -169,20 +179,21 @@ class Board {
         return this.cellStates;
     }
 
-    collapseColumn(col: number): number[] {
+    collapseColumn(col: number): CollapseResult {
         const emptyIndices: number[] = [];
+        const moves: DropMove[] = [];
         let segmentBottom = GRID_SIZE - 1;
         for (let row = GRID_SIZE - 1; row >= -1; row--) {
             const isBoundary = row < 0 || this.isBlockedIndex(row * GRID_SIZE + col);
             if (isBoundary) {
                 const segmentTop = row + 1;
                 if (segmentTop <= segmentBottom) {
-                    this.collapseColumnSegment(col, segmentTop, segmentBottom, emptyIndices);
+                    this.collapseColumnSegment(col, segmentTop, segmentBottom, emptyIndices, moves);
                 }
                 segmentBottom = row - 1;
             }
         }
-        return emptyIndices;
+        return { emptyIndices, moves };
     }
 
     private pickColorForIndex(index: number): string {
@@ -265,22 +276,31 @@ class Board {
         return Math.random() < SUGAR_CHEST_CHANCE;
     }
 
-    private collapseColumnSegment(col: number, topRow: number, bottomRow: number, emptyIndices: number[]): void {
+    private collapseColumnSegment(
+        col: number,
+        topRow: number,
+        bottomRow: number,
+        emptyIndices: number[],
+        moves: DropMove[]
+    ): void {
         if (topRow > bottomRow) return;
-        const entries: ColumnEntry[] = [];
+        const entries: { entry: ColumnEntry; fromIndex: number }[] = [];
         for (let row = topRow; row <= bottomRow; row++) {
             const index = row * GRID_SIZE + col;
             const entry = this.captureColumnEntry(index);
             if (entry) {
-                entries.push(entry);
+                entries.push({ entry, fromIndex: index });
             }
             this.clearCell(index);
         }
         let targetRow = bottomRow;
         while (entries.length > 0) {
-            const entry = entries.pop()!;
+            const { entry, fromIndex } = entries.pop()!;
             const index = targetRow * GRID_SIZE + col;
             this.placeColumnEntry(index, entry);
+            if (fromIndex !== index) {
+                moves.push({ from: fromIndex, to: index });
+            }
             targetRow--;
         }
         for (let row = targetRow; row >= topRow; row--) {
@@ -334,4 +354,4 @@ class Board {
     }
 }
 
-export { Board, CellState };
+export { Board, CellState, CollapseResult, DropMove };
