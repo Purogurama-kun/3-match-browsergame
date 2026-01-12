@@ -96,7 +96,9 @@ class Bomb {
         if (centers.length < 2) return;
 
         const centerIndices = centers.map((c) => this.indexAt(c.row, c.col));
-        this.renderer.animateBombCombo(centerIndices);
+        const boosters = centers.map((c) => c.booster);
+        const comboStrength = this.getComboStrength(boosters);
+        this.renderer.animateBombCombo(centerIndices, comboStrength);
 
         const affected = new Set<number>();
         centers.forEach((center) => {
@@ -261,6 +263,20 @@ class Bomb {
 
     private indexAt(row: number, col: number): number {
         return row * GRID_SIZE + col;
+    }
+
+    private getComboStrength(boosters: BoosterType[]): number {
+        const getBoosterWeight = (booster: BoosterType): number => {
+            if (booster === BOOSTERS.BURST_SMALL) return 1;
+            if (booster === BOOSTERS.LINE) return 2;
+            if (booster === BOOSTERS.BURST_MEDIUM) return 3;
+            if (booster === BOOSTERS.BURST_LARGE) return 4;
+            return 0;
+        };
+
+        const totalWeight = boosters.reduce((sum, b) => sum + getBoosterWeight(b), 0);
+        const maxPossibleWeight = boosters.length * 4;
+        return totalWeight / maxPossibleWeight;
     }
 }
 

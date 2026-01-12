@@ -291,7 +291,7 @@ class Renderer {
         }
     }
 
-    animateBombCombo(indices: number[]): void {
+    animateBombCombo(indices: number[], strength: number = 0.5): void {
         if (!this.animationsEnabled) return;
         if (indices.length === 0) return;
 
@@ -309,8 +309,8 @@ class Renderer {
         if (primaryIndex === undefined) return;
         const primaryCell = this.getCellElement(primaryIndex);
 
-        this.particleEffect.emitComboShockwave(primaryCell);
-        this.particleEffect.emitComboSparks(primaryCell);
+        this.particleEffect.emitComboShockwave(primaryCell, strength);
+        this.particleEffect.emitComboSparks(primaryCell, strength);
         this.particleEffect.emitFlash('combo');
     }
 
