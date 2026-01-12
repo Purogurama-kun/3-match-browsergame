@@ -39,8 +39,7 @@ const listFiles = (baseDir, options) => {
 const files = new Set([
     '/',
     '/index.html',
-    '/manifest.webmanifest',
-    '/favicon.png'
+    '/manifest.webmanifest'
 ]);
 
 [
