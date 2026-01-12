@@ -7,6 +7,14 @@ const SOUND_FILES: Record<SoundKey, string> = {
     levelFail: 'assets/sounds/level-fail.ogg'
 };
 
+const SOUND_VOLUMES: Record<SoundKey, number> = {
+    match: 0.35,
+    lineBomb: 0.6,
+    radiusBomb: 0.6,
+    levelUp: 0.7,
+    levelFail: 0.7
+};
+
 class SoundManager {
     private sounds: Record<SoundKey, [HTMLAudioElement, ...HTMLAudioElement[]]>;
     private enabled: boolean;
@@ -41,7 +49,7 @@ class SoundManager {
         this.ensurePrimed();
         const pool = this.sounds[key];
         if (!pool || pool.length === 0) return;
-        const sound = this.getAvailableAudio(pool);
+        const sound = this.getAvailableAudio(pool, key);
         sound.currentTime = 0;
         const playPromise = sound.play();
         if (playPromise && typeof playPromise.catch === 'function') {
@@ -73,14 +81,14 @@ class SoundManager {
         return audio;
     }
 
-    private getAvailableAudio(pool: [HTMLAudioElement, ...HTMLAudioElement[]]): HTMLAudioElement {
+    private getAvailableAudio(pool: [HTMLAudioElement, ...HTMLAudioElement[]], key: SoundKey): HTMLAudioElement {
         const available = pool.find((audio) => audio.paused || audio.ended);
         if (available) {
-            this.prepareForPlayback(available);
+            this.prepareForPlayback(available, key);
             return available;
         }
         const fallback = pool[0];
-        this.prepareForPlayback(fallback);
+        this.prepareForPlayback(fallback, key);
         return fallback;
     }
 
@@ -121,10 +129,10 @@ class SoundManager {
         });
     }
 
-    private prepareForPlayback(audio: HTMLAudioElement): void {
+    private prepareForPlayback(audio: HTMLAudioElement, key: SoundKey): void {
         this.resetAudio(audio);
         audio.muted = false;
-        audio.volume = 1;
+        audio.volume = SOUND_VOLUMES[key];
     }
 
     private resetAudio(audio: HTMLAudioElement, keepMuted: boolean = false): void {
