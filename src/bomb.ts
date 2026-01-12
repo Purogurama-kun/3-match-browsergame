@@ -94,6 +94,10 @@ class Bomb {
         isBlockerMode: boolean
     ): void {
         if (centers.length < 2) return;
+
+        const centerIndices = centers.map((c) => this.indexAt(c.row, c.col));
+        this.renderer.animateBombCombo(centerIndices);
+
         const affected = new Set<number>();
         centers.forEach((center) => {
             const impact = this.collectBombImpact(center, isBlockerMode);

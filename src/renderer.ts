@@ -291,6 +291,29 @@ class Renderer {
         }
     }
 
+    animateBombCombo(indices: number[]): void {
+        if (!this.animationsEnabled) return;
+        if (indices.length === 0) return;
+
+        indices.forEach((index) => {
+            const cell = this.getCellElement(index);
+            cell.classList.add('board__cell--bomb-explode-combo');
+            cell.addEventListener(
+                'animationend',
+                () => cell.classList.remove('board__cell--bomb-explode-combo'),
+                { once: true }
+            );
+        });
+
+        const primaryIndex = indices[0];
+        if (primaryIndex === undefined) return;
+        const primaryCell = this.getCellElement(primaryIndex);
+
+        this.particleEffect.emitComboShockwave(primaryCell);
+        this.particleEffect.emitComboSparks(primaryCell);
+        this.particleEffect.emitFlash('combo');
+    }
+
     private getShockwaveType(boosterType: BoosterType): ShockwaveType | null {
         if (boosterType === BOOSTERS.LINE) return 'line';
         if (boosterType === BOOSTERS.BURST_SMALL) return 'small';
