@@ -14,7 +14,7 @@
     width: 100%;
     border-radius: 32px;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    background: linear-gradient(180deg, rgba(16, 14, 24, 0.96), rgba(6, 4, 10, 0.98));
+    background: linear-gradient(180deg, rgba(20, 18, 30, 0.97), rgba(7, 5, 12, 0.98));
     box-shadow:
         0 30px 60px rgba(0, 0, 0, 0.6),
         inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -33,9 +33,12 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0 1.25rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(6, 4, 10, 0.92);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+        rgba(6, 4, 10, 0.92);
     backdrop-filter: blur(16px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
 .level-select__top-title {
@@ -113,12 +116,12 @@
 .level-select__map {
     position: relative;
     border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     background:
-        radial-gradient(circle at top left, rgba(255, 184, 196, 0.2), transparent 45%),
-        radial-gradient(circle at 85% 20%, rgba(251, 191, 36, 0.16), transparent 50%),
-        radial-gradient(circle at 30% 75%, rgba(59, 130, 246, 0.18), transparent 48%),
-        linear-gradient(180deg, rgba(20, 18, 30, 0.95), rgba(8, 6, 12, 0.98));
+        radial-gradient(circle at top left, rgba(255, 184, 196, 0.24), transparent 45%),
+        radial-gradient(circle at 85% 15%, rgba(251, 191, 36, 0.2), transparent 48%),
+        radial-gradient(circle at 30% 75%, rgba(59, 130, 246, 0.22), transparent 48%),
+        linear-gradient(180deg, rgba(22, 20, 34, 0.96), rgba(8, 6, 14, 0.98));
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -128,7 +131,8 @@
     margin: 0;
     padding: 1.25rem 1.25rem 0.75rem;
     font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.72);
+    letter-spacing: 0.01em;
 }
 
 .level-select__path {
@@ -149,9 +153,10 @@
     left: 50%;
     top: 1.5rem;
     bottom: 1.5rem;
-    width: 4px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    width: 5px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.06));
     border-radius: 999px;
+    box-shadow: 0 0 18px rgba(255, 255, 255, 0.06);
 }
 
 .level-select__path::-webkit-scrollbar {
@@ -184,7 +189,9 @@
     height: 3rem;
     border-radius: 50%;
     border: 2px solid rgba(255, 255, 255, 0.2);
-    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.08));
+    background:
+        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.1)),
+        linear-gradient(160deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02));
     color: #ffffff;
     font-size: 1rem;
     font-weight: 700;
@@ -192,10 +199,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     box-shadow:
-        0 8px 18px rgba(0, 0, 0, 0.35),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        0 10px 20px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .level-select__node-button:hover:not(:disabled) {
@@ -223,11 +230,14 @@
 
 .level-select__node-button--selected {
     transform: scale(1.05);
-    border-color: rgba(255, 255, 255, 0.7);
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow:
+        0 14px 28px rgba(0, 0, 0, 0.45),
+        0 0 0 6px rgba(255, 255, 255, 0.14);
 }
 
 .level-select__node-button--locked {
-    background: rgba(255, 255, 255, 0.05);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
     border-color: rgba(255, 255, 255, 0.08);
     color: rgba(255, 255, 255, 0.35);
     cursor: not-allowed;
@@ -242,15 +252,17 @@
 .level-select__details-card {
     width: 100%;
     border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(8, 6, 12, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.06), transparent 45%),
+        linear-gradient(160deg, rgba(12, 10, 18, 0.96), rgba(8, 6, 12, 0.95));
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
     box-shadow:
         inset 0 0 30px rgba(255, 255, 255, 0.04),
-        0 18px 35px rgba(0, 0, 0, 0.4);
+        0 22px 40px rgba(0, 0, 0, 0.45);
 }
 
 .level-select__selected-label {
@@ -267,6 +279,7 @@
     color: rgba(255, 255, 255, 0.6);
     letter-spacing: 0.02em;
     margin-top: 0.25rem;
+    line-height: 1.4;
 }
 
 .level-select__meta {
@@ -281,8 +294,8 @@
     justify-content: center;
     padding: 0.35rem 0.85rem;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.05);
     font-size: 0.85rem;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.85);
@@ -369,8 +382,8 @@
     padding: 0.3rem 0.4rem;
     padding-right: 1rem;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -435,12 +448,14 @@
     padding: 0.9rem 1rem;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.25);
-    background: linear-gradient(145deg, rgba(255, 228, 153, 0.35), rgba(255, 184, 93, 0.2));
+    background:
+        linear-gradient(145deg, rgba(255, 236, 196, 0.45), rgba(255, 184, 93, 0.28));
     color: #fff4cc;
     font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
     transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 12px 22px rgba(0, 0, 0, 0.35);
 }
 
 .level-select__play:hover:not(:disabled) {

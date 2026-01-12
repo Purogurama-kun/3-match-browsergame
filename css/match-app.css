@@ -131,10 +131,11 @@ body {
 
 .match-app--level-select {
     background:
-        radial-gradient(circle at 15% 20%, rgba(255, 182, 193, 0.2), transparent 45%),
-        radial-gradient(circle at 85% 10%, rgba(254, 215, 170, 0.2), transparent 50%),
-        radial-gradient(circle at 50% 80%, rgba(191, 219, 254, 0.18), transparent 55%),
-        #1e1e2f;
+        radial-gradient(circle at 12% 18%, rgba(255, 182, 193, 0.25), transparent 45%),
+        radial-gradient(circle at 85% 12%, rgba(254, 215, 170, 0.22), transparent 50%),
+        radial-gradient(circle at 55% 82%, rgba(191, 219, 254, 0.2), transparent 55%),
+        linear-gradient(150deg, rgba(27, 22, 40, 0.95), rgba(16, 12, 24, 0.98)),
+        #1b1726;
 }
 
 .match-app--level-select .main-menu,
