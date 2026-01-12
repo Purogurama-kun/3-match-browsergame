@@ -86,7 +86,7 @@ class ParticleEffect {
         const centerX = cellRect.left + cellRect.width / 2 - boardRect.left;
         const centerY = cellRect.top + cellRect.height / 2 - boardRect.top;
 
-        const scale = 0.4 + strength * 1.2;
+        const scale = Math.min(Math.max(strength, 0.2), 1);
 
         const outerRing = document.createElement('div');
         outerRing.className = 'board__shockwave board__shockwave--combo';
