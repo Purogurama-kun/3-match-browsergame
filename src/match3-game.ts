@@ -948,6 +948,10 @@ class Match3Game implements ModeContext {
                 secondaryButtonText: t('button.candyWorld'),
                 onSecondary: () => this.requestLevelSelect(),
                 onClose: () => {
+                    if (result === 'win' && hasMoreLevels) {
+                        void this.startLevel(nextLevel);
+                        return;
+                    }
                     this.switchMode(new LevelModeState(nextLevel));
                     this.createBoard();
                 }
