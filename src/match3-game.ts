@@ -974,6 +974,9 @@ class Match3Game implements ModeContext {
                     : t('result.level.winAll', { count: LEVELS.length })
                 : t('result.level.loseText');
         const showResultModal = (): void => {
+            if (result === 'win') {
+                this.renderer.showLevelWinCelebration();
+            }
             this.renderer.showModal({
                 title,
                 text,

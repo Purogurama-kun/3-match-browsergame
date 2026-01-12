@@ -23,6 +23,47 @@
     z-index: 5;
 }
 
+.board__celebration {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 12;
+}
+
+.board__confetti {
+    position: absolute;
+    top: -10%;
+    width: 8px;
+    height: 14px;
+    border-radius: 3px;
+    background: var(--confetti-color, #fff);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(var(--confetti-scale, 1));
+    animation: confetti-fall var(--confetti-duration, 1.2s) ease-out forwards;
+    animation-delay: var(--confetti-delay, 0s);
+    will-change: transform, opacity;
+}
+
+@keyframes confetti-fall {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) translateY(-10px) scale(var(--confetti-scale, 1)) rotate(0deg);
+    }
+    70% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform:
+            translate(-50%, -50%)
+            translateY(110vh)
+            translateX(var(--confetti-drift, 0px))
+            scale(var(--confetti-scale, 1))
+            rotate(var(--confetti-rotate, 0deg));
+    }
+}
+
 .board__particle {
     position: absolute;
     width: 6px;

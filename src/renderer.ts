@@ -38,6 +38,8 @@ class Renderer {
     private readonly shuffleNoticeEl: HTMLElement;
     private readonly shuffleNoticeTextEl: HTMLElement;
     private shuffleNoticeTimer: number | null = null;
+    private celebrationEl: HTMLDivElement | null = null;
+    private celebrationTimer: number | null = null;
     private modalCallback: (() => void) | null = null;
     private modalSecondaryCallback: (() => void) | null = null;
     private readonly cells: HTMLDivElement[] = [];
@@ -115,6 +117,55 @@ class Renderer {
 
     setAnimationsEnabled(enabled: boolean): void {
         this.animationsEnabled = enabled;
+    }
+
+    showLevelWinCelebration(): void {
+        if (!this.animationsEnabled) return;
+        if (this.celebrationTimer !== null) {
+            window.clearTimeout(this.celebrationTimer);
+            this.celebrationTimer = null;
+        }
+        if (this.celebrationEl) {
+            this.celebrationEl.remove();
+            this.celebrationEl = null;
+        }
+
+        const celebration = document.createElement('div');
+        celebration.className = 'board__celebration';
+
+        const colors = ['#ffffff', '#ffe29a', '#ff8a65', '#7ed957', '#67e8f9', '#fbbf24'];
+        const pieces = 48;
+        let maxEnd = 0;
+
+        for (let i = 0; i < pieces; i++) {
+            const piece = document.createElement('span');
+            piece.className = 'board__confetti';
+            const delay = Math.random() * 0.25;
+            const duration = 1.4 + Math.random() * 1.0;
+            const drift = Math.random() * 140 - 70;
+            const rotate = Math.random() * 720 - 360;
+            const scale = 0.7 + Math.random() * 0.6;
+
+            piece.style.left = `${Math.random() * 100}%`;
+            piece.style.setProperty('--confetti-color', colors[i % colors.length] ?? '#ffffff');
+            piece.style.setProperty('--confetti-delay', `${delay.toFixed(2)}s`);
+            piece.style.setProperty('--confetti-duration', `${duration.toFixed(2)}s`);
+            piece.style.setProperty('--confetti-drift', `${drift.toFixed(0)}px`);
+            piece.style.setProperty('--confetti-rotate', `${rotate.toFixed(0)}deg`);
+            piece.style.setProperty('--confetti-scale', `${scale.toFixed(2)}`);
+            celebration.appendChild(piece);
+            maxEnd = Math.max(maxEnd, delay + duration);
+        }
+
+        document.body.appendChild(celebration);
+        this.celebrationEl = celebration;
+        this.celebrationTimer = window.setTimeout(() => {
+            celebration.remove();
+            if (this.celebrationEl === celebration) {
+                this.celebrationEl = null;
+            }
+            this.celebrationTimer = null;
+        }, (maxEnd + 0.1) * 1000);
     }
 
     setBackground(backgroundUrl?: string): void {
