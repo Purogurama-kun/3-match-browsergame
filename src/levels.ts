@@ -248,7 +248,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 17,
         moves: 20,
-        targetScore: 6000,
+        targetScore: 5800,
         difficulty: 19,
         goals: [
             { type: 'destroy-color', color: 'purple', target: 28 },
@@ -260,7 +260,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 18,
         moves: 20,
-        targetScore: 6500,
+        targetScore: 6200,
         difficulty: 20,
         goals: [
             { type: 'destroy-color', color: 'red', target: 28 },
@@ -272,7 +272,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 19,
         moves: 20,
-        targetScore: 7000,
+        targetScore: 6600,
         difficulty: 21,
         goals: [
             { type: 'destroy-color', color: 'amber', target: 30 },
@@ -284,7 +284,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 20,
         moves: 20,
-        targetScore: 7400,
+        targetScore: 7000,
         difficulty: 24,
         goals: [
             { type: 'destroy-color', color: 'blue', target: 28 },
@@ -298,7 +298,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 21,
         moves: 21,
-        targetScore: 8300,
+        targetScore: 7400,
         difficulty: 25,
         goals: [
             { type: 'destroy-color', color: 'red', target: 30 },
@@ -310,7 +310,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 22,
         moves: 21,
-        targetScore: 8900,
+        targetScore: 7700,
         timeGoalSeconds: 195,
         difficulty: 26,
         goals: [
@@ -323,7 +323,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 23,
         moves: 21,
-        targetScore: 9500,
+        targetScore: 8000,
         difficulty: 27,
         goals: [
             { type: 'destroy-color', color: 'blue', target: 30 },
@@ -335,7 +335,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 24,
         moves: 20,
-        targetScore: 10100,
+        targetScore: 8200,
         difficulty: 28,
         goals: [
             { type: 'destroy-color', color: 'purple', target: 32 },
@@ -347,7 +347,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 25,
         moves: 20,
-        targetScore: 10700,
+        targetScore: 8500,
         difficulty: 29,
         goals: [
             { type: 'destroy-color', color: 'amber', target: 32 },
@@ -360,7 +360,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 26,
         moves: 20,
-        targetScore: 11400,
+        targetScore: 9000,
         difficulty: 30,
         goals: [
             { type: 'destroy-color', color: 'blue', target: 32 },
@@ -373,7 +373,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 27,
         moves: 19,
-        targetScore: 12100,
+        targetScore: 9500,
         difficulty: 31,
         goals: [
             { type: 'destroy-color', color: 'purple', target: 34 },
@@ -386,7 +386,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 28,
         moves: 19,
-        targetScore: 12800,
+        targetScore: 10000,
         difficulty: 32,
         goals: [
             { type: 'destroy-color', color: 'red', target: 34 },
@@ -399,7 +399,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 29,
         moves: 19,
-        targetScore: 13500,
+        targetScore: 10500,
         difficulty: 33,
         goals: [
             { type: 'destroy-color', color: 'blue', target: 34 },
@@ -412,7 +412,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 30,
         moves: 19,
-        targetScore: 13800,
+        targetScore: 11000,
         difficulty: 36,
         goals: [
             { type: 'destroy-color', color: 'green', target: 34 },
@@ -426,7 +426,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 31,
         moves: 19,
-        targetScore: 15100,
+        targetScore: 11500,
         difficulty: 37,
         goals: [
             { type: 'destroy-color', color: 'red', target: 36 },
@@ -439,7 +439,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 32,
         moves: 19,
-        targetScore: 15900,
+        targetScore: 12000,
         difficulty: 38,
         goals: [
             { type: 'destroy-color', color: 'amber', target: 36 },
@@ -452,7 +452,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 33,
         moves: 18,
-        targetScore: 16700,
+        targetScore: 12500,
         difficulty: 39,
         goals: [
             { type: 'destroy-color', color: 'purple', target: 36 },
@@ -465,7 +465,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 34,
         moves: 18,
-        targetScore: 17500,
+        targetScore: 13000,
         difficulty: 40,
         goals: [
             { type: 'destroy-color', color: 'green', target: 38 },
@@ -478,7 +478,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 35,
         moves: 18,
-        targetScore: 18300,
+        targetScore: 13500,
         difficulty: 41,
         goals: [
             { type: 'destroy-color', color: 'amber', target: 38 },
@@ -491,7 +491,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 36,
         moves: 18,
-        targetScore: 19100,
+        targetScore: 14000,
         difficulty: 42,
         goals: [
             { type: 'destroy-color', color: 'blue', target: 38 },
@@ -504,7 +504,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 37,
         moves: 17,
-        targetScore: 19900,
+        targetScore: 14500,
         difficulty: 43,
         goals: [
             { type: 'destroy-color', color: 'red', target: 40 },
@@ -517,7 +517,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 38,
         moves: 17,
-        targetScore: 20700,
+        targetScore: 15000,
         difficulty: 44,
         goals: [
             { type: 'destroy-color', color: 'amber', target: 40 },
@@ -530,7 +530,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 39,
         moves: 17,
-        targetScore: 21500,
+        targetScore: 15500,
         difficulty: 45,
         goals: [
             { type: 'destroy-color', color: 'purple', target: 40 },
@@ -543,7 +543,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 40,
         moves: 17,
-        targetScore: 21600,
+        targetScore: 16000,
         timeGoalSeconds: 180,
         difficulty: 48,
         goals: [
@@ -558,7 +558,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 41,
         moves: 17,
-        targetScore: 23300,
+        targetScore: 16500,
         difficulty: 49,
         goals: [
             { type: 'destroy-color', color: 'amber', target: 42 },
@@ -571,7 +571,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 42,
         moves: 17,
-        targetScore: 24200,
+        targetScore: 17000,
         difficulty: 50,
         goals: [
             { type: 'destroy-color', color: 'green', target: 42 },
@@ -584,7 +584,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 43,
         moves: 17,
-        targetScore: 25100,
+        targetScore: 17500,
         difficulty: 51,
         goals: [
             { type: 'destroy-color', color: 'red', target: 44 },
@@ -597,7 +597,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 44,
         moves: 17,
-        targetScore: 26000,
+        targetScore: 18000,
         difficulty: 52,
         goals: [
             { type: 'destroy-color', color: 'blue', target: 44 },
@@ -610,7 +610,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 45,
         moves: 17,
-        targetScore: 26900,
+        targetScore: 18500,
         timeGoalSeconds: 210,
         difficulty: 53,
         goals: [
@@ -624,7 +624,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 46,
         moves: 16,
-        targetScore: 27900,
+        targetScore: 19000,
         difficulty: 54,
         goals: [
             { type: 'destroy-color', color: 'green', target: 46 },
@@ -637,7 +637,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 47,
         moves: 16,
-        targetScore: 28900,
+        targetScore: 19500,
         difficulty: 55,
         goals: [
             { type: 'destroy-color', color: 'amber', target: 46 },
@@ -650,7 +650,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 48,
         moves: 16,
-        targetScore: 29900,
+        targetScore: 20000,
         difficulty: 56,
         goals: [
             { type: 'destroy-color', color: 'blue', target: 46 },
@@ -663,7 +663,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 49,
         moves: 15,
-        targetScore: 30900,
+        targetScore: 20500,
         difficulty: 57,
         goals: [
             { type: 'destroy-color', color: 'red', target: 48 },
@@ -676,7 +676,7 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     {
         id: 50,
         moves: 16,
-        targetScore: 30800,
+        targetScore: 21000,
         difficulty: 60,
         goals: [
             { type: 'destroy-color', color: 'amber', target: 46 },
