@@ -32,6 +32,7 @@ class HardCandy {
             this.getAdjacentIndices(row, col).forEach((neighbor) => {
                 if (softened.has(neighbor)) return;
                 if (this.board.isBlockedIndex(neighbor)) return;
+                if (this.board.isBlockerGenerator(neighbor)) return;
                 if (!this.board.isHardCandy(neighbor)) return;
                 this.board.softenCandy(neighbor);
                 this.renderer.emitHardCandyBreak(neighbor);

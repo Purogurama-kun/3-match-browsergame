@@ -274,6 +274,7 @@ class MatchScanner {
 
     private getMatchableColor(index: number): string {
         if (this.board.isBlockedIndex(index)) return '';
+        if (this.board.isBlockerGenerator(index)) return '';
         if (this.board.isHardCandy(index)) return '';
         if (this.board.isSugarChest(index)) return '';
         const booster = this.board.getCellBooster(index);
@@ -321,6 +322,7 @@ class MatchScanner {
     private isSwappable(index: number): boolean {
         if (this.board.isBlockedIndex(index)) return false;
         if (this.board.isHardCandy(index)) return false;
+        if (this.board.isBlockerGenerator(index)) return false;
         return Boolean(this.board.getCellColor(index));
     }
 

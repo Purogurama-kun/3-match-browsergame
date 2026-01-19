@@ -220,6 +220,9 @@ class Match3Game implements ModeContext {
             createBooster: (index, type, orientation) => this.bomb.createBooster(index, type, orientation),
             activateBooster: (index) => this.activateBooster(index, false),
             getCellBooster: (index) => this.board.getCellBooster(index),
+            getCellColor: (index) => this.board.getCellColor(index),
+            isBlockerGenerator: (index) => this.board.isBlockerGenerator(index),
+            getAdjacentIndices: (row, col) => this.getAdjacentIndices(row, col),
             dropCells: () => this.dropCells(),
             finalizeMoveScore: () => this.finalizeMoveScore(),
             finishPowerupIfNeeded: () => {

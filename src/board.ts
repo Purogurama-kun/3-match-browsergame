@@ -340,6 +340,7 @@ class Board {
         }
         if (entry.generator) {
             this.setBlockerGenerator(index, true, entry.hard);
+            this.getCellState(index).color = entry.color;
             return;
         }
         const state = this.getCellState(index);

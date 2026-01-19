@@ -1,4 +1,4 @@
-import { BOOSTERS, type BoosterType } from './constants.js';
+import { BOOSTERS, GRID_SIZE, type BoosterType } from './constants.js';
 import { MatchScanner } from './match-scanner.js';
 import { SoundManager } from './sound-manager.js';
 import { Renderer } from './renderer.js';
@@ -25,6 +25,9 @@ type MatchOptions = {
     createBooster: (index: number, type: BoosterType, orientation?: LineOrientation) => void;
     activateBooster: (index: number) => void;
     getCellBooster: (index: number) => BoosterType;
+    getCellColor: (index: number) => string;
+    isBlockerGenerator: (index: number) => boolean;
+    getAdjacentIndices: (row: number, col: number) => number[];
     dropCells: () => void;
     finalizeMoveScore: () => void;
     finishPowerupIfNeeded: () => void;
@@ -47,6 +50,9 @@ class Match {
     private createBooster: (index: number, type: BoosterType, orientation?: LineOrientation) => void;
     private activateBooster: (index: number) => void;
     private getCellBooster: (index: number) => BoosterType;
+    private getCellColor: (index: number) => string;
+    private isBlockerGenerator: (index: number) => boolean;
+    private getAdjacentIndices: (row: number, col: number) => number[];
     private dropCells: () => void;
     private finalizeMoveScore: () => void;
     private finishPowerupIfNeeded: () => void;
@@ -68,6 +74,9 @@ class Match {
         this.createBooster = options.createBooster;
         this.activateBooster = options.activateBooster;
         this.getCellBooster = options.getCellBooster;
+        this.getCellColor = options.getCellColor;
+        this.isBlockerGenerator = options.isBlockerGenerator;
+        this.getAdjacentIndices = options.getAdjacentIndices;
         this.dropCells = options.dropCells;
         this.finalizeMoveScore = options.finalizeMoveScore;
         this.finishPowerupIfNeeded = options.finishPowerupIfNeeded;
@@ -88,6 +97,7 @@ class Match {
         const { matched, boostersToCreate } = matchResult;
         this.hardCandy.softenAdjacentHardCandies(matched);
         this.sugarChests.advanceNearMatches(matched);
+        this.destroyAdjacentGenerators(matched);
 
         if (matched.size > 0) {
             this.sounds.play('match');
@@ -113,6 +123,29 @@ class Match {
         this.finishPowerupIfNeeded();
         this.onBoardSettled();
         this.scheduleHint();
+    }
+
+    private destroyAdjacentGenerators(matched: Set<number>): void {
+        if (matched.size === 0) return;
+        const targets = new Set<number>();
+        matched.forEach((index) => {
+            const color = this.getCellColor(index);
+            if (!color) return;
+            const { row, col } = this.getRowCol(index);
+            this.getAdjacentIndices(row, col).forEach((neighbor) => {
+                if (!this.isBlockerGenerator(neighbor)) return;
+                if (this.getCellColor(neighbor) !== color) return;
+                targets.add(neighbor);
+            });
+        });
+        targets.forEach((index) => this.candie.destroyCellAndMaybeFinishGenerator(index));
+    }
+
+    private getRowCol(index: number): { row: number; col: number } {
+        return {
+            row: Math.floor(index / GRID_SIZE),
+            col: index % GRID_SIZE
+        };
     }
 }
 
