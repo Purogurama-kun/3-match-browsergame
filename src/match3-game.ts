@@ -890,6 +890,8 @@ class Match3Game implements ModeContext {
         }
         this.modeState.consumeMove(this.state);
         this.beginMove();
+        this.modeState.handleBoosterUsed(this.state, firstInfo.booster, this);
+        this.modeState.handleBoosterUsed(this.state, secondInfo.booster, this);
         this.updateHud();
         this.sounds.play('radiusBomb');
         if (!this.performanceMode) {
