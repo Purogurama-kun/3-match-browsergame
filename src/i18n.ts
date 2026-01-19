@@ -257,7 +257,13 @@ const TRANSLATIONS = {
         'booster.LINE': 'line bombs',
         'booster.BURST_SMALL': 'small bombs',
         'booster.BURST_MEDIUM': 'medium bombs',
-        'booster.BURST_LARGE': 'large bombs'
+        'booster.BURST_LARGE': 'large bombs',
+        'cutscene.level1.before': 'Mira: Tiny bursts keep the plaza spotless.',
+        'cutscene.level6.before': 'Mira: Hard candies vanish with a sparkle.',
+        'cutscene.level16.before': 'Mira: Sticky ribbons stay calm while I sweep.',
+        'cutscene.level26.before': 'Mira: Syrup clears without dimming the lanterns.',
+        'cutscene.levelFinal.before': 'Mira: One choreographed burst for the crowd.',
+        'cutscene.levelFinal.after': 'Mira: Candy fireworks bloom; the festival cheers.'
     },
     de: {
         'options.title': 'Optionen',
@@ -514,7 +520,13 @@ const TRANSLATIONS = {
         'booster.LINE': 'Linienbomben',
         'booster.BURST_SMALL': 'kleine Bomben',
         'booster.BURST_MEDIUM': 'mittlere Bomben',
-        'booster.BURST_LARGE': 'große Bomben'
+        'booster.BURST_LARGE': 'große Bomben',
+        'cutscene.level1.before': 'Mira: Kleine Explosionen halten den Platz sauber.',
+        'cutscene.level6.before': 'Mira: Harte Bonbons verschwinden mit einem Funkeln.',
+        'cutscene.level16.before': 'Mira: Klebrige Bänder bleiben ruhig, während ich fege.',
+        'cutscene.level26.before': 'Mira: Der Sirup verschwindet, ohne die Laternen zu trüben.',
+        'cutscene.levelFinal.before': 'Mira: Eine choreografierte Explosion für das Publikum.',
+        'cutscene.levelFinal.after': 'Mira: Bonbon-Feuerwerk erblüht; das Festival jubelt.'
     }
 } as const;
 

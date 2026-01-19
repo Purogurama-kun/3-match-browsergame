@@ -56,7 +56,7 @@ type StoryCutsceneDefinition = {
     level: number;
     timing: StoryTiming;
     background: string;
-    text: string;
+    textKey: 'cutscene.level1.before' | 'cutscene.level6.before' | 'cutscene.level16.before' | 'cutscene.level26.before' | 'cutscene.levelFinal.before' | 'cutscene.levelFinal.after';
     durationMs?: number;
 };
 
@@ -67,39 +67,39 @@ const STORY_CUTSCENES: StoryCutsceneDefinition[] = [
         level: 1,
         timing: 'before',
         background: 'assets/images/vendor-plaza.png',
-        text: 'Mira: Tiny bursts keep the plaza spotless.',
+        textKey: 'cutscene.level1.before',
         durationMs: 2200
     },
     {
         level: 6,
         timing: 'before',
         background: 'assets/images/vendor-plaza.png',
-        text: 'Mira: Hard candies vanish with a sparkle.',
+        textKey: 'cutscene.level6.before',
         durationMs: 2200
     },
     {
         level: 16,
         timing: 'before',
         background: 'assets/images/ribbon-alley.png',
-        text: 'Mira: Sticky ribbons stay calm while I sweep.'
+        textKey: 'cutscene.level16.before'
     },
     {
         level: 26,
         timing: 'before',
         background: 'assets/images/lantern-bridge.png',
-        text: 'Mira: Syrup clears without dimming the lanterns.'
+        textKey: 'cutscene.level26.before'
     },
     {
         level: FINAL_LEVEL,
         timing: 'before',
         background: 'assets/images/festival.png',
-        text: 'Mira: One choreographed burst for the crowd.'
+        textKey: 'cutscene.levelFinal.before'
     },
     {
         level: FINAL_LEVEL,
         timing: 'after',
         background: 'assets/images/festival.png',
-        text: 'Mira: Candy fireworks bloom; the festival cheers.'
+        textKey: 'cutscene.levelFinal.after'
     }
 ];
 
@@ -364,7 +364,7 @@ class Match3Game implements ModeContext {
     private toCutsceneScene(scene: StoryCutsceneDefinition): CutsceneScene {
         const payload: CutsceneScene = {
             background: scene.background,
-            text: scene.text
+            text: t(scene.textKey)
         };
         if (scene.durationMs !== undefined) {
             payload.durationMs = scene.durationMs;
