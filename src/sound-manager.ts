@@ -1,10 +1,11 @@
-type SoundKey = 'match' | 'lineBomb' | 'radiusBomb' | 'levelUp' | 'levelFail';
+type SoundKey = 'match' | 'lineBomb' | 'radiusBomb' | 'levelUp' | 'levelFail' | 'lowMoves';
 const SOUND_FILES: Record<SoundKey, string> = {
     match: 'assets/sounds/match.ogg',
     lineBomb: 'assets/sounds/line-bomb.ogg',
     radiusBomb: 'assets/sounds/radius-bomb.ogg',
     levelUp: 'assets/sounds/level-up.ogg',
-    levelFail: 'assets/sounds/level-fail.ogg'
+    levelFail: 'assets/sounds/level-fail.ogg',
+    lowMoves: 'assets/sounds/low-moves.ogg'
 };
 
 const SOUND_VOLUMES: Record<SoundKey, number> = {
@@ -12,7 +13,8 @@ const SOUND_VOLUMES: Record<SoundKey, number> = {
     lineBomb: 0.6,
     radiusBomb: 0.6,
     levelUp: 0.7,
-    levelFail: 0.7
+    levelFail: 0.7,
+    lowMoves: 0.5
 };
 
 class SoundManager {
@@ -63,7 +65,8 @@ class SoundManager {
             lineBomb: this.createAudioPool('lineBomb'),
             radiusBomb: this.createAudioPool('radiusBomb'),
             levelUp: this.createAudioPool('levelUp'),
-            levelFail: this.createAudioPool('levelFail')
+            levelFail: this.createAudioPool('levelFail'),
+            lowMoves: this.createAudioPool('lowMoves')
         };
     }
 

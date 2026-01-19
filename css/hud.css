@@ -74,6 +74,21 @@
     font-weight: 700;
     color: #f8fafc;
     text-transform: none;
+    transition: color 0.2s ease;
+}
+
+.hud__top-meta-value--warning {
+    color: #ef4444;
+    animation: hud-warning-pulse 0.8s ease-in-out infinite;
+}
+
+@keyframes hud-warning-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
 }
 
 

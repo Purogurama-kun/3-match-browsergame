@@ -84,6 +84,9 @@ class Hud {
     private speechTimeout: ReturnType<typeof window.setTimeout> | null = null;
     private lastStatusKey: string | null = null;
     private statusLockUntil = 0;
+    private lowMovesWarningPlayed = false;
+    private lowMovesHandler: (() => void) | null = null;
+    private lastMovesLeft = -1;
     render(state: GameState): void {
         const isTimeMode = state.mode === 'time';
         const shouldShowMovesCard = state.mode === 'level';
@@ -103,6 +106,7 @@ class Hud {
             : state.mode === 'blocker'
                 ? '∞'
                 : String(state.movesLeft);
+        this.updateLowMovesWarning(state);
         this.applyDifficultyStyle(state.difficulty);
 
         this.updateLevelTimeGoal(state);
@@ -125,6 +129,16 @@ class Hud {
 
     onTacticalPowerup(handler: (type: TacticalPowerup) => void): void {
         this.powerupHandler = handler;
+    }
+
+    onLowMovesWarning(handler: () => void): void {
+        this.lowMovesHandler = handler;
+    }
+
+    resetLowMovesWarning(): void {
+        this.lowMovesWarningPlayed = false;
+        this.lastMovesLeft = -1;
+        this.moves.classList.remove('hud__top-meta-value--warning');
     }
 
     onAudioToggle(handler: (enabled: boolean) => void): void {
@@ -507,6 +521,30 @@ class Hud {
         chip.textContent = getBoosterIcon(goal.booster);
         chip.setAttribute('aria-hidden', 'true');
         return chip;
+    }
+
+    private updateLowMovesWarning(state: GameState): void {
+        const LOW_MOVES_THRESHOLD = 5;
+        const isLevelMode = state.mode === 'level';
+        const isLowMoves = isLevelMode && state.movesLeft <= LOW_MOVES_THRESHOLD && state.movesLeft > 0;
+
+        this.moves.classList.toggle('hud__top-meta-value--warning', isLowMoves);
+
+        const justReachedThreshold =
+            isLevelMode &&
+            state.movesLeft === LOW_MOVES_THRESHOLD &&
+            this.lastMovesLeft > LOW_MOVES_THRESHOLD;
+
+        if (justReachedThreshold && !this.lowMovesWarningPlayed) {
+            this.lowMovesWarningPlayed = true;
+            this.lowMovesHandler?.();
+        }
+
+        if (!isLevelMode || state.movesLeft > LOW_MOVES_THRESHOLD) {
+            this.lowMovesWarningPlayed = false;
+        }
+
+        this.lastMovesLeft = state.movesLeft;
     }
 
     private applyDifficultyStyle(difficulty: Difficulty): void {

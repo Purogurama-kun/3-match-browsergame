@@ -255,6 +255,7 @@ class Match3Game implements ModeContext {
             this.setPerformanceMode(enabled);
             this.optionsChangeListener?.({ performanceModeEnabled: this.performanceMode });
         });
+        this.hud.onLowMovesWarning(() => this.sounds.play('lowMoves'));
         this.hud.initOptionsMenu();
         this.hud.setAudioEnabled(this.sounds.isEnabled());
         this.renderer.setCellShapesEnabled(true);
@@ -348,6 +349,7 @@ class Match3Game implements ModeContext {
 
     async startLevel(level: number): Promise<void> {
         this.hud.closeOptions();
+        this.hud.resetLowMovesWarning();
         await this.displayStoryCutscene(level, 'before');
         this.switchMode(new LevelModeState(level));
         this.createBoard();
