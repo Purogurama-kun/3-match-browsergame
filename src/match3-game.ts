@@ -68,14 +68,14 @@ const STORY_CUTSCENES: StoryCutsceneDefinition[] = [
         timing: 'before',
         background: 'assets/images/vendor-plaza.png',
         textKey: 'cutscene.level1.before',
-        durationMs: 2200
+        durationMs: 4400
     },
     {
         level: 6,
         timing: 'before',
         background: 'assets/images/vendor-plaza.png',
         textKey: 'cutscene.level6.before',
-        durationMs: 2200
+        durationMs: 4400
     },
     {
         level: 16,

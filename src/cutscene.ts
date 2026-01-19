@@ -42,7 +42,7 @@ export class CutsceneManager {
         this.overlay.setAttribute('aria-hidden', 'false');
         this.overlay.classList.add('cutscene--visible');
         this.setCutsceneActive(true);
-        const duration = scene.durationMs ?? 3000;
+        const duration = scene.durationMs ?? 6000;
         return new Promise((resolve) => {
             this.resolve = resolve;
             this.startAutorun(duration);
