@@ -431,6 +431,10 @@ class Renderer {
         this.moveEvaluationEl.classList.remove('move-evaluation--visible');
     }
 
+    showMiraSpeech(message: string, icon: string): void {
+        this.hud.setStatus(message, icon, message);
+    }
+
     showShuffleNotice(message: string): void {
         if (!message) return;
         this.shuffleNoticeTextEl.textContent = message;

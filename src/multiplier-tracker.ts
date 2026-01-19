@@ -1,5 +1,6 @@
 import { Renderer } from './renderer.js';
 import { SoundManager } from './sound-manager.js';
+import { t, TranslationKey } from './i18n.js';
 import type { GameState } from './types.js';
 
 type MultiplierTrackerOptions = {
@@ -70,6 +71,7 @@ class MultiplierTracker {
         const message = this.getMoveEvaluationMessage(baseMoveScore);
         if (!message) return;
         this.renderer.showMoveEvaluation(message, this.sounds.isEnabled());
+        this.showMiraSpeech(baseMoveScore);
     }
 
     private getMoveEvaluationMessage(baseMoveScore: number): string {
@@ -79,6 +81,23 @@ class MultiplierTracker {
         if (baseMoveScore >= 200) return 'Candy Frenzy!';
         if (baseMoveScore >= 100) return 'Sweet Heat!';
         return '';
+    }
+
+    private showMiraSpeech(baseMoveScore: number): void {
+        const tier = this.getMiraTier(baseMoveScore);
+        if (!tier) return;
+        const index = Math.floor(Math.random() * 3);
+        const key = `mira.evaluation.${tier}.${index}` as TranslationKey;
+        this.renderer.showMiraSpeech(t(key), '💬');
+    }
+
+    private getMiraTier(baseMoveScore: number): 'legendary' | 'epic' | 'great' | 'good' | 'decent' | null {
+        if (baseMoveScore >= 800) return 'legendary';
+        if (baseMoveScore >= 400) return 'epic';
+        if (baseMoveScore >= 200) return 'great';
+        if (baseMoveScore >= 100) return 'good';
+        if (baseMoveScore >= 60) return 'decent';
+        return null;
     }
 
     // Base move score maps directly to cell clears, so multiplier adjustments ignore any combo boost.
