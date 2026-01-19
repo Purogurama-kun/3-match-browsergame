@@ -190,7 +190,7 @@ class Bomb {
     private getBlockerBoosterSize(booster: BoosterType): number | null {
         if (booster === BOOSTERS.BURST_SMALL) return 3;
         if (booster === BOOSTERS.BURST_MEDIUM) return 4;
-        if (booster === BOOSTERS.BURST_LARGE) return 6;
+        if (booster === BOOSTERS.BURST_LARGE) return 8;
         return null;
     }
 
@@ -219,7 +219,7 @@ class Bomb {
     private getBoosterRadius(booster: BoosterType): number | null {
         if (booster === BOOSTERS.BURST_SMALL) return 1;
         if (booster === BOOSTERS.BURST_MEDIUM) return 1.5;
-        if (booster === BOOSTERS.BURST_LARGE) return 2;
+        if (booster === BOOSTERS.BURST_LARGE) return 3;
         return null;
     }
 
