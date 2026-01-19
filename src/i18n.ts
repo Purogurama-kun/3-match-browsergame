@@ -238,7 +238,7 @@ const TRANSLATIONS = {
         'tutorial.obstacles.chestText':
             'Adjacent matches crack them until they burst into sugar coins. It takes 3 adjacent matches to break a chest.',
         'tutorial.obstacles.generatorTitle': 'Blocker generators',
-        'tutorial.obstacles.generatorText': 'Every few matches they create new hard candies nearby.',
+        'tutorial.obstacles.generatorText': 'Every few matches they create new hard candies nearby. An adjacent match of the same color destroys them.',
         'tutorial.modes.levelTitle': 'Level Mode',
         'tutorial.modes.levelText':
             'Finish goals with limited moves. Difficulties: Easy, Normal, Hard, Expert, Nightmare.',
@@ -495,7 +495,7 @@ const TRANSLATIONS = {
         'tutorial.obstacles.chestText':
             'Benachbarte Matches knacken sie, bis sie in Zuckermünzen platzen. Es braucht 3 benachbarte Matches, um eine Kiste zu sprengen.',
         'tutorial.obstacles.generatorTitle': 'Blocker-Generatoren',
-        'tutorial.obstacles.generatorText': 'Alle paar Matches erzeugen sie in der Nähe neue harte Bonbons.',
+        'tutorial.obstacles.generatorText': 'Alle paar Matches erzeugen sie in der Nähe neue harte Bonbons. Ein benachbartes Match derselben Farbe zerstört sie.',
         'tutorial.modes.levelTitle': 'Level Modus',
         'tutorial.modes.levelText':
             'Erfülle Ziele mit begrenzten Zügen. Schwierigkeitsgrade: Easy, Normal, Hard, Expert, Nightmare.',
