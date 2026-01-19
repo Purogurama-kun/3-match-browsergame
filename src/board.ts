@@ -114,6 +114,8 @@ class Board {
     }
 
     isBlockedIndex(index: number): boolean {
+        const state = this.cellStates[index];
+        if (state?.blocked) return true;
         return this.blockedIndices.has(index);
     }
 
@@ -182,17 +184,7 @@ class Board {
     collapseColumn(col: number): CollapseResult {
         const emptyIndices: number[] = [];
         const moves: DropMove[] = [];
-        let segmentBottom = GRID_SIZE - 1;
-        for (let row = GRID_SIZE - 1; row >= -1; row--) {
-            const isBoundary = row < 0 || this.isBlockedIndex(row * GRID_SIZE + col);
-            if (isBoundary) {
-                const segmentTop = row + 1;
-                if (segmentTop <= segmentBottom) {
-                    this.collapseColumnSegment(col, segmentTop, segmentBottom, emptyIndices, moves);
-                }
-                segmentBottom = row - 1;
-            }
-        }
+        this.collapseColumnEntries(col, emptyIndices, moves);
         return { emptyIndices, moves };
     }
 
@@ -276,35 +268,34 @@ class Board {
         return Math.random() < SUGAR_CHEST_CHANCE;
     }
 
-    private collapseColumnSegment(
-        col: number,
-        topRow: number,
-        bottomRow: number,
-        emptyIndices: number[],
-        moves: DropMove[]
-    ): void {
-        if (topRow > bottomRow) return;
+    private collapseColumnEntries(col: number, emptyIndices: number[], moves: DropMove[]): void {
         const entries: { entry: ColumnEntry; fromIndex: number }[] = [];
-        for (let row = topRow; row <= bottomRow; row++) {
+        const targetRows: number[] = [];
+        for (let row = GRID_SIZE - 1; row >= 0; row--) {
             const index = row * GRID_SIZE + col;
+            if (this.isBlockedIndex(index)) continue;
+            targetRows.push(row);
+        }
+        for (let row = 0; row < GRID_SIZE; row++) {
+            const index = row * GRID_SIZE + col;
+            if (this.isBlockedIndex(index)) continue;
             const entry = this.captureColumnEntry(index);
             if (entry) {
                 entries.push({ entry, fromIndex: index });
             }
             this.clearCell(index);
         }
-        let targetRow = bottomRow;
-        while (entries.length > 0) {
-            const { entry, fromIndex } = entries.pop()!;
+        for (const targetRow of targetRows) {
+            const nextEntry = entries.pop();
             const index = targetRow * GRID_SIZE + col;
-            this.placeColumnEntry(index, entry);
-            if (fromIndex !== index) {
-                moves.push({ from: fromIndex, to: index });
+            if (!nextEntry) {
+                emptyIndices.push(index);
+                continue;
             }
-            targetRow--;
-        }
-        for (let row = targetRow; row >= topRow; row--) {
-            emptyIndices.push(row * GRID_SIZE + col);
+            this.placeColumnEntry(index, nextEntry.entry);
+            if (nextEntry.fromIndex !== index) {
+                moves.push({ from: nextEntry.fromIndex, to: index });
+            }
         }
     }
 

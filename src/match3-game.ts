@@ -801,6 +801,7 @@ class Match3Game implements ModeContext {
             const { emptyIndices, moves: columnMoves } = this.board.collapseColumn(col);
             moves.push(...columnMoves);
             emptyIndices.forEach((index) => {
+                if (this.board.isBlockedIndex(index)) return;
                 spawnedIndices.push(index);
                 if (this.board.trySpawnSugarChest(index)) return;
                 const spawnHardCandy = this.shouldSpawnHardCandy();
