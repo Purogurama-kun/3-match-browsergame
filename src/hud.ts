@@ -28,6 +28,9 @@ class Hud {
         this.movesCard = this.getMovesCard();
         this.scoreProgress = getRequiredElement('score-progress');
         this.scoreProgressFill = getRequiredElement('score-progress-fill');
+        this.levelTimeProgress = getRequiredElement('level-time-progress');
+        this.levelTimeProgressFill = getRequiredElement('level-time-progress-fill');
+        this.levelTimeProgressValue = getRequiredElement('level-time-progress-value');
         this.goalsCard = this.getGoalsCardElement();
         this.goalsList = this.getGoalsListElement();
         this.tacticalToolbar = this.getTacticalToolbar();
@@ -54,6 +57,9 @@ class Hud {
     private movesCard: HTMLElement;
     private scoreProgress: HTMLElement;
     private scoreProgressFill: HTMLElement;
+    private levelTimeProgress: HTMLElement;
+    private levelTimeProgressFill: HTMLElement;
+    private levelTimeProgressValue: HTMLElement;
     private goalsCard: HTMLElement;
     private goalsList: HTMLUListElement;
     private difficultyLabel: HTMLElement;
@@ -99,6 +105,7 @@ class Hud {
                 : String(state.movesLeft);
         this.applyDifficultyStyle(state.difficulty);
 
+        this.updateLevelTimeGoal(state);
         this.updateProgress(state);
         this.renderGoals(state.goals, state.mode, state);
         this.updatePowerupButtons(state.powerups);
@@ -374,6 +381,32 @@ class Hud {
         this.scoreProgress.style.setProperty('--progress', percent);
     }
 
+    private updateLevelTimeGoal(state: GameState): void {
+        const shouldShow =
+            state.mode === 'level' &&
+            state.timeRemaining !== undefined &&
+            state.timeCapacity !== undefined;
+        if (!shouldShow) {
+            this.levelTimeProgress.hidden = true;
+            return;
+        }
+        const remaining = Math.max(0, state.timeRemaining ?? 0);
+        const capacity = Math.max(1, state.timeCapacity ?? remaining, remaining);
+        const ratio = Math.min(1, capacity === 0 ? 0 : remaining / capacity);
+        const ariaText = t('hud.aria.remainingTime', {
+            current: this.formatTime(remaining),
+            capacity: this.formatTime(capacity)
+        });
+        this.levelTimeProgress.hidden = false;
+        this.levelTimeProgress.setAttribute('aria-valuenow', remaining.toFixed(1));
+        this.levelTimeProgress.setAttribute('aria-valuemax', capacity.toFixed(1));
+        this.levelTimeProgress.setAttribute('aria-valuetext', ariaText);
+        const percent = (ratio * 100).toFixed(1) + '%';
+        this.levelTimeProgressFill.style.width = percent;
+        this.levelTimeProgress.style.setProperty('--progress', percent);
+        this.levelTimeProgressValue.textContent = this.formatTime(remaining);
+    }
+
     private renderGoals(goals: GoalProgress[], mode: GameMode, state: GameState): void {
         this.goalsList.innerHTML = '';
         if (mode === 'blocker' || mode === 'time') {
@@ -387,11 +420,7 @@ class Hud {
             return;
         }
         this.goalsCard.style.display = '';
-        if (mode === 'level' && state.timeRemaining !== undefined && state.timeCapacity !== undefined) {
-            this.renderLevelTimeHint(state);
-        } else {
-            this.hideTimeModeHint();
-        }
+        this.hideTimeModeHint();
         goals.forEach((goal) => {
             const item = document.createElement('li');
             item.className = 'hud__goal';

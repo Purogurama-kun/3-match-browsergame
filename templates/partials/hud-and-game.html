@@ -36,6 +36,20 @@
         </div>
 
         <div class="hud__progress">
+            <div
+                id="level-time-progress"
+                class="hud__progress-bar hud__progress-bar--time-goal"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuemax="120"
+                aria-valuenow="0"
+                hidden
+            >
+                <div id="level-time-progress-fill" class="hud__progress-fill hud__progress-fill--time-goal"></div>
+                <span class="hud__progress-value">
+                    <span id="level-time-progress-value" class="hud__value-strong">00:00</span>
+                </span>
+            </div>
             <div id="score-progress" class="hud__progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="300" aria-valuenow="0">
                 <div id="score-progress-fill" class="hud__progress-fill"></div>
                 <span id="hud-multiplier-progress-slot" class="hud__progress-multiplier-slot">
