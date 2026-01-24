@@ -29,6 +29,9 @@ class LevelSelectView {
         this.container = getRequiredElement('level-select');
         this.path = getRequiredElement<HTMLOListElement>('level-select-path');
         this.backButton = getRequiredElement<HTMLButtonElement>('level-select-back');
+        this.detailsModal = getRequiredElement('level-select-details-modal');
+        this.detailsBackdrop = getRequiredElement('level-select-details-backdrop');
+        this.detailsCloseButton = getRequiredElement<HTMLButtonElement>('level-select-details-close');
         this.selectedLabel = getRequiredElement('level-select-selected-label');
         this.meta = getRequiredElement('level-select-meta');
         this.goals = getRequiredElement<HTMLUListElement>('level-select-goals');
@@ -44,11 +47,24 @@ class LevelSelectView {
         this.buildPath();
         this.backButton.addEventListener('click', () => this.requestClose());
         this.playButton.addEventListener('click', () => this.requestStart());
+        this.detailsCloseButton.addEventListener('click', () => this.hideDetails());
+        this.detailsBackdrop.addEventListener('click', () => this.hideDetails());
+        document.addEventListener('keydown', (event) => {
+            if (!this.isDetailsOpen) {
+                return;
+            }
+            if (event.key === 'Escape') {
+                this.hideDetails();
+            }
+        });
     }
 
     private readonly container: HTMLElement;
     private readonly path: HTMLOListElement;
     private readonly backButton: HTMLButtonElement;
+    private readonly detailsModal: HTMLElement;
+    private readonly detailsBackdrop: HTMLElement;
+    private readonly detailsCloseButton: HTMLButtonElement;
     private readonly selectedLabel: HTMLElement;
     private readonly meta: HTMLElement;
     private readonly goals: HTMLUListElement;
@@ -61,12 +77,14 @@ class LevelSelectView {
     private readonly levelButtons: HTMLButtonElement[] = [];
     private highestLevel = 1;
     private selectedLevel = 1;
+    private isDetailsOpen = false;
 
     open(highestLevel: number): void {
         this.highestLevel = this.clampLevel(highestLevel);
         this.selectedLevel = this.highestLevel;
         document.body.classList.add('match-app--level-select');
         this.container.removeAttribute('hidden');
+        this.hideDetails();
         this.render();
         this.resetScrollPosition();
     }
@@ -74,6 +92,7 @@ class LevelSelectView {
     hide(): void {
         this.container.setAttribute('hidden', 'true');
         document.body.classList.remove('match-app--level-select');
+        this.hideDetails();
     }
 
     update(highestLevel: number): void {
@@ -120,6 +139,7 @@ class LevelSelectView {
         }
         this.selectedLevel = level;
         this.render();
+        this.showDetails();
     }
 
     private render(): void {
@@ -186,6 +206,25 @@ class LevelSelectView {
             'aria-label',
             t('levelSelect.playButtonLabel', { level: this.selectedLevel })
         );
+        this.detailsCloseButton.setAttribute('aria-label', t('levelSelect.closeDetails'));
+    }
+
+    private showDetails(): void {
+        if (this.isDetailsOpen) {
+            return;
+        }
+        this.detailsModal.removeAttribute('hidden');
+        this.isDetailsOpen = true;
+        this.detailsCloseButton.focus();
+    }
+
+    private hideDetails(): void {
+        if (!this.isDetailsOpen) {
+            this.detailsModal.setAttribute('hidden', 'true');
+            return;
+        }
+        this.detailsModal.setAttribute('hidden', 'true');
+        this.isDetailsOpen = false;
     }
 
     private createGoalElement(

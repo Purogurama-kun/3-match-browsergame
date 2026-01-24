@@ -191,16 +191,27 @@
                     </p>
                     <ol id="level-select-path" class="level-select__path" role="list"></ol>
                 </section>
-                <aside class="level-select__details" aria-live="polite">
-                    <div class="level-select__details-card">
-                        <div id="level-select-selected-label" class="level-select__selected-label">Level 1</div>
-                        <div id="level-select-selected-story" class="level-select__selected-story"></div>
-                        <div id="level-select-meta" class="level-select__meta"></div>
-                        <div class="level-select__goals-title" data-i18n-key="levelSelect.goalsTitle">Goals</div>
-                        <ul id="level-select-goals" class="level-select__goals" role="list"></ul>
-                        <button id="level-select-play" class="level-select__play" type="button"></button>
-                    </div>
-                </aside>
+            </div>
+        </div>
+        <div id="level-select-details-modal" class="level-select__details-modal" hidden>
+            <div id="level-select-details-backdrop" class="level-select__details-backdrop"></div>
+            <div
+                class="level-select__details-dialog"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="level-select-selected-label"
+            >
+                <button id="level-select-details-close" class="level-select__details-close" type="button">
+                    <span class="level-select__details-close-icon" aria-hidden="true">x</span>
+                </button>
+                <div class="level-select__details-card" aria-live="polite">
+                    <div id="level-select-selected-label" class="level-select__selected-label">Level 1</div>
+                    <div id="level-select-selected-story" class="level-select__selected-story"></div>
+                    <div id="level-select-meta" class="level-select__meta"></div>
+                    <div class="level-select__goals-title" data-i18n-key="levelSelect.goalsTitle">Goals</div>
+                    <ul id="level-select-goals" class="level-select__goals" role="list"></ul>
+                    <button id="level-select-play" class="level-select__play" type="button"></button>
+                </div>
             </div>
         </div>
     </div>
