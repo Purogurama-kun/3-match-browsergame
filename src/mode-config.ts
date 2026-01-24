@@ -43,6 +43,11 @@ type TimeModeConfig = {
     difficultyTiers: DifficultyTierConfig;
 };
 
+type LevelModeConfig = {
+    firstWinRewardCoins: number;
+    maxBombDropChance: number;
+};
+
 const DEFAULT_DIFFICULTY_TIERS: DifficultyTierConfig = {
     normal: 1,
     hard: 3,
@@ -92,8 +97,14 @@ const DEFAULT_TIME_MODE_CONFIG: TimeModeConfig = {
     difficultyTiers: { ...DEFAULT_DIFFICULTY_TIERS }
 };
 
+const DEFAULT_LEVEL_MODE_CONFIG: LevelModeConfig = {
+    firstWinRewardCoins: 5,
+    maxBombDropChance: 0.05
+};
+
 let blockerModeConfig: BlockerModeConfig = cloneBlockerModeConfig(DEFAULT_BLOCKER_MODE_CONFIG);
 let timeModeConfig: TimeModeConfig = cloneTimeModeConfig(DEFAULT_TIME_MODE_CONFIG);
+let levelModeConfig: LevelModeConfig = { ...DEFAULT_LEVEL_MODE_CONFIG };
 
 function getBlockerModeConfig(): BlockerModeConfig {
     return cloneBlockerModeConfig(blockerModeConfig);
@@ -101,6 +112,10 @@ function getBlockerModeConfig(): BlockerModeConfig {
 
 function getTimeModeConfig(): TimeModeConfig {
     return cloneTimeModeConfig(timeModeConfig);
+}
+
+function getLevelModeConfig(): LevelModeConfig {
+    return { ...levelModeConfig };
 }
 
 function setBlockerModeConfigFromData(raw: unknown): boolean {
@@ -120,6 +135,16 @@ function setTimeModeConfigFromData(raw: unknown): boolean {
         return false;
     }
     timeModeConfig = parsed;
+    return true;
+}
+
+function setLevelModeConfigFromData(raw: unknown): boolean {
+    const parsed = parseLevelModeConfig(raw);
+    if (!parsed) {
+        console.warn('Level mode config file is missing or invalid. Using bundled defaults.');
+        return false;
+    }
+    levelModeConfig = parsed;
     return true;
 }
 
@@ -214,6 +239,20 @@ function parseTimeModeConfig(raw: unknown): TimeModeConfig | null {
         colorGoalPool: colorGoalPool ?? DEFAULT_TIME_MODE_CONFIG.colorGoalPool,
         boosterGoalPool: boosterGoalPool ?? DEFAULT_TIME_MODE_CONFIG.boosterGoalPool,
         difficultyTiers: readDifficultyTiers(data.difficultyTiers, DEFAULT_TIME_MODE_CONFIG.difficultyTiers)
+    };
+}
+
+function parseLevelModeConfig(raw: unknown): LevelModeConfig | null {
+    const data = extractConfigObject(raw);
+    if (!data) return null;
+
+    return {
+        firstWinRewardCoins: readInt(
+            data.firstWinRewardCoins,
+            DEFAULT_LEVEL_MODE_CONFIG.firstWinRewardCoins,
+            { min: 0 }
+        ),
+        maxBombDropChance: readChance(data.maxBombDropChance, DEFAULT_LEVEL_MODE_CONFIG.maxBombDropChance)
     };
 }
 
@@ -376,9 +415,12 @@ function mapDifficultyFromTier(tier: number, tiers: DifficultyTierConfig): Diffi
 export {
     BlockerModeConfig,
     TimeModeConfig,
+    LevelModeConfig,
     getBlockerModeConfig,
     getTimeModeConfig,
+    getLevelModeConfig,
     setBlockerModeConfigFromData,
     setTimeModeConfigFromData,
+    setLevelModeConfigFromData,
     mapDifficultyFromTier
 };

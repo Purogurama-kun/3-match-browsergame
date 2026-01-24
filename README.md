@@ -58,6 +58,7 @@ Non-programmer friendly content files live in `assets/data/`:
 - `assets/data/story-acts.json` controls acts and cutscenes.
 - `assets/data/blocker-mode.json` controls blocker mode tuning.
 - `assets/data/time-mode.json` controls time mode tuning.
+- `assets/data/level-mode.json` controls level-mode rewards and bomb drop chances.
 
 ### Levels
 
@@ -128,6 +129,13 @@ You can also use `generatorIndices` (0-63) instead of `generatorSlots`.
 - `goalCount`, `colorGoalChance`, `colorGoalBase`, `colorGoalTierStep`, `colorGoalRandomRange` tune goal generation.
 - `colorGoalPool` and `boosterGoalPool` define the allowed goal types.
 - `difficultyTiers` defines the tier thresholds for `normal`, `hard`, `expert`, `nightmare`.
+
+### Level mode config
+
+`assets/data/level-mode.json` controls shared level mode tuning:
+
+- `firstWinRewardCoins` sets the sugar coin reward for completing a level the first time.
+- `maxBombDropChance` sets the maximum chance for bombs to fall on drops at max combo multiplier.
 
 - `action=leaderboard&mode=LevelMode|BlockerMode|TimeMode` (GET) returns paged global entries ordered by best result.
 - `action=history&mode=LevelMode|BlockerMode|TimeMode&userId=<id>` (GET) returns the requesting user’s best aggregated result for the requested mode.

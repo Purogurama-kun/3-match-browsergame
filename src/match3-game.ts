@@ -33,6 +33,7 @@ import { getRequiredElement } from './dom.js';
 import { Match, type MatchContext } from './match.js';
 import type { MatchResult } from './match-scanner.js';
 import type { GameOptions } from './game-options.js';
+import { getLevelModeConfig, type LevelModeConfig } from './mode-config.js';
 import {
     SnapshotRecorder,
     type Snapshot,
@@ -78,6 +79,7 @@ const RECORDING_BOMB_ICONS: Record<SnapshotCell['bomb'], { center: string; corne
 
 class Match3Game implements ModeContext {
     constructor() {
+        this.levelModeConfig = getLevelModeConfig();
         this.sounds = new SoundManager();
         this.hud = new Hud();
         this.renderer = new Renderer(this.hud);
@@ -283,7 +285,7 @@ class Match3Game implements ModeContext {
     private readonly baseCellPoints = 10;
     private readonly minMultiplier = 0.5;
     private readonly maxMultiplier = 5;
-    private readonly maxBombDropChance = 0.05; // 5%
+    private readonly levelModeConfig: LevelModeConfig;
     private boardAnimating: boolean;
     private cellShapeMode: CellShapeMode = 'square';
     private sugarCoinListener: ((amount: number) => void) | null = null;
@@ -302,7 +304,6 @@ class Match3Game implements ModeContext {
     private readonly generatorSpreadRadius = 3;
     private performanceMode = false;
     private readonly hintDelayMs = 10000;
-
     async startLevel(level: number): Promise<void> {
         this.hud.closeOptions();
         this.hud.resetLowMovesWarning();
@@ -740,7 +741,7 @@ class Match3Game implements ModeContext {
 
     private shouldSpawnBombFromDrop(): boolean {
         const normalizedMultiplier = Math.min(Math.max(this.state.comboMultiplier, 0), this.maxMultiplier);
-        const chance = (normalizedMultiplier / this.maxMultiplier) * this.maxBombDropChance;
+        const chance = (normalizedMultiplier / this.maxMultiplier) * this.levelModeConfig.maxBombDropChance;
         return Math.random() < chance;
     }
 

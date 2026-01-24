@@ -26,8 +26,7 @@ import type { GameMode, LeaderboardIdentity, LeaderboardMode, PowerupInventory }
 import { isDebugMode, isLocalDebugHost } from './debug.js';
 import { FpsMeter } from './fps-meter.js';
 import { loadGameContent } from './content-loader.js';
-
-const FIRST_WIN_REWARD_COINS = 5;
+import { getLevelModeConfig } from './mode-config.js';
 
 class GameApp {
     constructor() {
@@ -872,7 +871,7 @@ class GameApp {
             completedLevels
         });
         return {
-            coins: FIRST_WIN_REWARD_COINS
+            coins: getLevelModeConfig().firstWinRewardCoins
         };
     }
 
