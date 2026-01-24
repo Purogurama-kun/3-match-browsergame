@@ -576,7 +576,10 @@
         34,
         37
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        5
+      ]
     },
     {
       "id": 21,
@@ -610,7 +613,10 @@
         34,
         37
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        61
+      ]
     },
     {
       "id": 22,
@@ -645,7 +651,10 @@
         43,
         44
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        15
+      ]
     },
     {
       "id": 23,
@@ -679,7 +688,10 @@
         43,
         44
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        47
+      ]
     },
     {
       "id": 24,
@@ -713,7 +725,10 @@
         49,
         54
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        56
+      ]
     },
     {
       "id": 25,
@@ -753,7 +768,10 @@
         49,
         54
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        60
+      ]
     },
     {
       "id": 26,
@@ -793,7 +811,10 @@
         34,
         37
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        31
+      ]
     },
     {
       "id": 27,
@@ -833,7 +854,10 @@
         49,
         54
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        32
+      ]
     },
     {
       "id": 28,
@@ -873,7 +897,10 @@
         43,
         44
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        2
+      ]
     },
     {
       "id": 29,
@@ -913,7 +940,10 @@
         34,
         37
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        56
+      ]
     },
     {
       "id": 30,
@@ -964,7 +994,11 @@
         27,
         36
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        23,
+        60
+      ]
     },
     {
       "id": 31,
@@ -1004,7 +1038,11 @@
         49,
         54
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        3,
+        15
+      ]
     },
     {
       "id": 32,
@@ -1046,7 +1084,11 @@
         27,
         36
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        16,
+        62
+      ]
     },
     {
       "id": 33,
@@ -1087,7 +1129,11 @@
         43,
         44
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        6,
+        62
+      ]
     },
     {
       "id": 34,
@@ -1131,7 +1177,11 @@
         49,
         54
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        62,
+        47
+      ]
     },
     {
       "id": 35,
@@ -1173,7 +1223,11 @@
         27,
         36
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        61,
+        55
+      ]
     },
     {
       "id": 36,
@@ -1217,7 +1271,11 @@
         43,
         44
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        16,
+        8
+      ]
     },
     {
       "id": 37,
@@ -1260,7 +1318,11 @@
         27,
         36
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        1,
+        4
+      ]
     },
     {
       "id": 38,
@@ -1304,7 +1366,11 @@
         49,
         54
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        16,
+        58
+      ]
     },
     {
       "id": 39,
@@ -1346,7 +1412,11 @@
         27,
         36
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        24,
+        63
+      ]
     },
     {
       "id": 40,
@@ -1406,7 +1476,11 @@
         49,
         54
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        16,
+        47
+      ]
     },
     {
       "id": 41,
@@ -1452,7 +1526,11 @@
         27,
         36
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        15,
+        32
+      ]
     },
     {
       "id": 42,
@@ -1493,7 +1571,11 @@
         49,
         54
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        57,
+        31
+      ]
     },
     {
       "id": 43,
@@ -1561,7 +1643,11 @@
         2,
         5
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        15,
+        59
+      ]
     },
     {
       "id": 44,
@@ -1636,7 +1722,11 @@
         47,
         49
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        57,
+        0
+      ]
     },
     {
       "id": 45,
@@ -1705,7 +1795,11 @@
         2,
         5
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        7,
+        1
+      ]
     },
     {
       "id": 46,
@@ -1789,7 +1883,11 @@
         8,
         15
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        48,
+        57
+      ]
     },
     {
       "id": 47,
@@ -1860,7 +1958,11 @@
         47,
         49
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        57,
+        4
+      ]
     },
     {
       "id": 48,
@@ -1934,7 +2036,11 @@
         47,
         49
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        48,
+        63
+      ]
     },
     {
       "id": 49,
@@ -2003,7 +2109,11 @@
         2,
         5
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        57,
+        7
+      ]
     },
     {
       "id": 50,
@@ -2092,7 +2202,11 @@
         8,
         15
       ],
-      "background": ""
+      "background": "",
+      "blockerGenerators": [
+        62,
+        57
+      ]
     }
   ]
 }

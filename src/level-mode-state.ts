@@ -1,9 +1,4 @@
-import {
-    BoosterType,
-    GRID_SIZE,
-    getColorKeyFromHex,
-    createFreshPowerupInventory
-} from './constants.js';
+import { BoosterType, getColorKeyFromHex, createFreshPowerupInventory } from './constants.js';
 import { BoardConfig, GameModeState, ModeContext } from './game-mode-state.js';
 import { LevelDefinition, GameState, LevelGoal, GoalProgress } from './types.js';
 import { describeGoal, getLevelDefinition } from './levels.js';
@@ -193,37 +188,7 @@ class LevelModeState implements GameModeState {
         if (this.levelDefinition.blockerGenerators && this.levelDefinition.blockerGenerators.length > 0) {
             return [...this.levelDefinition.blockerGenerators];
         }
-        if (this.levelDefinition.cellOverrides && this.levelDefinition.cellOverrides.length > 0) {
-            return [];
-        }
-        if (this.levelDefinition.id < 20) return [];
-        const blocked = new Set(this.levelDefinition.missingCells ?? []);
-        const hard = new Set(this.levelDefinition.hardCandies ?? []);
-        const candidates = this.getEdgeIndices().filter((index) => !blocked.has(index) && !hard.has(index));
-        const targetCount = this.levelDefinition.id >= 30 ? 2 : 1;
-        const picks: number[] = [];
-        const pool = [...candidates];
-        while (picks.length < targetCount && pool.length > 0) {
-            const choice = Math.floor(Math.random() * pool.length);
-            const pick = pool.splice(choice, 1)[0];
-            if (pick !== undefined) {
-                picks.push(pick);
-            }
-        }
-        return picks;
-    }
-
-    private getEdgeIndices(): number[] {
-        const indices: number[] = [];
-        for (let i = 0; i < GRID_SIZE; i++) {
-            indices.push(i); // top row
-            indices.push((GRID_SIZE - 1) * GRID_SIZE + i); // bottom row
-            if (i !== 0 && i !== GRID_SIZE - 1) {
-                indices.push(i * GRID_SIZE); // left edge
-                indices.push(i * GRID_SIZE + (GRID_SIZE - 1)); // right edge
-            }
-        }
-        return Array.from(new Set(indices));
+        return [];
     }
 
     private isLevelComplete(state: GameState): boolean {
