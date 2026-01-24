@@ -3,13 +3,10 @@ import {
     TACTICAL_POWERUPS,
     TacticalPowerup
 } from './constants.js';
+import { getShopConfig } from './shop-config.js';
 import { t } from './i18n.js';
 import { getRequiredElement } from './dom.js';
 import type { PowerupInventory } from './types.js';
-
-const FIRST_POWERUP_PRICE = 5;
-const SECOND_POWERUP_PRICE = 20;
-const EXTRA_POWERUP_SLOT_PRICE = 50;
 
 type ShopState = {
     coins: number;
@@ -29,13 +26,12 @@ function getNextPowerupPrice(owned: number, maxStock: number): number | null {
     if (owned < 0) {
         return null;
     }
-    if (owned === 0) {
-        return FIRST_POWERUP_PRICE;
+    if (owned >= maxStock) {
+        return null;
     }
-    if (owned === 1 && maxStock >= 2) {
-        return SECOND_POWERUP_PRICE;
-    }
-    return null;
+    const prices = getShopConfig().powerupPrices;
+    const price = prices[owned];
+    return typeof price === 'number' ? price : null;
 }
 
 class ShopView {
@@ -326,7 +322,7 @@ class ShopView {
     private renderExtraSlotItem(coins: number): void {
         if (!this.extraSlotEntry || !this.currentState) return;
         const owned = this.currentState.extraPowerupSlotUnlocked ? 1 : 0;
-        const price = owned === 1 ? null : EXTRA_POWERUP_SLOT_PRICE;
+        const price = owned === 1 ? null : getShopConfig().extraSlotPrice;
         const ownedText = t('shop.count', { count: owned, max: 1 });
         const priceText = price === null ? t('shop.priceMaxed') : String(price);
         this.extraSlotEntry.ownedValue.textContent = String(owned);
@@ -347,5 +343,5 @@ class ShopView {
     }
 }
 
-export { ShopView, getNextPowerupPrice, EXTRA_POWERUP_SLOT_PRICE };
+export { ShopView, getNextPowerupPrice };
 export type { ShopState };

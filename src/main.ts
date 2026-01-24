@@ -6,7 +6,7 @@ import { ProgressStore, StoredProgress } from './progress-store.js';
 import { LocalProgressStore } from './local-progress-store.js';
 import { LocalOptionsStore } from './local-options-store.js';
 import { LocalAttemptStore } from './local-attempt-store.js';
-import { ShopView, getNextPowerupPrice, EXTRA_POWERUP_SLOT_PRICE, type ShopState } from './shop.js';
+import { ShopView, getNextPowerupPrice, type ShopState } from './shop.js';
 import {
     createFreshPowerupInventory,
     createMaxPowerupInventory,
@@ -27,6 +27,7 @@ import { isDebugMode, isLocalDebugHost } from './debug.js';
 import { FpsMeter } from './fps-meter.js';
 import { loadGameContent } from './content-loader.js';
 import { getLevelModeConfig } from './mode-config.js';
+import { getShopConfig } from './shop-config.js';
 
 class GameApp {
     constructor() {
@@ -981,7 +982,7 @@ class GameApp {
             this.shopView.showFeedback(t('shop.feedback.extraSlotOwned'));
             return;
         }
-        const price = EXTRA_POWERUP_SLOT_PRICE;
+        const price = getShopConfig().extraSlotPrice;
         if (this.progress.sugarCoins < price) {
             this.shopView.showFeedback(t('shop.feedback.insufficient'));
             return;

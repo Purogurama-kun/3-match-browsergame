@@ -6,6 +6,7 @@ import {
     setLevelModeConfigFromData
 } from './mode-config.js';
 import { setGameConfigFromData } from './game-config.js';
+import { setShopConfigFromData } from './shop-config.js';
 
 const LEVELS_DATA_URL = 'assets/data/levels.json';
 const STORY_DATA_URL = 'assets/data/story-acts.json';
@@ -13,6 +14,7 @@ const BLOCKER_MODE_DATA_URL = 'assets/data/blocker-mode.json';
 const TIME_MODE_DATA_URL = 'assets/data/time-mode.json';
 const LEVEL_MODE_DATA_URL = 'assets/data/level-mode.json';
 const GAME_DATA_URL = 'assets/data/game.json';
+const SHOP_DATA_URL = 'assets/data/shop.json';
 
 async function loadGameContent(): Promise<void> {
     await Promise.all([
@@ -21,7 +23,8 @@ async function loadGameContent(): Promise<void> {
         loadJson(BLOCKER_MODE_DATA_URL, setBlockerModeConfigFromData),
         loadJson(TIME_MODE_DATA_URL, setTimeModeConfigFromData),
         loadJson(LEVEL_MODE_DATA_URL, setLevelModeConfigFromData),
-        loadJson(GAME_DATA_URL, setGameConfigFromData)
+        loadJson(GAME_DATA_URL, setGameConfigFromData),
+        loadJson(SHOP_DATA_URL, setShopConfigFromData)
     ]);
 }
 

@@ -60,6 +60,7 @@ Non-programmer friendly content files live in `assets/data/`:
 - `assets/data/time-mode.json` controls time mode tuning.
 - `assets/data/level-mode.json` controls level-mode rewards and bomb drop chances.
 - `assets/data/game.json` controls shared scoring rules.
+- `assets/data/shop.json` controls shop prices.
 
 ### Levels
 
@@ -147,6 +148,13 @@ You can also use `generatorIndices` (0-63) instead of `generatorSlots`.
 - `scoring.comboMultiplier.steps` defines how base move score changes the multiplier.
 - `scoring.boosterScoreValues` adds bonus base points when a booster is activated.
 - `scoring.evaluation.tiers` controls the move evaluation labels and Mira speech tiers.
+
+### Shop config
+
+`assets/data/shop.json` controls shop pricing:
+
+- `powerupPrices` is a list of prices per stock (index 0 = first purchase, index 1 = second).
+- `extraSlotPrice` sets the price for unlocking the extra powerup slot.
 
 - `action=leaderboard&mode=LevelMode|BlockerMode|TimeMode` (GET) returns paged global entries ordered by best result.
 - `action=history&mode=LevelMode|BlockerMode|TimeMode&userId=<id>` (GET) returns the requesting user’s best aggregated result for the requested mode.
