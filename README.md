@@ -59,6 +59,7 @@ Non-programmer friendly content files live in `assets/data/`:
 - `assets/data/blocker-mode.json` controls blocker mode tuning.
 - `assets/data/time-mode.json` controls time mode tuning.
 - `assets/data/level-mode.json` controls level-mode rewards and bomb drop chances.
+- `assets/data/game.json` controls shared scoring rules.
 
 ### Levels
 
@@ -136,6 +137,16 @@ You can also use `generatorIndices` (0-63) instead of `generatorSlots`.
 
 - `firstWinRewardCoins` sets the sugar coin reward for completing a level the first time.
 - `maxBombDropChance` sets the maximum chance for bombs to fall on drops at max combo multiplier.
+
+### Game config (scoring)
+
+`assets/data/game.json` controls scoring without touching code:
+
+- `scoring.baseCellPoints` is the base score per cleared cell.
+- `scoring.comboMultiplier.min` / `max` clamp the combo multiplier.
+- `scoring.comboMultiplier.steps` defines how base move score changes the multiplier.
+- `scoring.boosterScoreValues` adds bonus base points when a booster is activated.
+- `scoring.evaluation.tiers` controls the move evaluation labels and Mira speech tiers.
 
 - `action=leaderboard&mode=LevelMode|BlockerMode|TimeMode` (GET) returns paged global entries ordered by best result.
 - `action=history&mode=LevelMode|BlockerMode|TimeMode&userId=<id>` (GET) returns the requesting user’s best aggregated result for the requested mode.

@@ -34,6 +34,7 @@ import { Match, type MatchContext } from './match.js';
 import type { MatchResult } from './match-scanner.js';
 import type { GameOptions } from './game-options.js';
 import { getLevelModeConfig, type LevelModeConfig } from './mode-config.js';
+import { getGameConfig, type GameConfig, type ComboMultiplierStep } from './game-config.js';
 import {
     SnapshotRecorder,
     type Snapshot,
@@ -79,6 +80,11 @@ const RECORDING_BOMB_ICONS: Record<SnapshotCell['bomb'], { center: string; corne
 
 class Match3Game implements ModeContext {
     constructor() {
+        this.gameConfig = getGameConfig();
+        this.baseCellPoints = this.gameConfig.scoring.baseCellPoints;
+        this.minMultiplier = this.gameConfig.scoring.comboMultiplier.min;
+        this.maxMultiplier = this.gameConfig.scoring.comboMultiplier.max;
+        this.comboSteps = this.gameConfig.scoring.comboMultiplier.steps;
         this.levelModeConfig = getLevelModeConfig();
         this.sounds = new SoundManager();
         this.hud = new Hud();
@@ -90,7 +96,9 @@ class Match3Game implements ModeContext {
             renderer: this.renderer,
             sounds: this.sounds,
             minMultiplier: this.minMultiplier,
-            maxMultiplier: this.maxMultiplier
+            maxMultiplier: this.maxMultiplier,
+            steps: this.comboSteps,
+            evaluation: this.gameConfig.scoring.evaluation
         });
         this.powerups = new PowerupManager(
             {
@@ -282,10 +290,12 @@ class Match3Game implements ModeContext {
     private currentGameMode: GameMode | null = null;
     private generation: number;
     private pendingTimers: number[];
-    private readonly baseCellPoints = 10;
-    private readonly minMultiplier = 0.5;
-    private readonly maxMultiplier = 5;
+    private readonly baseCellPoints: number;
+    private readonly minMultiplier: number;
+    private readonly maxMultiplier: number;
     private readonly levelModeConfig: LevelModeConfig;
+    private readonly gameConfig: GameConfig;
+    private readonly comboSteps: ComboMultiplierStep[];
     private boardAnimating: boolean;
     private cellShapeMode: CellShapeMode = 'square';
     private sugarCoinListener: ((amount: number) => void) | null = null;
@@ -653,6 +663,7 @@ class Match3Game implements ModeContext {
             this.beginMove();
         }
 
+        this.awardBoosterBonus(booster);
         this.bomb.applyBoosterEffect(booster, row, col, this.state.mode === 'blocker', override?.orientation);
 
         if (consumesMove) {
@@ -661,6 +672,13 @@ class Match3Game implements ModeContext {
             this.defer(() => this.dropCells(), this.getAnimationDelay(300));
         }
         this.updateHud();
+    }
+
+    private awardBoosterBonus(booster: BoosterType): void {
+        if (booster === BOOSTERS.NONE) return;
+        const bonus = this.gameConfig.scoring.boosterScoreValues[booster];
+        if (!bonus || bonus <= 0) return;
+        this.awardScore(bonus);
     }
 
     private handleBombDestruction(indices: Iterable<number>, sourceIndex?: number): void {

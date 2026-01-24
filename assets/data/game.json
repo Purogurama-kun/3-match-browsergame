@@ -1,0 +1,32 @@
+{
+  "scoring": {
+    "baseCellPoints": 10,
+    "comboMultiplier": {
+      "min": 0.5,
+      "max": 5,
+      "steps": [
+        { "minScore": 150, "delta": 0.5 },
+        { "minScore": 90, "delta": 0.35 },
+        { "minScore": 60, "delta": 0.2 },
+        { "exactScore": 0, "delta": -0.3 },
+        { "maxScore": 29, "delta": -0.15 }
+      ]
+    },
+    "boosterScoreValues": {
+      "line": 0,
+      "burstSmall": 0,
+      "burstMedium": 0,
+      "burstLarge": 0
+    },
+    "evaluation": {
+      "tiers": [
+        { "minScore": 1000, "label": "Candy Chaos!", "miraTier": "legendary" },
+        { "minScore": 800, "label": "Sweetplosion!", "miraTier": "legendary" },
+        { "minScore": 400, "label": "Candy Blast!", "miraTier": "epic" },
+        { "minScore": 200, "label": "Candy Frenzy!", "miraTier": "great" },
+        { "minScore": 100, "label": "Sweet Heat!", "miraTier": "good" },
+        { "minScore": 60, "label": "", "miraTier": "decent" }
+      ]
+    }
+  }
+}

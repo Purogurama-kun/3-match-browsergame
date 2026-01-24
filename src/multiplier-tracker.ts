@@ -2,12 +2,15 @@ import { Renderer } from './renderer.js';
 import { SoundManager } from './sound-manager.js';
 import { t, TranslationKey } from './i18n.js';
 import type { GameState } from './types.js';
+import type { ComboMultiplierStep, MoveEvaluationConfig } from './game-config.js';
 
 type MultiplierTrackerOptions = {
     renderer: Renderer;
     sounds: SoundManager;
     minMultiplier: number;
     maxMultiplier: number;
+    steps: ComboMultiplierStep[];
+    evaluation: MoveEvaluationConfig;
 };
 
 class MultiplierTracker {
@@ -15,6 +18,8 @@ class MultiplierTracker {
     private sounds: SoundManager;
     private minMultiplier: number;
     private maxMultiplier: number;
+    private steps: ComboMultiplierStep[];
+    private evaluation: MoveEvaluationConfig;
     private state: GameState | null = null;
     private moveActive = false;
     private currentMoveScore = 0;
@@ -25,6 +30,8 @@ class MultiplierTracker {
         this.sounds = options.sounds;
         this.minMultiplier = options.minMultiplier;
         this.maxMultiplier = options.maxMultiplier;
+        this.steps = options.steps;
+        this.evaluation = options.evaluation;
     }
 
     setState(state: GameState): void {
@@ -75,11 +82,11 @@ class MultiplierTracker {
     }
 
     private getMoveEvaluationMessage(baseMoveScore: number): string {
-        if (baseMoveScore >= 1000) return 'Candy Chaos!';
-        if (baseMoveScore >= 800) return 'Sweetplosion!';
-        if (baseMoveScore >= 400) return 'Candy Blast!';
-        if (baseMoveScore >= 200) return 'Candy Frenzy!';
-        if (baseMoveScore >= 100) return 'Sweet Heat!';
+        for (const tier of this.evaluation.tiers) {
+            if (baseMoveScore >= tier.minScore) {
+                return tier.label;
+            }
+        }
         return '';
     }
 
@@ -92,21 +99,25 @@ class MultiplierTracker {
     }
 
     private getMiraTier(baseMoveScore: number): 'legendary' | 'epic' | 'great' | 'good' | 'decent' | null {
-        if (baseMoveScore >= 800) return 'legendary';
-        if (baseMoveScore >= 400) return 'epic';
-        if (baseMoveScore >= 200) return 'great';
-        if (baseMoveScore >= 100) return 'good';
-        if (baseMoveScore >= 60) return 'decent';
+        for (const tier of this.evaluation.tiers) {
+            if (baseMoveScore >= tier.minScore) {
+                return tier.miraTier ?? null;
+            }
+        }
         return null;
     }
 
     // Base move score maps directly to cell clears, so multiplier adjustments ignore any combo boost.
     private calculateMultiplierDelta(baseMoveScore: number): number {
-        if (baseMoveScore >= 150) return 0.5;
-        if (baseMoveScore >= 90) return 0.35;
-        if (baseMoveScore >= 60) return 0.2;
-        if (baseMoveScore === 0) return -0.3;
-        if (baseMoveScore < 30) return -0.15;
+        for (const step of this.steps) {
+            if (step.exactScore !== undefined && baseMoveScore === step.exactScore) return step.delta;
+            if (step.minScore !== undefined && step.maxScore !== undefined) {
+                if (baseMoveScore >= step.minScore && baseMoveScore <= step.maxScore) return step.delta;
+                continue;
+            }
+            if (step.minScore !== undefined && baseMoveScore >= step.minScore) return step.delta;
+            if (step.maxScore !== undefined && baseMoveScore <= step.maxScore) return step.delta;
+        }
         return 0;
     }
 
