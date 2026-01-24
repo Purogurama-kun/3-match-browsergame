@@ -9,39 +9,48 @@ import type { PowerupInventory } from './types.js';
 
 const FIRST_POWERUP_PRICE = 5;
 const SECOND_POWERUP_PRICE = 20;
+const EXTRA_POWERUP_SLOT_PRICE = 50;
 
 type ShopState = {
     coins: number;
     powerups: PowerupInventory;
+    maxPowerupStock: number;
+    extraPowerupSlotUnlocked: boolean;
 };
 
 type ShopEntry = {
     button: HTMLButtonElement;
     price: HTMLElement;
     ownedValue: HTMLElement;
+    ownedMax: HTMLElement;
 };
 
-function getNextPowerupPrice(owned: number): number | null {
+function getNextPowerupPrice(owned: number, maxStock: number): number | null {
     if (owned < 0) {
         return null;
     }
     if (owned === 0) {
         return FIRST_POWERUP_PRICE;
     }
-    if (owned === 1) {
+    if (owned === 1 && maxStock >= 2) {
         return SECOND_POWERUP_PRICE;
     }
     return null;
 }
 
 class ShopView {
-    constructor(options: { onBuy: (type: TacticalPowerup) => void; onClose: () => void }) {
+    constructor(options: {
+        onBuy: (type: TacticalPowerup) => void;
+        onBuyExtraSlot: () => void;
+        onClose: () => void;
+    }) {
         this.container = getRequiredElement('shop');
         this.itemsContainer = getRequiredElement('shop-items');
         this.coinLabel = getRequiredElement('shop-coin-count');
         this.feedback = getRequiredElement('shop-feedback');
         this.closeButton = getRequiredElement('shop-close');
         this.onBuy = options.onBuy;
+        this.onBuyExtraSlot = options.onBuyExtraSlot;
         this.onClose = options.onClose;
         this.entries = {} as Record<TacticalPowerup, ShopEntry>;
         this.buildEntries();
@@ -54,8 +63,10 @@ class ShopView {
     private readonly feedback: HTMLElement;
     private readonly closeButton: HTMLButtonElement;
     private readonly onBuy: (type: TacticalPowerup) => void;
+    private readonly onBuyExtraSlot: () => void;
     private readonly onClose: () => void;
     private entries: Record<TacticalPowerup, ShopEntry>;
+    private extraSlotEntry: ShopEntry | null = null;
     private currentState: ShopState | null = null;
 
     open(state: ShopState): void {
@@ -94,16 +105,18 @@ class ShopView {
         this.coinLabel.textContent = String(coins);
         this.coinLabel.setAttribute('aria-label', coinAnnouncement);
         const powerupTypes = Object.keys(TACTICAL_POWERUPS) as TacticalPowerup[];
+        const maxPowerupStock = Math.max(1, this.currentState.maxPowerupStock);
         powerupTypes.forEach((type) => {
             const meta = TACTICAL_POWERUPS[type];
             const entry = this.entries[type];
             const owned = Math.max(0, this.currentState?.powerups[type] ?? 0);
-            const price = getNextPowerupPrice(owned);
+            const price = getNextPowerupPrice(owned, maxPowerupStock);
             if (entry) {
-                const ownedText = t('shop.count', { count: owned, max: MAX_TACTICAL_POWERUP_STOCK });
+                const ownedText = t('shop.count', { count: owned, max: maxPowerupStock });
                 const priceText = price === null ? t('shop.priceMaxed') : String(price);
                 entry.ownedValue.textContent = String(owned);
                 entry.price.textContent = priceText;
+                entry.ownedMax.textContent = String(maxPowerupStock);
                 const isMaxed = price === null;
                 entry.button.classList.toggle('shop__buy--maxed', isMaxed);
                 if (isMaxed) {
@@ -118,6 +131,7 @@ class ShopView {
                 );
             }
         });
+        this.renderExtraSlotItem(coins);
     }
 
     private clearFeedback(): void {
@@ -126,6 +140,7 @@ class ShopView {
     }
 
     private buildEntries(): void {
+        this.extraSlotEntry = this.buildExtraSlotEntry();
         const powerupTypes = Object.entries(
             TACTICAL_POWERUPS
         ) as [TacticalPowerup, typeof TACTICAL_POWERUPS[TacticalPowerup]][];
@@ -213,11 +228,124 @@ class ShopView {
             this.entries[type] = {
                 button,
                 price: priceNode,
-                ownedValue
+                ownedValue,
+                ownedMax
             };
         });
     }
+
+    private buildExtraSlotEntry(): ShopEntry {
+        const item = document.createElement('article');
+        item.className = 'shop__item';
+
+        const iconWrapper = document.createElement('div');
+        iconWrapper.className = 'shop__item-icon';
+
+        const icon = document.createElement('span');
+        icon.className = 'shop__icon';
+        icon.textContent = '➕';
+        iconWrapper.appendChild(icon);
+
+        const info = document.createElement('div');
+        info.className = 'shop__item-info';
+
+        const label = document.createElement('p');
+        label.className = 'shop__label';
+        label.textContent = t('shop.extraSlot.label');
+
+        const owned = document.createElement('p');
+        owned.className = 'shop__owned';
+
+        const ownedLabel = document.createElement('span');
+        ownedLabel.className = 'shop__owned-label';
+        ownedLabel.textContent = t('shop.ownedLabel');
+
+        const ownedValue = document.createElement('span');
+        ownedValue.className = 'shop__owned-value';
+
+        const ownedDelimiter = document.createElement('span');
+        ownedDelimiter.className = 'shop__owned-delimiter';
+        ownedDelimiter.textContent = '/';
+
+        const ownedMax = document.createElement('span');
+        ownedMax.className = 'shop__owned-max';
+        ownedMax.textContent = '1';
+
+        owned.appendChild(ownedLabel);
+        owned.appendChild(ownedValue);
+        owned.appendChild(ownedDelimiter);
+        owned.appendChild(ownedMax);
+
+        const description = document.createElement('p');
+        description.className = 'shop__description';
+        description.textContent = t('shop.extraSlot.description');
+
+        info.appendChild(label);
+        info.appendChild(owned);
+        info.appendChild(description);
+
+        const button = document.createElement('button');
+        button.className = 'shop__buy';
+        button.type = 'button';
+        button.addEventListener('click', () => this.onBuyExtraSlot());
+
+        const buyCost = document.createElement('span');
+        buyCost.className = 'shop__buy-cost';
+
+        const coinIcon = document.createElement('img');
+        coinIcon.className = 'shop__buy-coin';
+        coinIcon.src = 'assets/images/sugar_coin.webp';
+        coinIcon.alt = '';
+        coinIcon.setAttribute('aria-hidden', 'true');
+
+        const priceNode = document.createElement('span');
+        priceNode.className = 'shop__buy-price';
+
+        const maxLabel = document.createElement('span');
+        maxLabel.className = 'shop__buy-max';
+        maxLabel.textContent = t('shop.maxLabel');
+
+        buyCost.appendChild(coinIcon);
+        buyCost.appendChild(priceNode);
+        button.appendChild(buyCost);
+        button.appendChild(maxLabel);
+
+        item.appendChild(iconWrapper);
+        item.appendChild(info);
+        item.appendChild(button);
+        this.itemsContainer.appendChild(item);
+
+        return {
+            button,
+            price: priceNode,
+            ownedValue,
+            ownedMax
+        };
+    }
+
+    private renderExtraSlotItem(coins: number): void {
+        if (!this.extraSlotEntry || !this.currentState) return;
+        const owned = this.currentState.extraPowerupSlotUnlocked ? 1 : 0;
+        const price = owned === 1 ? null : EXTRA_POWERUP_SLOT_PRICE;
+        const ownedText = t('shop.count', { count: owned, max: 1 });
+        const priceText = price === null ? t('shop.priceMaxed') : String(price);
+        this.extraSlotEntry.ownedValue.textContent = String(owned);
+        this.extraSlotEntry.ownedMax.textContent = '1';
+        this.extraSlotEntry.price.textContent = priceText;
+        const isMaxed = price === null;
+        this.extraSlotEntry.button.classList.toggle('shop__buy--maxed', isMaxed);
+        if (isMaxed) {
+            this.extraSlotEntry.button.disabled = true;
+        } else {
+            this.extraSlotEntry.button.disabled = coins < price;
+        }
+        const priceSpeech = isMaxed ? t('shop.priceMaxed') : t('shop.priceAria', { price });
+        this.extraSlotEntry.button.setAttribute(
+            'aria-label',
+            `${t('shop.button.buy')} ${t('shop.extraSlot.label')} · ${ownedText} · ${priceSpeech}`
+        );
+    }
 }
 
-export { ShopView, getNextPowerupPrice };
+export { ShopView, getNextPowerupPrice, EXTRA_POWERUP_SLOT_PRICE };
 export type { ShopState };

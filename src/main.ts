@@ -6,11 +6,11 @@ import { ProgressStore, StoredProgress } from './progress-store.js';
 import { LocalProgressStore } from './local-progress-store.js';
 import { LocalOptionsStore } from './local-options-store.js';
 import { LocalAttemptStore } from './local-attempt-store.js';
-import { ShopView, getNextPowerupPrice, type ShopState } from './shop.js';
+import { ShopView, getNextPowerupPrice, EXTRA_POWERUP_SLOT_PRICE, type ShopState } from './shop.js';
 import {
     createFreshPowerupInventory,
     createMaxPowerupInventory,
-    MAX_TACTICAL_POWERUP_STOCK,
+    getMaxPowerupStock,
     TACTICAL_POWERUPS,
     type TacticalPowerup
 } from './constants.js';
@@ -43,7 +43,8 @@ class GameApp {
             blockerHighScore: 0,
             timeSurvival: 0,
             sugarCoins: 0,
-            powerups: createFreshPowerupInventory()
+            powerups: createFreshPowerupInventory(),
+            extraPowerupSlotUnlocked: false
         };
         this.progressStore = new ProgressStore();
         this.localProgress = new LocalProgressStore();
@@ -75,6 +76,7 @@ class GameApp {
 
         this.shopView = new ShopView({
             onBuy: (type) => this.handleShopPurchase(type),
+            onBuyExtraSlot: () => this.handleExtraPowerupSlotPurchase(),
             onClose: () => this.showMainMenu()
         });
         this.tutorialView = new TutorialView({
@@ -239,9 +241,14 @@ class GameApp {
 
     private buildShopState(): ShopState {
         const coins = isDebugMode() ? 9999 : Math.max(0, Math.floor(this.progress.sugarCoins));
+        const maxPowerupStock = isDebugMode()
+            ? getMaxPowerupStock(true)
+            : getMaxPowerupStock(this.progress.extraPowerupSlotUnlocked);
         return {
             coins,
-            powerups: this.getDisplayedPowerups()
+            powerups: this.getDisplayedPowerups(),
+            maxPowerupStock,
+            extraPowerupSlotUnlocked: this.progress.extraPowerupSlotUnlocked
         };
     }
 
@@ -626,7 +633,8 @@ class GameApp {
             blockerHighScore: this.progress.blockerHighScore,
             timeSurvival: this.progress.timeSurvival,
             sugarCoins: this.progress.sugarCoins,
-            powerups: this.progress.powerups
+            powerups: this.progress.powerups,
+            extraPowerupSlotUnlocked: this.progress.extraPowerupSlotUnlocked
         });
         this.updateStartButtonState();
         this.progress = this.localProgress.save(this.progress);
@@ -641,7 +649,8 @@ class GameApp {
             blockerHighScore: score,
             timeSurvival: this.progress.timeSurvival,
             sugarCoins: this.progress.sugarCoins,
-            powerups: this.progress.powerups
+            powerups: this.progress.powerups,
+            extraPowerupSlotUnlocked: this.progress.extraPowerupSlotUnlocked
         });
         this.progress = this.localProgress.save(this.progress);
         if (!this.currentUser) return;
@@ -655,7 +664,8 @@ class GameApp {
             blockerHighScore: this.progress.blockerHighScore,
             timeSurvival: time,
             sugarCoins: this.progress.sugarCoins,
-            powerups: this.progress.powerups
+            powerups: this.progress.powerups,
+            extraPowerupSlotUnlocked: this.progress.extraPowerupSlotUnlocked
         });
         this.progress = this.localProgress.save(this.progress);
         if (!this.currentUser) return;
@@ -764,22 +774,29 @@ class GameApp {
     }
 
     private mergeProgress(current: StoredProgress, incoming: StoredProgress): StoredProgress {
+        const extraPowerupSlotUnlocked = current.extraPowerupSlotUnlocked || incoming.extraPowerupSlotUnlocked;
         return {
             highestLevel: Math.max(current.highestLevel, incoming.highestLevel),
             blockerHighScore: Math.max(current.blockerHighScore, incoming.blockerHighScore),
             timeSurvival: Math.max(current.timeSurvival, incoming.timeSurvival),
             sugarCoins: Math.max(current.sugarCoins, incoming.sugarCoins),
-            powerups: this.mergePowerups(current.powerups, incoming.powerups)
+            powerups: this.mergePowerups(current.powerups, incoming.powerups, extraPowerupSlotUnlocked),
+            extraPowerupSlotUnlocked
         };
     }
 
-    private mergePowerups(current: PowerupInventory, incoming: PowerupInventory): PowerupInventory {
+    private mergePowerups(
+        current: PowerupInventory,
+        incoming: PowerupInventory,
+        extraPowerupSlotUnlocked: boolean
+    ): PowerupInventory {
+        const maxStock = getMaxPowerupStock(extraPowerupSlotUnlocked);
         const merged = {} as PowerupInventory;
         const powerupTypes = Object.keys(TACTICAL_POWERUPS) as TacticalPowerup[];
         powerupTypes.forEach((type) => {
             const currentValue = current[type] ?? 0;
             const incomingValue = incoming[type] ?? 0;
-            merged[type] = Math.max(currentValue, incomingValue);
+            merged[type] = Math.min(maxStock, Math.max(currentValue, incomingValue));
         });
         return merged;
     }
@@ -791,6 +808,7 @@ class GameApp {
             merged.timeSurvival > stored.timeSurvival ||
             merged.sugarCoins > stored.sugarCoins
             || this.hasMorePowerups(stored, merged)
+            || (merged.extraPowerupSlotUnlocked && !stored.extraPowerupSlotUnlocked)
         );
     }
 
@@ -876,11 +894,12 @@ class GameApp {
 
     private handleShopPurchase(type: TacticalPowerup): void {
         const owned = Math.max(0, this.progress.powerups[type] ?? 0);
-        if (owned >= MAX_TACTICAL_POWERUP_STOCK) {
+        const maxStock = getMaxPowerupStock(this.progress.extraPowerupSlotUnlocked);
+        if (owned >= maxStock) {
             this.shopView.showFeedback(t('shop.feedback.maxed'));
             return;
         }
-        const price = getNextPowerupPrice(owned);
+        const price = getNextPowerupPrice(owned, maxStock);
         if (price === null) return;
         if (this.progress.sugarCoins < price) {
             this.shopView.showFeedback(t('shop.feedback.insufficient'));
@@ -892,6 +911,28 @@ class GameApp {
             ...this.progress,
             sugarCoins: nextCoins,
             powerups: updatedPowerups
+        });
+        this.refreshPowerupsAndShop();
+        if (this.currentUser) {
+            void this.persistProgress(this.currentUser.id, this.progress, 'both');
+        }
+    }
+
+    private handleExtraPowerupSlotPurchase(): void {
+        if (this.progress.extraPowerupSlotUnlocked) {
+            this.shopView.showFeedback(t('shop.feedback.extraSlotOwned'));
+            return;
+        }
+        const price = EXTRA_POWERUP_SLOT_PRICE;
+        if (this.progress.sugarCoins < price) {
+            this.shopView.showFeedback(t('shop.feedback.insufficient'));
+            return;
+        }
+        const nextCoins = this.progress.sugarCoins - price;
+        this.progress = this.localProgress.save({
+            ...this.progress,
+            sugarCoins: nextCoins,
+            extraPowerupSlotUnlocked: true
         });
         this.refreshPowerupsAndShop();
         if (this.currentUser) {

@@ -35,6 +35,7 @@ const TACTICAL_POWERUPS = {
 } as const;
 
 const MAX_TACTICAL_POWERUP_STOCK = 2;
+const BASE_TACTICAL_POWERUP_STOCK = 1;
 const DEFAULT_TACTICAL_POWERUP_USES = 0;
 
 type BoosterType = typeof BOOSTERS[keyof typeof BOOSTERS];
@@ -73,6 +74,10 @@ function createFreshPowerupInventory(): Record<TacticalPowerup, number> {
 
 function createMaxPowerupInventory(): Record<TacticalPowerup, number> {
     return createPowerupInventory(MAX_TACTICAL_POWERUP_STOCK);
+}
+
+function getMaxPowerupStock(hasExtraPowerupSlot: boolean): number {
+    return hasExtraPowerupSlot ? MAX_TACTICAL_POWERUP_STOCK : BASE_TACTICAL_POWERUP_STOCK;
 }
 
 function randomColor(): string {
@@ -117,5 +122,7 @@ export {
     SHAPE_CLASS_NAMES,
     createFreshPowerupInventory,
     createMaxPowerupInventory,
-    MAX_TACTICAL_POWERUP_STOCK
+    MAX_TACTICAL_POWERUP_STOCK,
+    BASE_TACTICAL_POWERUP_STOCK,
+    getMaxPowerupStock
 };

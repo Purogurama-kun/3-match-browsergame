@@ -2,7 +2,7 @@ import {
     TACTICAL_POWERUPS,
     TacticalPowerup,
     createFreshPowerupInventory,
-    MAX_TACTICAL_POWERUP_STOCK
+    getMaxPowerupStock
 } from './constants.js';
 import type { StoredProgress } from './progress-store.js';
 import type { PowerupInventory } from './types.js';
@@ -18,7 +18,8 @@ class LocalProgressStore {
         blockerHighScore: 0,
         timeSurvival: 0,
         sugarCoins: 0,
-        powerups: createFreshPowerupInventory()
+        powerups: createFreshPowerupInventory(),
+        extraPowerupSlotUnlocked: false
     };
 
     load(): StoredProgress {
@@ -93,13 +94,15 @@ class LocalProgressStore {
         const blockerHighScore = this.normalizeScore(progress?.blockerHighScore);
         const timeSurvival = this.normalizeTime(progress?.timeSurvival);
         const sugarCoins = this.normalizeCoins(progress?.sugarCoins);
-        const powerups = this.normalizePowerups(progress?.powerups);
+        const extraPowerupSlotUnlocked = this.normalizeExtraPowerupSlot(progress?.extraPowerupSlotUnlocked);
+        const powerups = this.normalizePowerups(progress?.powerups, extraPowerupSlotUnlocked);
         return {
             highestLevel,
             blockerHighScore,
             timeSurvival,
             sugarCoins,
-            powerups
+            powerups,
+            extraPowerupSlotUnlocked
         };
     }
 
@@ -127,19 +130,27 @@ class LocalProgressStore {
         return Math.max(0, normalized);
     }
 
-    private normalizePowerups(powerups?: Partial<Record<TacticalPowerup, number>>): PowerupInventory {
+    private normalizePowerups(
+        powerups: Partial<Record<TacticalPowerup, number>> | undefined,
+        extraPowerupSlotUnlocked: boolean
+    ): PowerupInventory {
+        const maxStock = getMaxPowerupStock(extraPowerupSlotUnlocked);
         const inventory = createFreshPowerupInventory();
         const powerupTypes = Object.keys(TACTICAL_POWERUPS) as TacticalPowerup[];
         powerupTypes.forEach((type) => {
-            inventory[type] = this.clampPowerup(powerups?.[type]);
+            inventory[type] = this.clampPowerup(powerups?.[type], maxStock);
         });
         return inventory;
     }
 
-    private clampPowerup(value: unknown): number {
+    private clampPowerup(value: unknown, maxStock: number): number {
         if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
         const normalized = Math.floor(value);
-        return Math.max(0, Math.min(MAX_TACTICAL_POWERUP_STOCK, normalized));
+        return Math.max(0, Math.min(maxStock, normalized));
+    }
+
+    private normalizeExtraPowerupSlot(value: unknown): boolean {
+        return typeof value === 'boolean' ? value : false;
     }
 }
 
