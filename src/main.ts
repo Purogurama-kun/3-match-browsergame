@@ -24,6 +24,7 @@ import { OptionsStore } from './options-store.js';
 import { normalizeGameOptions, type GameOptions } from './game-options.js';
 import type { GameMode, LeaderboardIdentity, LeaderboardMode, PowerupInventory } from './types.js';
 import { isDebugMode, isLocalDebugHost } from './debug.js';
+import { FpsMeter } from './fps-meter.js';
 
 class GameApp {
     constructor() {
@@ -123,6 +124,13 @@ class GameApp {
         this.applyOptions(this.options);
         setLocale(this.options.locale);
         this.showMainMenu();
+
+        if (isDebugMode()) {
+            const fpsElement = getRequiredElement<HTMLElement>('hud-fps');
+            fpsElement.removeAttribute('hidden');
+            this.fpsMeter = new FpsMeter(fpsElement);
+            this.fpsMeter.start();
+        }
     }
 
     private body: HTMLElement;
@@ -159,6 +167,7 @@ class GameApp {
     private guestProfileStore: GuestProfileStore;
     private profileState: ProfileState;
     private isProfileVisible = false;
+    private fpsMeter: FpsMeter | null = null;
 
     private startLevelGame(level: number): void {
         if (this.isProgressLoading) return;
