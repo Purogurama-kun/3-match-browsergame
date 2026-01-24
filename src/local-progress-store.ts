@@ -19,7 +19,8 @@ class LocalProgressStore {
         timeSurvival: 0,
         sugarCoins: 0,
         powerups: createFreshPowerupInventory(),
-        extraPowerupSlotUnlocked: false
+        extraPowerupSlotUnlocked: false,
+        completedLevels: []
     };
 
     load(): StoredProgress {
@@ -96,13 +97,18 @@ class LocalProgressStore {
         const sugarCoins = this.normalizeCoins(progress?.sugarCoins);
         const extraPowerupSlotUnlocked = this.normalizeExtraPowerupSlot(progress?.extraPowerupSlotUnlocked);
         const powerups = this.normalizePowerups(progress?.powerups, extraPowerupSlotUnlocked);
+        const completedLevels = this.ensureCompletedLevels(
+            this.normalizeCompletedLevels(progress?.completedLevels),
+            highestLevel
+        );
         return {
             highestLevel,
             blockerHighScore,
             timeSurvival,
             sugarCoins,
             powerups,
-            extraPowerupSlotUnlocked
+            extraPowerupSlotUnlocked,
+            completedLevels
         };
     }
 
@@ -151,6 +157,26 @@ class LocalProgressStore {
 
     private normalizeExtraPowerupSlot(value: unknown): boolean {
         return typeof value === 'boolean' ? value : false;
+    }
+
+    private normalizeCompletedLevels(levels: unknown): number[] {
+        if (!Array.isArray(levels)) return [];
+        const unique = new Set<number>();
+        levels.forEach((value) => {
+            if (typeof value !== 'number' || !Number.isFinite(value)) return;
+            const normalized = Math.floor(value);
+            if (normalized < 1 || normalized > this.maxLevel) return;
+            unique.add(normalized);
+        });
+        return Array.from(unique).sort((a, b) => a - b);
+    }
+
+    private ensureCompletedLevels(levels: number[], highestLevel: number): number[] {
+        const merged = new Set<number>(levels);
+        for (let level = 1; level < highestLevel; level++) {
+            merged.add(level);
+        }
+        return Array.from(merged).sort((a, b) => a - b);
     }
 }
 

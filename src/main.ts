@@ -26,6 +26,8 @@ import type { GameMode, LeaderboardIdentity, LeaderboardMode, PowerupInventory }
 import { isDebugMode, isLocalDebugHost } from './debug.js';
 import { FpsMeter } from './fps-meter.js';
 
+const FIRST_WIN_REWARD_COINS = 5;
+
 class GameApp {
     constructor() {
         this.body = document.body;
@@ -44,7 +46,8 @@ class GameApp {
             timeSurvival: 0,
             sugarCoins: 0,
             powerups: createFreshPowerupInventory(),
-            extraPowerupSlotUnlocked: false
+            extraPowerupSlotUnlocked: false,
+            completedLevels: []
         };
         this.progressStore = new ProgressStore();
         this.localProgress = new LocalProgressStore();
@@ -121,6 +124,7 @@ class GameApp {
         this.game.onTimeAttempt((time) => this.recordTimeAttempt(time));
         this.game.onSugarCoinsEarned((amount) => this.grantSugarCoins(amount));
         this.game.onPowerupInventoryChange((inventory) => this.handlePowerupInventoryChange(inventory));
+        this.game.onLevelWinReward((level) => this.handleLevelWinReward(level));
 
         onLocaleChange((locale) => this.handleLocaleChange(locale));
         this.applyOptions(this.options);
@@ -634,7 +638,8 @@ class GameApp {
             timeSurvival: this.progress.timeSurvival,
             sugarCoins: this.progress.sugarCoins,
             powerups: this.progress.powerups,
-            extraPowerupSlotUnlocked: this.progress.extraPowerupSlotUnlocked
+            extraPowerupSlotUnlocked: this.progress.extraPowerupSlotUnlocked,
+            completedLevels: this.progress.completedLevels
         });
         this.updateStartButtonState();
         this.progress = this.localProgress.save(this.progress);
@@ -650,7 +655,8 @@ class GameApp {
             timeSurvival: this.progress.timeSurvival,
             sugarCoins: this.progress.sugarCoins,
             powerups: this.progress.powerups,
-            extraPowerupSlotUnlocked: this.progress.extraPowerupSlotUnlocked
+            extraPowerupSlotUnlocked: this.progress.extraPowerupSlotUnlocked,
+            completedLevels: this.progress.completedLevels
         });
         this.progress = this.localProgress.save(this.progress);
         if (!this.currentUser) return;
@@ -665,7 +671,8 @@ class GameApp {
             timeSurvival: time,
             sugarCoins: this.progress.sugarCoins,
             powerups: this.progress.powerups,
-            extraPowerupSlotUnlocked: this.progress.extraPowerupSlotUnlocked
+            extraPowerupSlotUnlocked: this.progress.extraPowerupSlotUnlocked,
+            completedLevels: this.progress.completedLevels
         });
         this.progress = this.localProgress.save(this.progress);
         if (!this.currentUser) return;
@@ -781,8 +788,16 @@ class GameApp {
             timeSurvival: Math.max(current.timeSurvival, incoming.timeSurvival),
             sugarCoins: Math.max(current.sugarCoins, incoming.sugarCoins),
             powerups: this.mergePowerups(current.powerups, incoming.powerups, extraPowerupSlotUnlocked),
-            extraPowerupSlotUnlocked
+            extraPowerupSlotUnlocked,
+            completedLevels: this.mergeCompletedLevels(current.completedLevels, incoming.completedLevels)
         };
+    }
+
+    private mergeCompletedLevels(current: number[], incoming: number[]): number[] {
+        const merged = new Set<number>();
+        current.forEach((level) => merged.add(level));
+        incoming.forEach((level) => merged.add(level));
+        return Array.from(merged).sort((a, b) => a - b);
     }
 
     private mergePowerups(
@@ -815,6 +830,24 @@ class GameApp {
     private hasMorePowerups(stored: StoredProgress, merged: StoredProgress): boolean {
         const powerupTypes = Object.keys(TACTICAL_POWERUPS) as TacticalPowerup[];
         return powerupTypes.some((type) => (merged.powerups[type] ?? 0) > (stored.powerups[type] ?? 0));
+    }
+
+    private handleLevelWinReward(level: number): { coins: number } | null {
+        if (!Number.isFinite(level)) {
+            return null;
+        }
+        const normalizedLevel = Math.max(1, Math.floor(level));
+        if (this.progress.completedLevels.includes(normalizedLevel)) {
+            return null;
+        }
+        const completedLevels = this.mergeCompletedLevels(this.progress.completedLevels, [normalizedLevel]);
+        this.progress = this.localProgress.save({
+            ...this.progress,
+            completedLevels
+        });
+        return {
+            coins: FIRST_WIN_REWARD_COINS
+        };
     }
 
     private async handleDeleteProgress(): Promise<void> {

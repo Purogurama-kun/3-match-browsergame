@@ -60,6 +60,10 @@ type StoryCutsceneDefinition = {
     durationMs?: number;
 };
 
+type LevelWinReward = {
+    coins: number;
+} | null;
+
 const FINAL_LEVEL = LEVELS.length;
 
 const STORY_CUTSCENES: StoryCutsceneDefinition[] = [
@@ -165,7 +169,7 @@ class Match3Game implements ModeContext {
             isPerformanceMode: () => this.performanceMode,
             getAnimationDelay: (duration) => this.getAnimationDelay(duration),
             defer: (callback, delay) => this.defer(callback, delay),
-            onSugarCoins: (amount) => this.sugarCoinListener?.(amount),
+            onSugarCoins: (amount) => this.handleSugarCoinsCollected(amount),
             getRowCol: (index) => this.getRowCol(index),
             getAdjacentIndices: (row, col) => this.getAdjacentIndices(row, col)
         });
@@ -339,9 +343,11 @@ class Match3Game implements ModeContext {
     private levelAttemptListener: ((level: number) => void) | null = null;
     private blockerAttemptListener: ((score: number) => void) | null = null;
     private timeAttemptListener: ((time: number) => void) | null = null;
+    private levelWinRewardListener: ((level: number) => LevelWinReward) | null = null;
     private exitGameListener: (() => void) | null = null;
     private levelSelectListener: (() => void) | null = null;
     private leaderboardState: LeaderboardState | null = null;
+    private runSugarCoins = 0;
     private readonly generatorSpreadInterval = 2;
     private readonly generatorSpreadRadius = 3;
     private performanceMode = false;
@@ -350,6 +356,7 @@ class Match3Game implements ModeContext {
     async startLevel(level: number): Promise<void> {
         this.hud.closeOptions();
         this.hud.resetLowMovesWarning();
+        this.resetRunSugarCoins();
         await this.displayStoryCutscene(level, 'before');
         this.switchMode(new LevelModeState(level));
         this.createBoard();
@@ -374,12 +381,14 @@ class Match3Game implements ModeContext {
 
     startBlocker(bestScore: number): void {
         this.hud.closeOptions();
+        this.resetRunSugarCoins();
         this.switchMode(new BlockerModeState(bestScore));
         this.createBoard();
     }
 
     startTime(bestSurvival: number): void {
         this.hud.closeOptions();
+        this.resetRunSugarCoins();
         this.switchMode(new TimeModeState(bestSurvival));
         this.createBoard();
     }
@@ -465,6 +474,10 @@ class Match3Game implements ModeContext {
 
     onSugarCoinsEarned(handler: (amount: number) => void): void {
         this.sugarCoinListener = handler;
+    }
+
+    onLevelWinReward(handler: (level: number) => LevelWinReward): void {
+        this.levelWinRewardListener = handler;
     }
 
     onPowerupInventoryChange(handler: (inventory: PowerupInventory) => void): void {
@@ -963,6 +976,11 @@ class Match3Game implements ModeContext {
         this.showRecordingButtonIfAvailable();
         const rawNextLevel = result === 'win' ? completedLevel + 1 : completedLevel;
         const nextLevel = Math.min(rawNextLevel, LEVELS.length);
+        const reward =
+            result === 'win' ? (this.levelWinRewardListener?.(completedLevel) ?? null) : null;
+        if (reward && reward.coins > 0) {
+            this.sugarCoinListener?.(reward.coins);
+        }
         if (result === 'win') {
             this.sounds.play('levelUp');
             this.notifyProgress(nextLevel);
@@ -975,20 +993,37 @@ class Match3Game implements ModeContext {
                 ? t('result.level.winTitle', { level: completedLevel })
                 : t('result.level.loseTitle');
         const hasMoreLevels = nextLevel > completedLevel;
-        const text =
+        const baseText =
             result === 'win'
                 ? hasMoreLevels
-                    ? t('result.level.winNext', { level: nextLevel })
+                    ? ''
                     : t('result.level.winAll', { count: LEVELS.length })
                 : t('result.level.loseText');
+        const buttonLevel = result === 'win' ? nextLevel : completedLevel;
+        const text = baseText;
+        const collectedCoins = Math.max(0, Math.floor(this.runSugarCoins));
+        let coinSummary:
+            | {
+                  collectedText: string;
+                  bonusText?: string;
+              }
+            | undefined;
+        if (result === 'win') {
+            coinSummary = {
+                collectedText: t('result.coins.collected', { coins: collectedCoins })
+            };
+            if (reward) {
+                coinSummary.bonusText = t('result.coins.levelBonus', { bonus: reward.coins });
+            }
+        }
         const showResultModal = (): void => {
             if (result === 'win') {
                 this.renderer.showLevelWinCelebration();
             }
-            this.renderer.showModal({
+            const baseModalOptions = {
                 title,
                 text,
-                buttonText: t('button.continue'),
+                buttonText: t('button.nextLevel', { level: buttonLevel }),
                 secondaryButtonText: t('button.candyWorld'),
                 onSecondary: () => this.requestLevelSelect(),
                 onClose: () => {
@@ -999,7 +1034,9 @@ class Match3Game implements ModeContext {
                     this.switchMode(new LevelModeState(nextLevel));
                     this.createBoard();
                 }
-            });
+            };
+            const modalOptions = coinSummary ? { ...baseModalOptions, coinSummary } : baseModalOptions;
+            this.renderer.showModal(modalOptions);
         };
         const postScene =
             result === 'win' ? this.findStoryCutscene(completedLevel, 'after') : undefined;
@@ -1022,9 +1059,13 @@ class Match3Game implements ModeContext {
         const isNewBest = finalScore >= bestScore;
         const title = isNewBest ? t('result.blocker.newHighscore') : t('result.blocker.gameOver');
         const text = t('result.blocker.text', { score: finalScore, best: bestScore });
+        const collectedCoins = Math.max(0, Math.floor(this.runSugarCoins));
         this.renderer.showModal({
             title,
             text,
+            coinSummary: {
+                collectedText: t('result.coins.collected', { coins: collectedCoins })
+            },
             buttonText: t('button.restart'),
             secondaryButtonText: t('button.home'),
             onSecondary: () => this.requestExitGame(),
@@ -1045,9 +1086,13 @@ class Match3Game implements ModeContext {
         const bestLabel = this.formatTime(Math.max(0, bestTime));
         const title = isNewBest ? t('result.time.newBest') : t('result.time.timeUp');
         const text = t('result.time.text', { survived: finalLabel, best: bestLabel });
+        const collectedCoins = Math.max(0, Math.floor(this.runSugarCoins));
         this.renderer.showModal({
             title,
             text,
+            coinSummary: {
+                collectedText: t('result.coins.collected', { coins: collectedCoins })
+            },
             buttonText: t('button.restart'),
             secondaryButtonText: t('button.home'),
             onSecondary: () => this.requestExitGame(),
@@ -1716,6 +1761,17 @@ class Match3Game implements ModeContext {
         if (this.timeAttemptListener) {
             this.timeAttemptListener(time);
         }
+    }
+
+    private handleSugarCoinsCollected(amount: number): void {
+        const rounded = Math.max(0, Math.floor(Number.isFinite(amount) ? amount : 0));
+        if (rounded === 0) return;
+        this.runSugarCoins += rounded;
+        this.sugarCoinListener?.(rounded);
+    }
+
+    private resetRunSugarCoins(): void {
+        this.runSugarCoins = 0;
     }
 }
 

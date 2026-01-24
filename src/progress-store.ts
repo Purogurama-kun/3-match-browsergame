@@ -14,6 +14,7 @@ type ProgressData = {
     sugarCoins: number;
     powerups: PowerupInventory;
     extraPowerupSlotUnlocked: boolean;
+    completedLevels?: number[];
 };
 
 type StoredProgress = {
@@ -23,6 +24,7 @@ type StoredProgress = {
     sugarCoins: number;
     powerups: PowerupInventory;
     extraPowerupSlotUnlocked: boolean;
+    completedLevels: number[];
 };
 
 type ProgressResponse = {
@@ -72,7 +74,8 @@ class ProgressStore {
             timeSurvival: normalized.timeSurvival,
             sugarCoins: normalized.sugarCoins,
             powerups: normalized.powerups,
-            extraPowerupSlotUnlocked: normalized.extraPowerupSlotUnlocked
+            extraPowerupSlotUnlocked: normalized.extraPowerupSlotUnlocked,
+            completedLevels: normalized.completedLevels
         };
         const payload = {
             userId: normalizedUserId,
@@ -183,13 +186,18 @@ class ProgressStore {
             fallback?.powerups,
             extraPowerupSlotUnlocked
         );
+        const completedLevels = this.ensureCompletedLevels(
+            this.normalizeCompletedLevels(payload?.data?.completedLevels, fallback?.completedLevels),
+            highestLevel
+        );
         return {
             highestLevel,
             blockerHighScore,
             timeSurvival,
             sugarCoins,
             powerups,
-            extraPowerupSlotUnlocked
+            extraPowerupSlotUnlocked,
+            completedLevels
         };
     }
 
@@ -241,6 +249,32 @@ class ProgressStore {
             return value;
         }
         return fallback ?? false;
+    }
+
+    private normalizeCompletedLevels(levels: unknown, fallback?: number[]): number[] {
+        const combined: number[] = [];
+        if (Array.isArray(fallback)) {
+            combined.push(...fallback);
+        }
+        if (Array.isArray(levels)) {
+            combined.push(...levels);
+        }
+        const unique = new Set<number>();
+        combined.forEach((value) => {
+            if (typeof value !== 'number' || !Number.isFinite(value)) return;
+            const normalized = Math.floor(value);
+            if (normalized < 1 || normalized > this.maxLevel) return;
+            unique.add(normalized);
+        });
+        return Array.from(unique).sort((a, b) => a - b);
+    }
+
+    private ensureCompletedLevels(levels: number[], highestLevel: number): number[] {
+        const merged = new Set<number>(levels);
+        for (let level = 1; level < highestLevel; level++) {
+            merged.add(level);
+        }
+        return Array.from(merged).sort((a, b) => a - b);
     }
 
     private normalizeAttemptScore(value: number, mode: LeaderboardMode): number {

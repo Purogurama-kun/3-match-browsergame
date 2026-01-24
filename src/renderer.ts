@@ -23,6 +23,10 @@ type ModalOptions = {
     secondaryButtonText?: string;
     onClose: () => void;
     onSecondary?: () => void;
+    coinSummary?: {
+        collectedText: string;
+        bonusText?: string;
+    };
 };
 
 class Renderer {
@@ -501,7 +505,29 @@ class Renderer {
         this.modalCallback = options.onClose;
         this.modalSecondaryCallback = options.onSecondary ?? null;
         this.modalTitle.textContent = options.title;
-        this.modalText.textContent = options.text;
+        this.modalText.textContent = '';
+        if (options.text) {
+            const baseText = document.createTextNode(options.text);
+            this.modalText.appendChild(baseText);
+        }
+        if (options.coinSummary) {
+            if (options.text) {
+                this.modalText.appendChild(document.createTextNode(' '));
+            }
+            const summary = document.createElement('span');
+            summary.className = 'modal__coin-summary';
+            summary.appendChild(document.createTextNode(options.coinSummary.collectedText));
+            const icon = document.createElement('img');
+            icon.className = 'modal__coin-icon';
+            icon.src = '/assets/images/sugar_coin.webp';
+            icon.alt = '';
+            icon.setAttribute('aria-hidden', 'true');
+            summary.appendChild(icon);
+            if (options.coinSummary.bonusText) {
+                summary.appendChild(document.createTextNode(' ' + options.coinSummary.bonusText));
+            }
+            this.modalText.appendChild(summary);
+        }
         this.modalButton.textContent = options.buttonText;
         if (options.secondaryButtonText && options.onSecondary) {
             this.modalSecondaryButton.textContent = options.secondaryButtonText;
