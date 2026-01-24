@@ -50,6 +50,56 @@ Running the server after `npm run build` lets the manifest and service worker re
 
 For a deployable bundle, run `npm run publish`. It rebuilds the project and writes a `public/` folder containing everything that should be uploaded to the server.
 
+## Content data (levels + story)
+
+Non-programmer friendly content files live in `assets/data/`:
+
+- `assets/data/levels.json` controls the level list.
+- `assets/data/story-acts.json` controls acts and cutscenes.
+
+### Levels
+
+Each entry in `assets/data/levels.json` supports the same fields as before (`moves`, `targetScore`, `goals`, etc). The array order defines the level number, so `id` is optional and ignored.
+
+You can also define a board layout in plain text instead of cell indices:
+
+```json
+{
+  "board": {
+    "rows": [
+      "........",
+      "..R..H..",
+      "..R..H..",
+      "..R..H..",
+      "..R..H..",
+      "........",
+      "....T...",
+      "....X..."
+    ]
+  }
+}
+```
+
+Board tokens:
+
+- `.` any candy (random)
+- `X` blocked / gap cell
+- `H` hard candy
+- `T` blocker generator
+- `R` red, `A` amber, `B` blue, `P` purple, `G` green
+
+Spaces are optional: `"R . . X . . . ."` works too. If a `board` is provided, it overrides `missingCells`, `hardCandies`, and `blockerGenerators`.
+
+### Story acts
+
+`assets/data/story-acts.json` uses one entry per act:
+
+- `start_level`, `end_level`
+- `label` (string or `{ "en": "...", "de": "..." }`)
+- `cutscene_image_path`, `cutscene_text` (string or localized object)
+- `cutscene_duration_ms` (optional)
+- `end_cutscene_*` fields (optional, shown after `end_level`)
+
 The PHP server exposes `backend/progress.php`, which persists user progress to `backend/progress.sqlite`. The schema now relies on two tables (`User` and `GameProgress`) so each account keeps its googleID, username, nationality and aggregated stats (scores, coins, powerups, level) with `GameProgress.userID` referencing `User.id`. New accounts start with the username `Player#[id]` instead of the raw googleID and the SQLite file is created automatically on first write.
 
 - `action=leaderboard&mode=LevelMode|BlockerMode|TimeMode` (GET) returns paged global entries ordered by best result.
@@ -193,10 +243,12 @@ git restore .
 - `src/hud.ts` HUD updates
 - `src/sound-manager.ts` sound playback
 - `src/constants.ts` shared constants and helpers
-- `src/levels.ts` fixed level data with targets, goals, and difficulty
+- `src/levels.ts` level helpers and validation
 - `src/types.ts` shared types
 - `dist/` compiled JavaScript output
 - `assets/sounds/` sound effects, including match and booster variants
+- `assets/data/levels.json` level definitions (editable without code)
+- `assets/data/story-acts.json` story acts and cutscenes (editable without code)
 - Use WebP assets for the large hero and background images (`assets/images/main-menu-bg-landscape.webp`, `assets/images/main-menu-background.webp`, etc.) and reference those in `css/match-app.css`; WebP support drastically cuts the LCP refresh cost while keeping the visual fidelity.
 
 ## Google OAuth setup steps

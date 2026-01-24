@@ -2,9 +2,14 @@ import { BoosterType } from './constants.js';
 import { Board } from './board.js';
 import { Hud } from './hud.js';
 import { SoundManager } from './sound-manager.js';
-import { GameMode, GameState } from './types.js';
+import { BoardCellOverride, GameMode, GameState } from './types.js';
 
-type BoardConfig = { blockedCells?: number[]; hardCandies?: number[]; blockerGenerators?: number[] };
+type BoardConfig = {
+    blockedCells?: number[];
+    hardCandies?: number[];
+    blockerGenerators?: number[];
+    cellOverrides?: BoardCellOverride[];
+};
 
 /** Defines the services a game mode needs to interact with shared systems. */
 interface ModeContext {

@@ -36,25 +36,52 @@ class Board {
     private cellStates: CellState[] = [];
     private blockedIndices: Set<number> = new Set();
 
-    create(config?: { blockedCells?: number[]; hardCandies?: number[]; blockerGenerators?: number[] }): void {
-        this.blockedIndices = new Set(config?.blockedCells ?? []);
+    create(config?: {
+        blockedCells?: number[];
+        hardCandies?: number[];
+        blockerGenerators?: number[];
+        cellOverrides?: Array<{
+            index: number;
+            color?: string;
+            hard?: boolean;
+            blocked?: boolean;
+            generator?: boolean;
+        }>;
+    }): void {
+        const overrideMap = new Map<number, { color?: string; hard?: boolean; blocked?: boolean; generator?: boolean }>();
+        (config?.cellOverrides ?? []).forEach((override) => {
+            overrideMap.set(override.index, override);
+        });
+        const blockedFromConfig = new Set(config?.blockedCells ?? []);
         const hardCandies = new Set(config?.hardCandies ?? []);
         const blockerGenerators = new Set(config?.blockerGenerators ?? []);
+        const blockedFromOverrides = new Set<number>();
+        overrideMap.forEach((override, index) => {
+            if (override.blocked) {
+                blockedFromOverrides.add(index);
+            }
+        });
+        this.blockedIndices = new Set([...blockedFromConfig, ...blockedFromOverrides]);
         this.cellStates = [];
         for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
-            const blocked = this.blockedIndices.has(i);
-            const isGenerator = blockerGenerators.has(i);
+            const override = overrideMap.get(i);
+            const blocked = override?.blocked ?? this.blockedIndices.has(i);
+            const isGenerator = override?.generator ?? blockerGenerators.has(i);
+            const overrideHard = override?.hard;
+            const hard = isGenerator ? true : overrideHard ?? hardCandies.has(i);
             const state: CellState = {
                 color: '',
                 booster: BOOSTERS.NONE,
-                hard: hardCandies.has(i) || isGenerator,
+                hard,
                 blocked,
                 generator: isGenerator
             };
             const shouldSpawnChest =
-                !blocked && !state.hard && !state.generator && this.shouldSpawnSugarChest();
+                !blocked && !state.hard && !state.generator && !override?.color && this.shouldSpawnSugarChest();
             if (blocked) {
                 state.color = '';
+            } else if (override?.color) {
+                state.color = override.color;
             } else if (shouldSpawnChest) {
                 state.color = '';
             } else {

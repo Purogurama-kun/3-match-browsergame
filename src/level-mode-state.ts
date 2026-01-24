@@ -130,6 +130,7 @@ class LevelModeState implements GameModeState {
         const config: BoardConfig = {};
         if (this.levelDefinition.missingCells) config.blockedCells = this.levelDefinition.missingCells;
         if (this.levelDefinition.hardCandies) config.hardCandies = this.levelDefinition.hardCandies;
+        if (this.levelDefinition.cellOverrides) config.cellOverrides = this.levelDefinition.cellOverrides;
         const generators = this.pickBlockerGenerators();
         if (generators.length > 0) {
             config.blockerGenerators = generators;
@@ -189,6 +190,12 @@ class LevelModeState implements GameModeState {
     }
 
     private pickBlockerGenerators(): number[] {
+        if (this.levelDefinition.blockerGenerators && this.levelDefinition.blockerGenerators.length > 0) {
+            return [...this.levelDefinition.blockerGenerators];
+        }
+        if (this.levelDefinition.cellOverrides && this.levelDefinition.cellOverrides.length > 0) {
+            return [];
+        }
         if (this.levelDefinition.id < 20) return [];
         const blocked = new Set(this.levelDefinition.missingCells ?? []);
         const hard = new Set(this.levelDefinition.hardCandies ?? []);

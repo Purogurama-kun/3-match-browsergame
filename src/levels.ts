@@ -1,6 +1,7 @@
-import { GRID_SIZE, BOOSTERS, ColorKey } from './constants.js';
+import { GRID_SIZE, BOOSTERS, ColorKey, getColorHex } from './constants.js';
 import {
     ActivateBoosterGoal,
+    BoardCellOverride,
     DestroyColorGoal,
     Difficulty,
     LevelDefinition,
@@ -60,8 +61,33 @@ const CORE_HARD_FIELD = SORTED_PLAYABLE_INDICES.slice(0, 28);
 const DENSE_HARD_FIELD = SORTED_PLAYABLE_INDICES.slice(0, 34);
 const MASSIVE_HARD_FIELD = SORTED_PLAYABLE_INDICES.slice(0, 40);
 
+const BOARD_TOKEN_COLORS: Record<string, ColorKey> = {
+    R: 'red',
+    A: 'amber',
+    B: 'blue',
+    P: 'purple',
+    G: 'green'
+};
+
+const BOARD_TOKEN_SPECIAL: Record<string, 'any' | 'blocked' | 'hard' | 'generator'> = {
+    '.': 'any',
+    '-': 'any',
+    X: 'blocked',
+    '#': 'blocked',
+    H: 'hard',
+    T: 'generator'
+};
+
 type LevelDifficultyValue = Difficulty | number;
-type LevelDefinitionInput = Omit<LevelDefinition, 'difficulty'> & { difficulty: LevelDifficultyValue };
+
+type BoardLayoutInput = {
+    rows: string[];
+};
+
+type LevelDefinitionInput = Omit<LevelDefinition, 'difficulty' | 'cellOverrides'> & {
+    difficulty: LevelDifficultyValue;
+    board?: BoardLayoutInput;
+};
 
 const RAW_LEVELS: LevelDefinitionInput[] = [
     {
@@ -689,26 +715,40 @@ const RAW_LEVELS: LevelDefinitionInput[] = [
     }
 ];
 
-const LEVELS: LevelDefinition[] = RAW_LEVELS.map((definition, index) =>
+const DEFAULT_LEVELS: LevelDefinition[] = RAW_LEVELS.map((definition, index) =>
     normalizeLevelDefinition(definition, index + 1)
 );
 
+let LEVELS: LevelDefinition[] = [...DEFAULT_LEVELS];
+
 function normalizeLevelDefinition(definition: LevelDefinitionInput, id: number): LevelDefinition {
-    const goals = [...definition.goals];
+    const { board, ...definitionBase } = definition;
+    const boardOverrides = board ? parseBoardLayout(board, id) : null;
+    const goals = [...definitionBase.goals];
+    const resolvedMissingCells = boardOverrides?.blockedCells ?? definitionBase.missingCells;
+    const resolvedHardCandies = boardOverrides?.hardCandies ?? definitionBase.hardCandies;
+    const resolvedBlockerGenerators =
+        boardOverrides?.blockerGenerators ?? definitionBase.blockerGenerators;
     const normalizedTimeGoal =
-        definition.timeGoalSeconds !== undefined ? Math.max(180, definition.timeGoalSeconds) : undefined;
-    if (definition.hardCandies && definition.hardCandies.length > 0) {
-        goals.push({ type: 'destroy-hard-candies', target: definition.hardCandies.length });
+        definitionBase.timeGoalSeconds !== undefined
+            ? Math.max(180, definitionBase.timeGoalSeconds)
+            : undefined;
+    const hasHardCandyGoal = goals.some((goal) => goal.type === 'destroy-hard-candies');
+    if (!hasHardCandyGoal && resolvedHardCandies && resolvedHardCandies.length > 0) {
+        goals.push({ type: 'destroy-hard-candies', target: resolvedHardCandies.length });
     }
     return {
-        ...definition,
+        ...definitionBase,
         id,
-        difficulty: normalizeDifficulty(definition.difficulty),
-        background: getBackgroundForLevel(id),
+        difficulty: normalizeDifficulty(definitionBase.difficulty),
+        background: definitionBase.background ?? getBackgroundForLevel(id),
         goals,
-        ...(definition.missingCells ? { missingCells: [...definition.missingCells] } : {}),
-        ...(definition.hardCandies ? { hardCandies: [...definition.hardCandies] } : {}),
-        ...(definition.blockerGenerators ? { blockerGenerators: [...definition.blockerGenerators] } : {}),
+        ...(resolvedMissingCells ? { missingCells: [...resolvedMissingCells] } : {}),
+        ...(resolvedHardCandies ? { hardCandies: [...resolvedHardCandies] } : {}),
+        ...(resolvedBlockerGenerators
+            ? { blockerGenerators: [...resolvedBlockerGenerators] }
+            : {}),
+        ...(boardOverrides?.cellOverrides ? { cellOverrides: [...boardOverrides.cellOverrides] } : {}),
         ...(normalizedTimeGoal !== undefined ? { timeGoalSeconds: normalizedTimeGoal } : {})
     };
 }
@@ -733,6 +773,99 @@ function normalizeDifficulty(value: LevelDifficultyValue): Difficulty {
     return 'nightmare';
 }
 
+type ParsedBoardLayout = {
+    blockedCells: number[];
+    hardCandies: number[];
+    blockerGenerators: number[];
+    cellOverrides: BoardCellOverride[];
+};
+
+function parseBoardLayout(layout: BoardLayoutInput, levelId: number): ParsedBoardLayout | null {
+    const rows = layout.rows ?? [];
+    if (rows.length !== GRID_SIZE) {
+        console.warn(`Level ${levelId}: board rows must be ${GRID_SIZE} lines long.`);
+        return null;
+    }
+    let isValid = true;
+    const blockedCells: number[] = [];
+    const hardCandies: number[] = [];
+    const blockerGenerators: number[] = [];
+    const cellOverrides: BoardCellOverride[] = [];
+    rows.forEach((row, rowIndex) => {
+        const tokens = tokenizeBoardRow(row);
+        if (tokens.length !== GRID_SIZE) {
+            console.warn(
+                `Level ${levelId}: board row ${rowIndex + 1} must have ${GRID_SIZE} cells.`
+            );
+            isValid = false;
+            return;
+        }
+        tokens.forEach((rawToken, colIndex) => {
+            const token = rawToken.trim().toUpperCase();
+            const index = rowIndex * GRID_SIZE + colIndex;
+            if (!token) {
+                isValid = false;
+                return;
+            }
+            const special = BOARD_TOKEN_SPECIAL[token];
+            if (special) {
+                if (special === 'blocked') blockedCells.push(index);
+                if (special === 'hard') hardCandies.push(index);
+                if (special === 'generator') blockerGenerators.push(index);
+                return;
+            }
+            const colorKey = BOARD_TOKEN_COLORS[token];
+            if (colorKey) {
+                cellOverrides.push({ index, color: getColorHex(colorKey) });
+                return;
+            }
+            console.warn(`Level ${levelId}: unknown board token "${rawToken}".`);
+            isValid = false;
+        });
+    });
+    if (!isValid) {
+        return null;
+    }
+    return { blockedCells, hardCandies, blockerGenerators, cellOverrides };
+}
+
+function tokenizeBoardRow(row: string): string[] {
+    const trimmed = row.trim();
+    if (!trimmed) return [];
+    if (/\s/.test(trimmed)) {
+        return trimmed.split(/\s+/);
+    }
+    return trimmed.split('');
+}
+
+function setLevelsFromData(raw: unknown): boolean {
+    const inputs = extractLevelInputs(raw);
+    if (!inputs || inputs.length === 0) {
+        console.warn('Level data file is missing or empty. Using bundled defaults.');
+        return false;
+    }
+    LEVELS = inputs.map((definition, index) => normalizeLevelDefinition(definition, index + 1));
+    return true;
+}
+
+function extractLevelInputs(raw: unknown): LevelDefinitionInput[] | null {
+    if (Array.isArray(raw)) {
+        return raw as LevelDefinitionInput[];
+    }
+    if (raw && typeof raw === 'object' && Array.isArray((raw as { levels?: unknown }).levels)) {
+        return (raw as { levels: LevelDefinitionInput[] }).levels;
+    }
+    return null;
+}
+
+function getLevelCount(): number {
+    return LEVELS.length;
+}
+
+function getLevels(): LevelDefinition[] {
+    return LEVELS;
+}
+
 function getLevelDefinition(levelNumber: number): LevelDefinition {
     const clamped = Math.min(Math.max(1, levelNumber), LEVELS.length);
     const baseDefinition = LEVELS[clamped - 1];
@@ -745,6 +878,7 @@ function getLevelDefinition(levelNumber: number): LevelDefinition {
         ...(baseDefinition.missingCells ? { missingCells: [...baseDefinition.missingCells] } : {}),
         ...(baseDefinition.hardCandies ? { hardCandies: [...baseDefinition.hardCandies] } : {}),
         ...(baseDefinition.blockerGenerators ? { blockerGenerators: [...baseDefinition.blockerGenerators] } : {}),
+        ...(baseDefinition.cellOverrides ? { cellOverrides: [...baseDefinition.cellOverrides] } : {}),
         ...(baseDefinition.timeGoalSeconds !== undefined ? { timeGoalSeconds: baseDefinition.timeGoalSeconds } : {})
     };
 }
@@ -785,4 +919,4 @@ function describeGoal(goal: LevelGoal): string {
     return t('goal.activateBooster', { target: goal.target, booster: t(boosterKey) });
 }
 
-export { LEVELS, getLevelDefinition, describeGoal };
+export { LEVELS, getLevels, getLevelCount, setLevelsFromData, getLevelDefinition, describeGoal };

@@ -12,8 +12,8 @@ import { Board, type DropMove } from './board.js';
 import { CellShapeMode, GameMode, GameState, PowerupInventory, SwipeDirection } from './types.js';
 import type { LineOrientation } from './types.js';
 import { Renderer } from './renderer.js';
-import { CutsceneManager, type CutsceneScene } from './cutscene.js';
-import { describeGoal, LEVELS } from './levels.js';
+import { CutsceneManager } from './cutscene.js';
+import { describeGoal, getLevelCount } from './levels.js';
 import { GameModeState, ModeContext, BoardConfig } from './game-mode-state.js';
 import { LevelModeState } from './level-mode-state.js';
 import { BlockerModeState } from './blocker-mode-state.js';
@@ -42,6 +42,7 @@ import {
     type SnapshotPowerupUsage,
     type Position
 } from './snapshot-recorder.js';
+import { getStoryCutscene } from './story.js';
 
 type BoosterActivationOverride = {
     booster: BoosterType;
@@ -52,60 +53,9 @@ type ChainBoosterInfo = BoosterActivationOverride & { index: number };
 
 type StoryTiming = 'before' | 'after';
 
-type StoryCutsceneDefinition = {
-    level: number;
-    timing: StoryTiming;
-    background: string;
-    textKey: 'cutscene.level1.before' | 'cutscene.level6.before' | 'cutscene.level16.before' | 'cutscene.level26.before' | 'cutscene.levelFinal.before' | 'cutscene.levelFinal.after';
-    durationMs?: number;
-};
-
 type LevelWinReward = {
     coins: number;
 } | null;
-
-const FINAL_LEVEL = LEVELS.length;
-
-const STORY_CUTSCENES: StoryCutsceneDefinition[] = [
-    {
-        level: 1,
-        timing: 'before',
-        background: 'assets/images/vendor-plaza.png',
-        textKey: 'cutscene.level1.before',
-        durationMs: 4400
-    },
-    {
-        level: 6,
-        timing: 'before',
-        background: 'assets/images/vendor-plaza.png',
-        textKey: 'cutscene.level6.before',
-        durationMs: 4400
-    },
-    {
-        level: 16,
-        timing: 'before',
-        background: 'assets/images/ribbon-alley.png',
-        textKey: 'cutscene.level16.before'
-    },
-    {
-        level: 26,
-        timing: 'before',
-        background: 'assets/images/lantern-bridge.png',
-        textKey: 'cutscene.level26.before'
-    },
-    {
-        level: FINAL_LEVEL,
-        timing: 'before',
-        background: 'assets/images/festival.png',
-        textKey: 'cutscene.levelFinal.before'
-    },
-    {
-        level: FINAL_LEVEL,
-        timing: 'after',
-        background: 'assets/images/festival.png',
-        textKey: 'cutscene.levelFinal.after'
-    }
-];
 
 const RECORDING_COLOR_HEX: Record<SnapshotCell['color'], string> = {
     red: '#ff7b7b',
@@ -363,20 +313,9 @@ class Match3Game implements ModeContext {
     }
 
     private async displayStoryCutscene(level: number, timing: StoryTiming): Promise<void> {
-        const scene = this.findStoryCutscene(level, timing);
+        const scene = getStoryCutscene(level, timing);
         if (!scene) return;
-        await this.cutsceneManager.play(this.toCutsceneScene(scene));
-    }
-
-    private toCutsceneScene(scene: StoryCutsceneDefinition): CutsceneScene {
-        const payload: CutsceneScene = {
-            background: scene.background,
-            text: t(scene.textKey)
-        };
-        if (scene.durationMs !== undefined) {
-            payload.durationMs = scene.durationMs;
-        }
-        return payload;
+        await this.cutsceneManager.play(scene);
     }
 
     startBlocker(bestScore: number): void {
@@ -975,7 +914,7 @@ class Match3Game implements ModeContext {
         this.updateRecordingLock(false);
         this.showRecordingButtonIfAvailable();
         const rawNextLevel = result === 'win' ? completedLevel + 1 : completedLevel;
-        const nextLevel = Math.min(rawNextLevel, LEVELS.length);
+        const nextLevel = Math.min(rawNextLevel, getLevelCount());
         const reward =
             result === 'win' ? (this.levelWinRewardListener?.(completedLevel) ?? null) : null;
         if (reward && reward.coins > 0) {
@@ -997,7 +936,7 @@ class Match3Game implements ModeContext {
             result === 'win'
                 ? hasMoreLevels
                     ? ''
-                    : t('result.level.winAll', { count: LEVELS.length })
+                    : t('result.level.winAll', { count: getLevelCount() })
                 : t('result.level.loseText');
         const buttonLevel = result === 'win' ? nextLevel : completedLevel;
         const text = baseText;
@@ -1038,17 +977,12 @@ class Match3Game implements ModeContext {
             const modalOptions = coinSummary ? { ...baseModalOptions, coinSummary } : baseModalOptions;
             this.renderer.showModal(modalOptions);
         };
-        const postScene =
-            result === 'win' ? this.findStoryCutscene(completedLevel, 'after') : undefined;
+        const postScene = result === 'win' ? getStoryCutscene(completedLevel, 'after') : null;
         if (postScene) {
-            void this.cutsceneManager.play(this.toCutsceneScene(postScene)).then(showResultModal);
+            void this.cutsceneManager.play(postScene).then(showResultModal);
             return;
         }
         showResultModal();
-    }
-
-    private findStoryCutscene(level: number, timing: StoryTiming): StoryCutsceneDefinition | undefined {
-        return STORY_CUTSCENES.find((scene) => scene.level === level && scene.timing === timing);
     }
 
     finishBlockerRun(finalScore: number, bestScore: number): void {

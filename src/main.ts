@@ -25,6 +25,7 @@ import { normalizeGameOptions, type GameOptions } from './game-options.js';
 import type { GameMode, LeaderboardIdentity, LeaderboardMode, PowerupInventory } from './types.js';
 import { isDebugMode, isLocalDebugHost } from './debug.js';
 import { FpsMeter } from './fps-meter.js';
+import { loadGameContent } from './content-loader.js';
 
 const FIRST_WIN_REWARD_COINS = 5;
 
@@ -1036,14 +1037,18 @@ class GameApp {
     }
 }
 
-new GameApp();
+const start = async (): Promise<void> => {
+    await loadGameContent();
+    new GameApp();
+    if ('serviceWorker' in navigator && !isLocalDebugHost()) {
+        window.addEventListener('load', () => {
+            void navigator.serviceWorker
+                .register('/service-worker.js', { scope: '/' })
+                .catch((error) => {
+                    console.error('Service worker registration failed', error);
+                });
+        });
+    }
+};
 
-if ('serviceWorker' in navigator && !isLocalDebugHost()) {
-    window.addEventListener('load', () => {
-        void navigator.serviceWorker
-            .register('/service-worker.js', { scope: '/' })
-            .catch((error) => {
-                console.error('Service worker registration failed', error);
-            });
-    });
-}
+void start();

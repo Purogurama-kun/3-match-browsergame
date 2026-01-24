@@ -64,6 +64,7 @@ type LevelDefinition = {
     missingCells?: number[];
     hardCandies?: number[];
     blockerGenerators?: number[];
+    cellOverrides?: BoardCellOverride[];
 };
 
 type PowerupInventory = Record<TacticalPowerup, number>;
@@ -91,6 +92,14 @@ type CellShapeMode = 'square' | 'shaped';
 
 type LineOrientation = 'horizontal' | 'vertical';
 
+type BoardCellOverride = {
+    index: number;
+    color?: string;
+    hard?: boolean;
+    blocked?: boolean;
+    generator?: boolean;
+};
+
 export {
     GameState,
     SwipeDirection,
@@ -109,5 +118,6 @@ export {
     LeaderboardIdentity,
     PowerupInventory,
     CellShapeMode,
-    LineOrientation
+    LineOrientation,
+    BoardCellOverride
 };

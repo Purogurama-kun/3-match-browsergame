@@ -1,0 +1,81 @@
+{
+  "acts": [
+    {
+      "id": "setup",
+      "label": {
+        "en": "Act 1 - Setup",
+        "de": "Akt 1 - Auftakt"
+      },
+      "start_level": 1,
+      "end_level": 5,
+      "cutscene_image_path": "assets/images/vendor-plaza.png",
+      "cutscene_text": {
+        "en": "Mira: Tiny bursts keep the plaza spotless.",
+        "de": "Mira: Kleine Explosionen halten den Platz sauber."
+      },
+      "cutscene_duration_ms": 4400
+    },
+    {
+      "id": "plaza",
+      "label": {
+        "en": "Act 2 - Plaza",
+        "de": "Akt 2 - Platz"
+      },
+      "start_level": 6,
+      "end_level": 15,
+      "cutscene_image_path": "assets/images/vendor-plaza.png",
+      "cutscene_text": {
+        "en": "Mira: Hard candies vanish with a sparkle.",
+        "de": "Mira: Harte Bonbons verschwinden mit einem Funkeln."
+      },
+      "cutscene_duration_ms": 4400
+    },
+    {
+      "id": "ribbon",
+      "label": {
+        "en": "Act 3 - Ribbon Alley",
+        "de": "Akt 3 - Bandgasse"
+      },
+      "start_level": 16,
+      "end_level": 25,
+      "cutscene_image_path": "assets/images/ribbon-alley.png",
+      "cutscene_text": {
+        "en": "Mira: Sticky ribbons stay calm while I sweep.",
+        "de": "Mira: Klebrige Baender bleiben ruhig, waehrend ich fege."
+      }
+    },
+    {
+      "id": "lantern",
+      "label": {
+        "en": "Act 4 - Lantern Bridge",
+        "de": "Akt 4 - Laternenbruecke"
+      },
+      "start_level": 26,
+      "end_level": 49,
+      "cutscene_image_path": "assets/images/lantern-bridge.png",
+      "cutscene_text": {
+        "en": "Mira: Syrup clears without dimming the lanterns.",
+        "de": "Mira: Der Sirup verschwindet, ohne die Laternen zu trueben."
+      }
+    },
+    {
+      "id": "finale",
+      "label": {
+        "en": "Act 5 - Finale",
+        "de": "Akt 5 - Finale"
+      },
+      "start_level": 50,
+      "end_level": 50,
+      "cutscene_image_path": "assets/images/festival.png",
+      "cutscene_text": {
+        "en": "Mira: One choreographed burst for the crowd.",
+        "de": "Mira: Eine choreografierte Explosion fuer das Publikum."
+      },
+      "end_cutscene_image_path": "assets/images/festival.png",
+      "end_cutscene_text": {
+        "en": "Mira: Candy fireworks bloom; the festival cheers.",
+        "de": "Mira: Bonbon-Feuerwerk erblueht; das Festival jubelt."
+      }
+    }
+  ]
+}
