@@ -59,7 +59,7 @@ Non-programmer friendly content files live in `assets/data/`:
 - `assets/data/blocker-mode.json` controls blocker mode tuning.
 - `assets/data/time-mode.json` controls time mode tuning.
 - `assets/data/level-mode.json` controls level-mode rewards and bomb drop chances.
-- `assets/data/game.json` controls shared scoring rules.
+- `assets/data/score.json` controls shared scoring rules.
 - `assets/data/shop.json` controls shop prices.
 
 ### Levels
@@ -139,9 +139,9 @@ You can also use `generatorIndices` (0-63) instead of `generatorSlots`.
 - `firstWinRewardCoins` sets the sugar coin reward for completing a level the first time.
 - `maxBombDropChance` sets the maximum chance for bombs to fall on drops at max combo multiplier.
 
-### Game config (scoring)
+### Score config
 
-`assets/data/game.json` controls scoring without touching code:
+`assets/data/score.json` controls scoring without touching code:
 
 - `scoring.baseCellPoints` is the base score per cleared cell.
 - `scoring.comboMultiplier.min` / `max` clamp the combo multiplier.
