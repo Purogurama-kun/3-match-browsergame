@@ -1,12 +1,12 @@
 import {
     BOOSTERS,
     BoosterType,
-    ColorKey,
     getColorKeyFromHex,
     createFreshPowerupInventory
 } from './constants.js';
 import { BoardConfig, GameModeState, ModeContext } from './game-mode-state.js';
-import { GoalProgress, GameState, LevelGoal } from './types.js';
+import { getTimeModeConfig, mapDifficultyFromTier, type TimeModeConfig } from './mode-config.js';
+import { GoalProgress, GameState, LevelGoal, ActivatableBoosterType } from './types.js';
 import { describeGoal } from './levels.js';
 import { t } from './i18n.js';
 
@@ -19,24 +19,20 @@ class TimeModeState implements GameModeState {
     private state: GameState | null = null;
     private completedGoals = 0;
     private hasEnded = false;
-
-    private readonly startingTime = 60;
-    private readonly scoreTimeFactor = 0.035;
-    private readonly goalBonusSeconds = 8;
-    private readonly accelerationInterval = 30;
-    private readonly accelerationStep = 0.12;
-    private readonly hardCandyBaseChance = 0.05;
+    private config: TimeModeConfig;
 
     constructor(bestSurvival: number) {
         this.bestSurvival = Math.max(0, Math.floor(Number.isFinite(bestSurvival) ? bestSurvival : 0));
+        this.config = getTimeModeConfig();
     }
 
     enter(context: ModeContext): GameState {
+        this.config = getTimeModeConfig();
         this.hasEnded = false;
         this.stopTimer();
         this.difficultyTier = 0;
         this.completedGoals = 0;
-        const goals = this.createGoals(2);
+        const goals = this.createGoals(this.config.goalCount);
         const state: GameState = {
             mode: 'time',
             selected: null,
@@ -48,9 +44,9 @@ class TimeModeState implements GameModeState {
             goals,
             difficulty: 'easy',
             comboMultiplier: 1,
-            timeRemaining: this.startingTime,
+            timeRemaining: this.config.startingTime,
             survivalTime: 0,
-            timeCapacity: this.startingTime,
+            timeCapacity: this.config.startingTime,
             timeDrainMultiplier: this.getDrainMultiplier(),
             powerups: createFreshPowerupInventory()
             ,
@@ -110,7 +106,7 @@ class TimeModeState implements GameModeState {
     }
 
     handleScoreAwarded(state: GameState, basePoints: number, _context: ModeContext): void {
-        this.addTime(state, basePoints * this.scoreTimeFactor);
+        this.addTime(state, basePoints * this.config.scoreTimeFactor);
     }
 
     getBoardConfig(): BoardConfig {
@@ -118,8 +114,11 @@ class TimeModeState implements GameModeState {
     }
 
     shouldSpawnHardCandy(_state: GameState): boolean {
-        const tierBonus = Math.min(0.4, this.difficultyTier * 0.03);
-        return Math.random() < this.hardCandyBaseChance + tierBonus;
+        const tierBonus = Math.min(
+            this.config.hardCandyChanceMaxBonus,
+            this.difficultyTier * this.config.hardCandyChancePerTier
+        );
+        return Math.random() < this.config.hardCandyBaseChance + tierBonus;
     }
 
     onBoardCreated(_state: GameState, context: ModeContext): void {
@@ -164,16 +163,16 @@ class TimeModeState implements GameModeState {
     }
 
     private getDrainMultiplier(): number {
-        return 2 + this.difficultyTier * this.accelerationStep;
+        return this.config.baseDrainMultiplier + this.difficultyTier * this.config.accelerationStep;
     }
 
     private updateDifficulty(state: GameState): void {
         const survival = state.survivalTime ?? 0;
-        const nextTier = Math.floor(survival / this.accelerationInterval);
+        const nextTier = Math.floor(survival / this.config.accelerationIntervalSeconds);
         if (nextTier === this.difficultyTier) return;
         this.difficultyTier = nextTier;
         state.level = this.difficultyTier + 1;
-        state.difficulty = this.mapDifficulty(this.difficultyTier);
+        state.difficulty = mapDifficultyFromTier(this.difficultyTier, this.config.difficultyTiers);
     }
 
     private addTime(state: GameState, seconds: number): void {
@@ -181,7 +180,7 @@ class TimeModeState implements GameModeState {
         const current = state.timeRemaining ?? 0;
         const next = current + seconds;
         state.timeRemaining = next;
-        state.timeCapacity = Math.max(state.timeCapacity ?? this.startingTime, next, this.startingTime);
+        state.timeCapacity = Math.max(state.timeCapacity ?? this.config.startingTime, next, this.config.startingTime);
     }
 
     private updateGoals(
@@ -206,14 +205,14 @@ class TimeModeState implements GameModeState {
 
     private handleGoalCompleted(index: number, state: GameState, context: ModeContext): void {
         this.completedGoals++;
-        this.addTime(state, this.goalBonusSeconds);
+        this.addTime(state, this.config.goalBonusSeconds);
         const otherGoals = state.goals
             .filter((_, idx) => idx !== index)
             .map((goal) => this.goalProgressToDefinition(goal));
         const nextGoal = this.createGoalProgress(otherGoals);
         state.goals = state.goals.map((goal, idx) => (idx === index ? nextGoal : goal));
         context.getHud().setStatus(
-            t('time.status.goalComplete', { seconds: this.goalBonusSeconds.toFixed(0) }),
+            t('time.status.goalComplete', { seconds: this.config.goalBonusSeconds.toFixed(0) }),
             '⏱️'
         );
         context.updateHud(state);
@@ -238,25 +237,29 @@ class TimeModeState implements GameModeState {
     }
 
     private createColorGoal(tier: number): LevelGoal {
-        const colors: ColorKey[] = ['red', 'amber', 'blue', 'purple', 'green'];
+        const colors = this.config.colorGoalPool;
         const color = colors[Math.floor(Math.random() * colors.length)] ?? 'red';
-        const base = 8 + tier * 2;
-        const target = base + Math.floor(Math.random() * 4);
+        const base = this.config.colorGoalBase + tier * this.config.colorGoalTierStep;
+        const target = base + Math.floor(Math.random() * this.config.colorGoalRandomRange);
         return { type: 'destroy-color', color, target };
     }
 
     private createBoosterGoal(tier: number): LevelGoal {
-        const boosters = [BOOSTERS.LINE, BOOSTERS.BURST_SMALL, BOOSTERS.BURST_MEDIUM] as const;
-        const pick = boosters[Math.floor(Math.random() * boosters.length)] ?? BOOSTERS.BURST_SMALL;
-        const target = 1 + Math.floor(tier / 2);
+        const boosters = this.config.boosterGoalPool;
+        const pick = (boosters[Math.floor(Math.random() * boosters.length)] ??
+            BOOSTERS.BURST_SMALL) as ActivatableBoosterType;
+        const target = 1 + Math.floor(tier / this.config.boosterGoalTierDivisor);
         return { type: 'activate-booster', booster: pick, target };
     }
 
     private createUniqueLevelGoal(exclude: LevelGoal[]): LevelGoal {
         const tier = this.difficultyTier;
         let candidate: LevelGoal = this.createColorGoal(tier);
-        for (let attempt = 0; attempt < 6; attempt++) {
-            candidate = Math.random() < 0.6 ? this.createColorGoal(tier) : this.createBoosterGoal(tier);
+        for (let attempt = 0; attempt < this.config.uniqueGoalAttempts; attempt++) {
+            candidate =
+                Math.random() < this.config.colorGoalChance
+                    ? this.createColorGoal(tier)
+                    : this.createBoosterGoal(tier);
             if (!this.isDuplicateGoal(candidate, exclude)) {
                 return candidate;
             }
@@ -303,13 +306,6 @@ class TimeModeState implements GameModeState {
         context.finishTimeRun(finalTime, this.bestSurvival);
     }
 
-    private mapDifficulty(tier: number): GameState['difficulty'] {
-        if (tier >= 6) return 'nightmare';
-        if (tier >= 4) return 'expert';
-        if (tier >= 3) return 'hard';
-        if (tier >= 1) return 'normal';
-        return 'easy';
-    }
 }
 
 export { TimeModeState };

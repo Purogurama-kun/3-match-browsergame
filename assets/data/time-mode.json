@@ -1,0 +1,26 @@
+{
+  "startingTime": 60,
+  "scoreTimeFactor": 0.035,
+  "goalBonusSeconds": 8,
+  "accelerationIntervalSeconds": 30,
+  "baseDrainMultiplier": 2,
+  "accelerationStep": 0.12,
+  "hardCandyBaseChance": 0.05,
+  "hardCandyChancePerTier": 0.03,
+  "hardCandyChanceMaxBonus": 0.4,
+  "goalCount": 2,
+  "colorGoalBase": 8,
+  "colorGoalTierStep": 2,
+  "colorGoalRandomRange": 4,
+  "colorGoalChance": 0.6,
+  "boosterGoalTierDivisor": 2,
+  "uniqueGoalAttempts": 6,
+  "colorGoalPool": ["red", "amber", "blue", "purple", "green"],
+  "boosterGoalPool": ["line", "burstSmall", "burstMedium"],
+  "difficultyTiers": {
+    "normal": 1,
+    "hard": 3,
+    "expert": 4,
+    "nightmare": 6
+  }
+}

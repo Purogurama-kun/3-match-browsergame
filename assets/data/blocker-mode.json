@@ -1,0 +1,22 @@
+{
+  "targetScoreBase": 500,
+  "targetScoreStep": 500,
+  "hardeningIntervalMoves": 6,
+  "hardenBaseCount": 1,
+  "hardenTierDivisor": 2,
+  "startingHardCandyChance": 0.05,
+  "hardCandyChancePerTier": 0.1,
+  "maxHardCandyChance": 0.55,
+  "generatorSlots": [
+    { "row": 0, "col": 1 },
+    { "row": 1, "col": 7 },
+    { "row": 7, "col": 6 },
+    { "row": 6, "col": 0 }
+  ],
+  "difficultyTiers": {
+    "normal": 1,
+    "hard": 3,
+    "expert": 4,
+    "nightmare": 6
+  }
+}

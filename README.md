@@ -50,12 +50,14 @@ Running the server after `npm run build` lets the manifest and service worker re
 
 For a deployable bundle, run `npm run publish`. It rebuilds the project and writes a `public/` folder containing everything that should be uploaded to the server.
 
-## Content data (levels + story)
+## Content data (levels + story + modes)
 
 Non-programmer friendly content files live in `assets/data/`:
 
 - `assets/data/levels.json` controls the level list.
 - `assets/data/story-acts.json` controls acts and cutscenes.
+- `assets/data/blocker-mode.json` controls blocker mode tuning.
+- `assets/data/time-mode.json` controls time mode tuning.
 
 ### Levels
 
@@ -101,6 +103,31 @@ Spaces are optional: `"R . . X . . . ."` works too. If a `board` is provided, it
 - `end_cutscene_*` fields (optional, shown after `end_level`)
 
 The PHP server exposes `backend/progress.php`, which persists user progress to `backend/progress.sqlite`. The schema now relies on two tables (`User` and `GameProgress`) so each account keeps its googleID, username, nationality and aggregated stats (scores, coins, powerups, level) with `GameProgress.userID` referencing `User.id`. New accounts start with the username `Player#[id]` instead of the raw googleID and the SQLite file is created automatically on first write.
+
+### Blocker mode config
+
+`assets/data/blocker-mode.json` lets you tune blocker mode without touching code:
+
+- `targetScoreBase`, `targetScoreStep` control how the next target score is set.
+- `hardeningIntervalMoves` controls how often the board hardens.
+- `startingHardCandyChance`, `hardCandyChancePerTier`, `maxHardCandyChance` control hard candy spawn chances.
+- `hardenBaseCount`, `hardenTierDivisor` control how many cells harden per interval.
+- `generatorSlots` is a list of `{ "row": 0, "col": 1 }` entries (0-based, grid is 8x8).
+- `difficultyTiers` defines the tier thresholds for `normal`, `hard`, `expert`, `nightmare`.
+
+You can also use `generatorIndices` (0-63) instead of `generatorSlots`.
+
+### Time mode config
+
+`assets/data/time-mode.json` controls time mode tuning:
+
+- `startingTime`, `baseDrainMultiplier`, `accelerationIntervalSeconds`, `accelerationStep` control the timer.
+- `scoreTimeFactor` converts score to time gain.
+- `goalBonusSeconds` adds time when a goal completes.
+- `hardCandyBaseChance`, `hardCandyChancePerTier`, `hardCandyChanceMaxBonus` control hard candy spawns.
+- `goalCount`, `colorGoalChance`, `colorGoalBase`, `colorGoalTierStep`, `colorGoalRandomRange` tune goal generation.
+- `colorGoalPool` and `boosterGoalPool` define the allowed goal types.
+- `difficultyTiers` defines the tier thresholds for `normal`, `hard`, `expert`, `nightmare`.
 
 - `action=leaderboard&mode=LevelMode|BlockerMode|TimeMode` (GET) returns paged global entries ordered by best result.
 - `action=history&mode=LevelMode|BlockerMode|TimeMode&userId=<id>` (GET) returns the requesting user’s best aggregated result for the requested mode.

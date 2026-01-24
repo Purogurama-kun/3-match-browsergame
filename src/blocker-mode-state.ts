@@ -1,5 +1,6 @@
-import { BoosterType, GRID_SIZE, createFreshPowerupInventory } from './constants.js';
+import { BoosterType, createFreshPowerupInventory } from './constants.js';
 import { BoardConfig, GameModeState, ModeContext } from './game-mode-state.js';
+import { getBlockerModeConfig, mapDifficultyFromTier, type BlockerModeConfig } from './mode-config.js';
 import { GameState } from './types.js';
 import { t } from './i18n.js';
 
@@ -9,20 +10,21 @@ class BlockerModeState implements GameModeState {
     private moves: number;
     private difficultyTier: number;
     private hardCandyChance: number;
-    private readonly hardeningInterval = 6;
-    private readonly maxHardCandyChance = 0.55;
+    private config: BlockerModeConfig;
 
     constructor(bestScore: number) {
         this.personalBest = Math.max(0, Math.floor(Number.isFinite(bestScore) ? bestScore : 0));
         this.moves = 0;
         this.difficultyTier = 0;
         this.hardCandyChance = 0.05;
+        this.config = getBlockerModeConfig();
     }
 
     enter(context: ModeContext): GameState {
+        this.config = getBlockerModeConfig();
         this.moves = 0;
         this.difficultyTier = 0;
-        this.hardCandyChance = 0.05;
+        this.hardCandyChance = this.config.startingHardCandyChance;
         const state: GameState = {
             mode: 'blocker',
             selected: null,
@@ -57,9 +59,10 @@ class BlockerModeState implements GameModeState {
     handleMoveResolved(state: GameState, context: ModeContext): void {
         this.trackBlockerHighScore(state, context);
         this.moves++;
-        if (this.moves % this.hardeningInterval === 0) {
+        if (this.moves % this.config.hardeningIntervalMoves === 0) {
             this.difficultyTier++;
-            const hardenCount = 1 + Math.floor(this.difficultyTier / 2);
+            const hardenCount =
+                this.config.hardenBaseCount + Math.floor(this.difficultyTier / this.config.hardenTierDivisor);
             context.hardenCells(hardenCount);
             this.refreshDifficulty(state);
             context.getHud().setStatus(t('blocker.status.moreHardCandy'), '🧊');
@@ -92,7 +95,7 @@ class BlockerModeState implements GameModeState {
     }
 
     getBoardConfig(): BoardConfig {
-        return { blockerGenerators: this.getStartingGenerators() };
+        return { blockerGenerators: this.config.generatorIndices };
     }
 
     shouldSpawnHardCandy(_state: GameState): boolean {
@@ -104,7 +107,7 @@ class BlockerModeState implements GameModeState {
     }
 
     private computeBlockerTarget(bestScore: number, currentScore: number): number {
-        return Math.max(500, bestScore, currentScore + 500);
+        return Math.max(this.config.targetScoreBase, bestScore, currentScore + this.config.targetScoreStep);
     }
 
     private updateBlockerTargetScore(state: GameState): void {
@@ -112,17 +115,12 @@ class BlockerModeState implements GameModeState {
     }
 
     private refreshDifficulty(state: GameState): void {
-        this.hardCandyChance = Math.min(this.maxHardCandyChance, 0.05 + this.difficultyTier * 0.1);
+        this.hardCandyChance = Math.min(
+            this.config.maxHardCandyChance,
+            this.config.startingHardCandyChance + this.difficultyTier * this.config.hardCandyChancePerTier
+        );
         state.level = this.difficultyTier + 1;
-        state.difficulty = this.mapDifficultyForTier(this.difficultyTier);
-    }
-
-    private mapDifficultyForTier(tier: number): GameState['difficulty'] {
-        if (tier >= 6) return 'nightmare';
-        if (tier >= 4) return 'expert';
-        if (tier >= 3) return 'hard';
-        if (tier >= 1) return 'normal';
-        return 'easy';
+        state.difficulty = mapDifficultyFromTier(this.difficultyTier, this.config.difficultyTiers);
     }
 
     private trackBlockerHighScore(state: GameState, context: ModeContext): void {
@@ -134,15 +132,6 @@ class BlockerModeState implements GameModeState {
         context.getHud().setStatus(t('blocker.status.newHighscore'), '🏆');
     }
 
-    private getStartingGenerators(): number[] {
-        const edgeSlots = [
-            { row: 0, col: 1 },
-            { row: 1, col: GRID_SIZE - 1 },
-            { row: GRID_SIZE - 1, col: GRID_SIZE - 2 },
-            { row: GRID_SIZE - 2, col: 0 }
-        ];
-        return edgeSlots.map((slot) => slot.row * GRID_SIZE + slot.col);
-    }
 }
 
 export { BlockerModeState };
