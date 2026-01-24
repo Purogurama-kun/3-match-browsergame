@@ -43,6 +43,10 @@ class Renderer {
     private modalCallback: (() => void) | null = null;
     private modalSecondaryCallback: (() => void) | null = null;
     private readonly cells: HTMLDivElement[] = [];
+    private readonly renderedKeys: string[] = [];
+    private readonly pendingCellUpdates = new Map<number, CellState>();
+    private pendingFlushHandle: number | null = null;
+    private renderContextVersion = 0;
     private selectedIndex: number | null = null;
     private readonly hintIndices = new Set<number>();
     private readonly explodingIndices = new Set<number>();
@@ -94,6 +98,7 @@ class Renderer {
 
     setGameMode(mode: GameMode): void {
         this.gameMode = mode;
+        this.renderContextVersion++;
         document.body.classList.remove('match-app--mode-time', 'match-app--mode-blocker');
         if (mode === 'time') {
             document.body.classList.add('match-app--mode-time');
@@ -113,6 +118,7 @@ class Renderer {
 
     setCellShapesEnabled(enabled: boolean): void {
         this.cellShapesEnabled = enabled;
+        this.renderContextVersion++;
     }
 
     setAnimationsEnabled(enabled: boolean): void {
@@ -189,6 +195,8 @@ class Renderer {
         this.resetTouchState();
         this.selectedIndex = null;
         this.cells.length = 0;
+        this.renderedKeys.length = 0;
+        this.pendingCellUpdates.clear();
         this.gameEl.innerHTML = '';
         this.particleEffect.reset();
         for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
@@ -200,23 +208,18 @@ class Renderer {
             this.gameEl.appendChild(cell);
         }
         this.refreshBoard(board);
+        this.flushPendingUpdates();
     }
 
     refreshBoard(board: Board): void {
         this.clearHint();
         for (let i = 0; i < this.cells.length; i++) {
-            this.applyCellState(i, board.getCellState(i));
-        }
-        if (this.selectedIndex !== null) {
-            this.getCellElement(this.selectedIndex).classList.add('board__cell--selected');
+            this.queueCellUpdate(i, board.getCellState(i));
         }
     }
 
     updateCell(index: number, state: CellState): void {
-        this.applyCellState(index, state);
-        if (this.selectedIndex === index) {
-            this.getCellElement(index).classList.add('board__cell--selected');
-        }
+        this.queueCellUpdate(index, state);
     }
 
     animateDrops(moves: DropMove[], spawnedIndices: number[]): void {
@@ -546,6 +549,11 @@ class Renderer {
     }
 
     private applyCellState(index: number, state: CellState): void {
+        const renderedKey = this.getRenderedKey(state);
+        if (this.renderedKeys[index] === renderedKey) {
+            return;
+        }
+        this.renderedKeys[index] = renderedKey;
         const cell = this.getCellElement(index);
         cell.className = 'board__cell';
         cell.dataset.index = String(index);
@@ -594,6 +602,52 @@ class Renderer {
             cell.classList.add('board__cell--hard');
         }
         this.applyBoosterVisual(cell, state.booster, state.lineOrientation);
+    }
+
+    private queueCellUpdate(index: number, state: CellState): void {
+        this.pendingCellUpdates.set(index, state);
+        this.scheduleFlush();
+    }
+
+    private scheduleFlush(): void {
+        if (this.pendingFlushHandle !== null) return;
+        this.pendingFlushHandle = window.requestAnimationFrame(() => {
+            this.pendingFlushHandle = null;
+            this.flushPendingUpdates();
+        });
+    }
+
+    private flushPendingUpdates(): void {
+        if (this.pendingFlushHandle !== null) {
+            window.cancelAnimationFrame(this.pendingFlushHandle);
+            this.pendingFlushHandle = null;
+        }
+        if (this.pendingCellUpdates.size === 0) {
+            return;
+        }
+        this.pendingCellUpdates.forEach((state, index) => {
+            this.applyCellState(index, state);
+        });
+        this.pendingCellUpdates.clear();
+        if (this.selectedIndex !== null) {
+            this.getCellElement(this.selectedIndex).classList.add('board__cell--selected');
+        }
+    }
+
+    private getRenderedKey(state: CellState): string {
+        const stage = typeof state.sugarChestStage === 'number' ? state.sugarChestStage : '';
+        const orientation = state.lineOrientation ?? '';
+        const color = state.color ?? '';
+        return [
+            this.renderContextVersion,
+            color,
+            state.booster,
+            state.blocked ? '1' : '0',
+            state.hard ? '1' : '0',
+            state.generator ? '1' : '0',
+            stage,
+            orientation
+        ].join('|');
     }
 
     private applyShapeForColor(cell: HTMLDivElement, colorKey: ColorKey | null): void {
