@@ -138,7 +138,7 @@
 .level-select__path {
     list-style: none;
     margin: 0;
-    padding: 0 1.5rem 1.75rem;
+    padding: 1.6rem 1.5rem 1.75rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -151,7 +151,7 @@
     content: '';
     position: absolute;
     left: 50%;
-    top: 1.5rem;
+    top: 3.1rem;
     bottom: 1.5rem;
     width: 5px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.06));
@@ -172,6 +172,10 @@
     display: flex;
     position: relative;
     z-index: 1;
+}
+
+.level-select__node--act {
+    padding-top: 1.4rem;
 }
 
 .level-select__node:nth-child(odd) {
@@ -242,6 +246,44 @@
     color: rgba(255, 255, 255, 0.35);
     cursor: not-allowed;
     box-shadow: none;
+}
+
+.level-select__act-label {
+    position: absolute;
+    top: 0.1rem;
+    left: 50%;
+    transform: translate(-50%, -100%);
+    padding: 0.25rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background:
+        linear-gradient(120deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04)),
+        rgba(10, 8, 16, 0.9);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow:
+        0 6px 14px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.level-select__act-label[data-act='setup'] {
+    color: rgba(134, 239, 172, 0.95);
+    border-color: rgba(134, 239, 172, 0.35);
+}
+
+.level-select__act-label[data-act='progression'] {
+    color: rgba(125, 211, 252, 0.95);
+    border-color: rgba(125, 211, 252, 0.35);
+}
+
+.level-select__act-label[data-act='finale'] {
+    color: rgba(253, 224, 71, 0.95);
+    border-color: rgba(253, 224, 71, 0.4);
 }
 
 .level-select__details-card {

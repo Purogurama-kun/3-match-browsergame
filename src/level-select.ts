@@ -24,6 +24,26 @@ type LevelSelectGoalIcon =
 
 type MetaChipVariant = 'moves' | 'difficulty';
 
+type StoryActId = 'setup' | 'progression' | 'finale';
+
+type StoryAct = {
+    id: StoryActId;
+    startLevel: number;
+    labelKey: TranslationKey;
+};
+
+const STORY_ACTS: StoryAct[] = [
+    { id: 'setup', startLevel: 1, labelKey: 'levelSelect.act.setup' },
+    { id: 'progression', startLevel: 6, labelKey: 'levelSelect.act.progression' },
+    { id: 'finale', startLevel: LEVELS.length, labelKey: 'levelSelect.act.finale' }
+];
+
+type StoryActLabel = {
+    level: number;
+    element: HTMLSpanElement;
+    labelKey: TranslationKey;
+};
+
 class LevelSelectView {
     constructor(options: LevelSelectOptions) {
         this.container = getRequiredElement('level-select');
@@ -75,6 +95,7 @@ class LevelSelectView {
     private readonly maxLevel: number;
     private readonly options: LevelSelectOptions;
     private readonly levelButtons: HTMLButtonElement[] = [];
+    private readonly actLabels: StoryActLabel[] = [];
     private highestLevel = 1;
     private selectedLevel = 1;
     private isDetailsOpen = false;
@@ -128,6 +149,7 @@ class LevelSelectView {
             button.textContent = String(level);
             button.addEventListener('click', () => this.selectLevel(level));
             item.appendChild(button);
+            this.tryAddActLabel(item, level);
             this.path.appendChild(item);
             this.levelButtons.push(button);
         }
@@ -143,6 +165,7 @@ class LevelSelectView {
     }
 
     private render(): void {
+        this.renderActLabels();
         this.renderNodes();
         this.renderSelected();
     }
@@ -177,7 +200,9 @@ class LevelSelectView {
         this.meta.innerHTML = '';
         this.meta.append(this.createMetaChip(movesText, 'moves', movesText));
         this.updateDifficultyChip(definition.difficulty, difficultyLabel, difficultyAccessible);
-        this.selectedStory.textContent = this.getLocationDescription(definition.id);
+        const actLabel = this.getStoryActLabel(definition.id);
+        const locationDescription = this.getLocationDescription(definition.id);
+        this.selectedStory.textContent = `${actLabel} · ${locationDescription}`;
         this.goals.innerHTML = '';
         const targetDescription = t('levelSelect.targetGoal', { target: definition.targetScore });
         this.goals.appendChild(
@@ -305,6 +330,45 @@ class LevelSelectView {
             return 'festival';
         }
         return 'vendorPlaza';
+    }
+
+    private tryAddActLabel(item: HTMLLIElement, level: number): void {
+        const storyAct = STORY_ACTS.find((act) => act.startLevel === level);
+        if (!storyAct) {
+            return;
+        }
+        item.classList.add('level-select__node--act');
+        const label = document.createElement('span');
+        label.className = 'level-select__act-label';
+        label.setAttribute('data-act', storyAct.id);
+        item.appendChild(label);
+        this.actLabels.push({ level, element: label, labelKey: storyAct.labelKey });
+    }
+
+    private renderActLabels(): void {
+        this.actLabels.forEach((label) => {
+            label.element.textContent = t(label.labelKey);
+            label.element.setAttribute('aria-label', t(label.labelKey));
+        });
+    }
+
+    private getStoryActLabel(levelId: number): string {
+        const act = this.getStoryAct(levelId);
+        return t(act.labelKey);
+    }
+
+    private getStoryAct(levelId: number): StoryAct {
+        let active: StoryAct = STORY_ACTS[0] ?? {
+            id: 'setup',
+            startLevel: 1,
+            labelKey: 'levelSelect.act.setup'
+        };
+        STORY_ACTS.forEach((act) => {
+            if (levelId >= act.startLevel) {
+                active = act;
+            }
+        });
+        return active;
     }
 
     private createMetaChip(text: string, variant: MetaChipVariant, ariaLabel: string): HTMLSpanElement {
