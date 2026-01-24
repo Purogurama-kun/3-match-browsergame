@@ -786,7 +786,7 @@ class GameApp {
             highestLevel: Math.max(current.highestLevel, incoming.highestLevel),
             blockerHighScore: Math.max(current.blockerHighScore, incoming.blockerHighScore),
             timeSurvival: Math.max(current.timeSurvival, incoming.timeSurvival),
-            sugarCoins: Math.max(current.sugarCoins, incoming.sugarCoins),
+            sugarCoins: this.resolveSugarCoins(current, incoming),
             powerups: this.mergePowerups(current.powerups, incoming.powerups, extraPowerupSlotUnlocked),
             extraPowerupSlotUnlocked,
             completedLevels: this.mergeCompletedLevels(current.completedLevels, incoming.completedLevels)
@@ -814,6 +814,31 @@ class GameApp {
             merged[type] = Math.min(maxStock, Math.max(currentValue, incomingValue));
         });
         return merged;
+    }
+
+    private resolveSugarCoins(current: StoredProgress, incoming: StoredProgress): number {
+        if (current.extraPowerupSlotUnlocked !== incoming.extraPowerupSlotUnlocked) {
+            return current.extraPowerupSlotUnlocked ? current.sugarCoins : incoming.sugarCoins;
+        }
+        const currentCount = this.countPowerups(current.powerups);
+        const incomingCount = this.countPowerups(incoming.powerups);
+        if (currentCount !== incomingCount) {
+            return currentCount > incomingCount ? current.sugarCoins : incoming.sugarCoins;
+        }
+        const currentHasMore = this.hasMorePowerups(current, incoming);
+        const incomingHasMore = this.hasMorePowerups(incoming, current);
+        if (currentHasMore && !incomingHasMore) {
+            return current.sugarCoins;
+        }
+        if (incomingHasMore && !currentHasMore) {
+            return incoming.sugarCoins;
+        }
+        return Math.max(current.sugarCoins, incoming.sugarCoins);
+    }
+
+    private countPowerups(inventory: PowerupInventory): number {
+        const powerupTypes = Object.keys(TACTICAL_POWERUPS) as TacticalPowerup[];
+        return powerupTypes.reduce((total, type) => total + (inventory[type] ?? 0), 0);
     }
 
     private shouldPersistMergedProgress(stored: StoredProgress, merged: StoredProgress): boolean {
