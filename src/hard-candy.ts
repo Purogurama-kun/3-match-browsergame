@@ -57,6 +57,7 @@ class HardCandy {
             if (index === undefined) break;
             this.board.setBooster(index, BOOSTERS.NONE);
             this.board.setHardCandy(index, true);
+            this.renderer.updateCell(index, this.board.getCellState(index));
         }
     }
 
