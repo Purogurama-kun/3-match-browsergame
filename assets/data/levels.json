@@ -12,7 +12,7 @@
           "target": 10
         }
       ],
-      "background": "assets/images/vendor-plaza.png"
+      "background": ""
     },
     {
       "id": 2,
@@ -31,7 +31,7 @@
           "target": 2
         }
       ],
-      "background": "assets/images/vendor-plaza.png"
+      "background": ""
     },
     {
       "id": 3,
@@ -50,7 +50,7 @@
           "target": 2
         }
       ],
-      "background": "assets/images/vendor-plaza.png"
+      "background": ""
     },
     {
       "id": 4,
@@ -74,7 +74,7 @@
           "target": 2
         }
       ],
-      "background": "assets/images/vendor-plaza.png"
+      "background": ""
     },
     {
       "id": 5,
@@ -98,7 +98,7 @@
           "target": 1
         }
       ],
-      "background": "assets/images/vendor-plaza.png"
+      "background": ""
     },
     {
       "id": 6,
@@ -122,7 +122,7 @@
           "target": 2
         }
       ],
-      "background": "assets/images/vendor-plaza.png"
+      "background": ""
     },
     {
       "id": 7,
@@ -146,7 +146,7 @@
           "target": 2
         }
       ],
-      "background": "assets/images/vendor-plaza.png"
+      "background": ""
     },
     {
       "id": 8,
@@ -171,7 +171,7 @@
           "target": 3
         }
       ],
-      "background": "assets/images/vendor-plaza.png"
+      "background": ""
     },
     {
       "id": 9,
@@ -195,7 +195,7 @@
           "target": 3
         }
       ],
-      "background": "assets/images/vendor-plaza.png"
+      "background": ""
     },
     {
       "id": 10,
@@ -234,7 +234,7 @@
         34,
         37
       ],
-      "background": "assets/images/vendor-plaza.png"
+      "background": ""
     },
     {
       "id": 11,
@@ -268,7 +268,7 @@
         43,
         44
       ],
-      "background": "assets/images/vendor-plaza.png"
+      "background": ""
     },
     {
       "id": 12,
@@ -298,7 +298,7 @@
         56,
         63
       ],
-      "background": "assets/images/vendor-plaza.png"
+      "background": ""
     },
     {
       "id": 13,
@@ -332,7 +332,7 @@
         49,
         54
       ],
-      "background": "assets/images/vendor-plaza.png"
+      "background": ""
     },
     {
       "id": 14,
@@ -362,7 +362,7 @@
         35,
         36
       ],
-      "background": "assets/images/vendor-plaza.png"
+      "background": ""
     },
     {
       "id": 15,
@@ -397,7 +397,7 @@
         34,
         37
       ],
-      "background": "assets/images/vendor-plaza.png"
+      "background": ""
     },
     {
       "id": 16,
@@ -432,7 +432,7 @@
         45,
         54
       ],
-      "background": "assets/images/ribbon-alley.png"
+      "background": ""
     },
     {
       "id": 17,
@@ -466,7 +466,7 @@
         43,
         44
       ],
-      "background": "assets/images/ribbon-alley.png"
+      "background": ""
     },
     {
       "id": 18,
@@ -496,7 +496,7 @@
         59,
         60
       ],
-      "background": "assets/images/ribbon-alley.png"
+      "background": ""
     },
     {
       "id": 19,
@@ -530,7 +530,7 @@
         49,
         54
       ],
-      "background": "assets/images/ribbon-alley.png"
+      "background": ""
     },
     {
       "id": 20,
@@ -576,7 +576,7 @@
         34,
         37
       ],
-      "background": "assets/images/ribbon-alley.png"
+      "background": ""
     },
     {
       "id": 21,
@@ -610,7 +610,7 @@
         34,
         37
       ],
-      "background": "assets/images/ribbon-alley.png"
+      "background": ""
     },
     {
       "id": 22,
@@ -645,7 +645,7 @@
         43,
         44
       ],
-      "background": "assets/images/ribbon-alley.png"
+      "background": ""
     },
     {
       "id": 23,
@@ -679,7 +679,7 @@
         43,
         44
       ],
-      "background": "assets/images/ribbon-alley.png"
+      "background": ""
     },
     {
       "id": 24,
@@ -713,7 +713,7 @@
         49,
         54
       ],
-      "background": "assets/images/ribbon-alley.png"
+      "background": ""
     },
     {
       "id": 25,
@@ -753,7 +753,7 @@
         49,
         54
       ],
-      "background": "assets/images/ribbon-alley.png"
+      "background": ""
     },
     {
       "id": 26,
@@ -793,7 +793,7 @@
         34,
         37
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 27,
@@ -833,7 +833,7 @@
         49,
         54
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 28,
@@ -873,7 +873,7 @@
         43,
         44
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 29,
@@ -913,7 +913,7 @@
         34,
         37
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 30,
@@ -964,7 +964,7 @@
         27,
         36
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 31,
@@ -1004,7 +1004,7 @@
         49,
         54
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 32,
@@ -1046,7 +1046,7 @@
         27,
         36
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 33,
@@ -1087,7 +1087,7 @@
         43,
         44
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 34,
@@ -1131,7 +1131,7 @@
         49,
         54
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 35,
@@ -1173,7 +1173,7 @@
         27,
         36
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 36,
@@ -1217,7 +1217,7 @@
         43,
         44
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 37,
@@ -1260,7 +1260,7 @@
         27,
         36
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 38,
@@ -1304,7 +1304,7 @@
         49,
         54
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 39,
@@ -1346,7 +1346,7 @@
         27,
         36
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 40,
@@ -1406,7 +1406,7 @@
         49,
         54
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 41,
@@ -1452,7 +1452,7 @@
         27,
         36
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 42,
@@ -1493,7 +1493,7 @@
         49,
         54
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 43,
@@ -1561,7 +1561,7 @@
         2,
         5
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 44,
@@ -1636,7 +1636,7 @@
         47,
         49
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 45,
@@ -1705,7 +1705,7 @@
         2,
         5
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 46,
@@ -1789,7 +1789,7 @@
         8,
         15
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 47,
@@ -1860,7 +1860,7 @@
         47,
         49
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 48,
@@ -1934,7 +1934,7 @@
         47,
         49
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 49,
@@ -2003,7 +2003,7 @@
         2,
         5
       ],
-      "background": "assets/images/lantern-bridge.png"
+      "background": ""
     },
     {
       "id": 50,
@@ -2092,7 +2092,7 @@
         8,
         15
       ],
-      "background": "assets/images/festival.png"
+      "background": ""
     }
   ]
 }

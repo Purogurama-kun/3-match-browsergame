@@ -8,6 +8,7 @@ import {
     LevelGoal
 } from './types.js';
 import { t } from './i18n.js';
+import { getStoryActBackground } from './story.js';
 
 const indexAt = (row: number, col: number): number => row * GRID_SIZE + col;
 
@@ -737,11 +738,15 @@ function normalizeLevelDefinition(definition: LevelDefinitionInput, id: number):
     if (!hasHardCandyGoal && resolvedHardCandies && resolvedHardCandies.length > 0) {
         goals.push({ type: 'destroy-hard-candies', target: resolvedHardCandies.length });
     }
+    const rawBackground = definitionBase.background;
+    const resolvedBackground = rawBackground && rawBackground.trim().length > 0
+        ? rawBackground
+        : getStoryActBackground(id) || getBackgroundForLevel(id);
     return {
         ...definitionBase,
         id,
         difficulty: normalizeDifficulty(definitionBase.difficulty),
-        background: definitionBase.background ?? getBackgroundForLevel(id),
+        background: resolvedBackground,
         goals,
         ...(resolvedMissingCells ? { missingCells: [...resolvedMissingCells] } : {}),
         ...(resolvedHardCandies ? { hardCandies: [...resolvedHardCandies] } : {}),

@@ -213,6 +213,11 @@ function getStoryActLabel(level: number): string {
     return resolveLocalizedText(act.label);
 }
 
+function getStoryActBackground(level: number): string {
+    const act = getStoryActForLevel(level);
+    return act.cutscene?.imagePath ?? act.endCutscene?.imagePath ?? '';
+}
+
 function getStoryCutscene(level: number, timing: 'before' | 'after'): CutsceneScene | null {
     const act = getStoryActForLevel(level);
     const scene = timing === 'before'
@@ -241,5 +246,12 @@ function resolveLocalizedText(text: LocalizedText): string {
     return text[locale] ?? text.en ?? Object.values(text)[0] ?? '';
 }
 
-export { getStoryActs, getStoryActForLevel, getStoryActLabel, getStoryCutscene, setStoryActsFromData };
+export {
+    getStoryActs,
+    getStoryActForLevel,
+    getStoryActLabel,
+    getStoryActBackground,
+    getStoryCutscene,
+    setStoryActsFromData
+};
 export type { StoryAct, StoryCutsceneDefinition, LocalizedText };
