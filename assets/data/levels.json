@@ -1,2224 +1,1967 @@
 {
-    "levels": [
+  "levels": [
+    {
+      "id": 1,
+      "moves": 20,
+      "targetScore": 300,
+      "difficulty": "easy",
+      "goals": [
         {
-            "id": 1,
-            "moves": 20,
-            "targetScore": 300,
-            "difficulty": "easy",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "red",
-                    "target": 10
-                }
-            ],
-            "background": "",
-            "board": {
-                "rows": [
-                    "PRPAPPGG",
-                    "BRBRBAGR",
-                    "GBBRAPBR",
-                    "BGBRABRB",
-                    "GGBXRBPA",
-                    "PPGPBGRG",
-                    "RPGPBGPB",
-                    "AGAPBPAG"
-                ]
-            }
-        },
-        {
-            "id": 2,
-            "moves": 22,
-            "targetScore": 500,
-            "difficulty": "easy",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "amber",
-                    "target": 12
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstSmall",
-                    "target": 2
-                }
-            ],
-            "background": ""
-        },
-        {
-            "id": 3,
-            "moves": 22,
-            "targetScore": 700,
-            "difficulty": "easy",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "blue",
-                    "target": 14
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 2
-                }
-            ],
-            "background": ""
-        },
-        {
-            "id": 4,
-            "moves": 24,
-            "targetScore": 950,
-            "difficulty": "easy",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "purple",
-                    "target": 15
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "green",
-                    "target": 12
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 2
-                }
-            ],
-            "background": ""
-        },
-        {
-            "id": 5,
-            "moves": 26,
-            "targetScore": 1250,
-            "difficulty": "easy",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "red",
-                    "target": 18
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstSmall",
-                    "target": 3
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstLarge",
-                    "target": 1
-                }
-            ],
-            "background": ""
-        },
-        {
-            "id": 6,
-            "moves": 24,
-            "targetScore": 1550,
-            "difficulty": "easy",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "amber",
-                    "target": 18
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 2
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstSmall",
-                    "target": 2
-                }
-            ],
-            "background": ""
-        },
-        {
-            "id": 7,
-            "moves": 24,
-            "targetScore": 1850,
-            "difficulty": "easy",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "blue",
-                    "target": 20
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "purple",
-                    "target": 16
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 2
-                }
-            ],
-            "background": ""
-        },
-        {
-            "id": 8,
-            "moves": 22,
-            "targetScore": 2150,
-            "timeGoalSeconds": 180,
-            "difficulty": "easy",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "green",
-                    "target": 20
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 3
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstSmall",
-                    "target": 3
-                }
-            ],
-            "background": ""
-        },
-        {
-            "id": 9,
-            "moves": 22,
-            "targetScore": 2550,
-            "difficulty": "easy",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "amber",
-                    "target": 22
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "red",
-                    "target": 20
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 3
-                }
-            ],
-            "background": ""
-        },
-        {
-            "id": 10,
-            "moves": 22,
-            "targetScore": 3100,
-            "difficulty": "normal",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "blue",
-                    "target": 22
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "purple",
-                    "target": 20
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 2
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstLarge",
-                    "target": 1
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "hardCandies": [
-                26,
-                29,
-                34,
-                37
-            ],
-            "background": ""
-        },
-        {
-            "id": 11,
-            "moves": 23,
-            "targetScore": 3600,
-            "difficulty": "normal",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "red",
-                    "target": 24
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstSmall",
-                    "target": 3
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 2
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "hardCandies": [
-                19,
-                20,
-                43,
-                44
-            ],
-            "background": ""
-        },
-        {
-            "id": 12,
-            "moves": 23,
-            "targetScore": 4000,
-            "difficulty": "normal",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "amber",
-                    "target": 24
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "green",
-                    "target": 20
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 3
-                }
-            ],
-            "missingCells": [
-                0,
-                7,
-                56,
-                63
-            ],
-            "background": ""
-        },
-        {
-            "id": 13,
-            "moves": 22,
-            "targetScore": 4400,
-            "difficulty": "normal",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "blue",
-                    "target": 24
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 3
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstSmall",
-                    "target": 3
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "hardCandies": [
-                9,
-                14,
-                49,
-                54
-            ],
-            "background": ""
-        },
-        {
-            "id": 14,
-            "moves": 22,
-            "targetScore": 4800,
-            "difficulty": "normal",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "purple",
-                    "target": 26
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "red",
-                    "target": 22
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 3
-                }
-            ],
-            "missingCells": [
-                27,
-                28,
-                35,
-                36
-            ],
-            "background": ""
-        },
-        {
-            "id": 15,
-            "moves": 21,
-            "targetScore": 5200,
-            "timeGoalSeconds": 195,
-            "difficulty": "normal",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "green",
-                    "target": 26
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 3
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstLarge",
-                    "target": 1
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "hardCandies": [
-                26,
-                29,
-                34,
-                37
-            ],
-            "background": ""
-        },
-        {
-            "id": 16,
-            "moves": 21,
-            "targetScore": 5600,
-            "difficulty": "normal",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "amber",
-                    "target": 26
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "blue",
-                    "target": 24
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 3
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstSmall",
-                    "target": 4
-                }
-            ],
-            "missingCells": [
-                9,
-                18,
-                45,
-                54
-            ],
-            "background": ""
-        },
-        {
-            "id": 17,
-            "moves": 20,
-            "targetScore": 5800,
-            "difficulty": "normal",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "purple",
-                    "target": 28
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 3
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 3
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "hardCandies": [
-                19,
-                20,
-                43,
-                44
-            ],
-            "background": ""
-        },
-        {
-            "id": 18,
-            "moves": 20,
-            "targetScore": 6200,
-            "difficulty": "normal",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "red",
-                    "target": 28
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "green",
-                    "target": 24
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 3
-                }
-            ],
-            "missingCells": [
-                3,
-                4,
-                59,
-                60
-            ],
-            "background": ""
-        },
-        {
-            "id": 19,
-            "moves": 20,
-            "targetScore": 6600,
-            "difficulty": "normal",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "amber",
-                    "target": 30
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 3
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstLarge",
-                    "target": 1
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "hardCandies": [
-                9,
-                14,
-                49,
-                54
-            ],
-            "background": ""
-        },
-        {
-            "id": 20,
-            "moves": 20,
-            "targetScore": 7000,
-            "difficulty": "hard",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "blue",
-                    "target": 28
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "purple",
-                    "target": 26
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 3
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstLarge",
-                    "target": 1
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "missingCells": [
-                10,
-                19,
-                28,
-                37,
-                46
-            ],
-            "hardCandies": [
-                26,
-                29,
-                34,
-                37
-            ],
-            "background": "",
-            "blockerGenerators": [
-                5
-            ]
-        },
-        {
-            "id": 21,
-            "moves": 21,
-            "targetScore": 7400,
-            "difficulty": "hard",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "red",
-                    "target": 30
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 4
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstSmall",
-                    "target": 4
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "hardCandies": [
-                26,
-                29,
-                34,
-                37
-            ],
-            "background": "",
-            "blockerGenerators": [
-                61
-            ]
-        },
-        {
-            "id": 22,
-            "moves": 21,
-            "targetScore": 7700,
-            "timeGoalSeconds": 195,
-            "difficulty": "hard",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "amber",
-                    "target": 30
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "green",
-                    "target": 26
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 3
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "hardCandies": [
-                19,
-                20,
-                43,
-                44
-            ],
-            "background": "",
-            "blockerGenerators": [
-                15
-            ]
-        },
-        {
-            "id": 23,
-            "moves": 21,
-            "targetScore": 8000,
-            "difficulty": "hard",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "blue",
-                    "target": 30
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 4
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstSmall",
-                    "target": 4
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "hardCandies": [
-                19,
-                20,
-                43,
-                44
-            ],
-            "background": "",
-            "blockerGenerators": [
-                47
-            ]
-        },
-        {
-            "id": 24,
-            "moves": 20,
-            "targetScore": 8200,
-            "difficulty": "hard",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "purple",
-                    "target": 32
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "red",
-                    "target": 28
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 4
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "hardCandies": [
-                9,
-                14,
-                49,
-                54
-            ],
-            "background": "",
-            "blockerGenerators": [
-                56
-            ]
-        },
-        {
-            "id": 25,
-            "moves": 20,
-            "targetScore": 8500,
-            "difficulty": "hard",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "amber",
-                    "target": 32
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 4
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstLarge",
-                    "target": 1
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "missingCells": [
-                0,
-                7,
-                56,
-                63
-            ],
-            "hardCandies": [
-                9,
-                14,
-                49,
-                54
-            ],
-            "background": "",
-            "blockerGenerators": [
-                60
-            ]
-        },
-        {
-            "id": 26,
-            "moves": 20,
-            "targetScore": 9000,
-            "difficulty": "hard",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "blue",
-                    "target": 32
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "green",
-                    "target": 28
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 4
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "missingCells": [
-                0,
-                7,
-                56,
-                63
-            ],
-            "hardCandies": [
-                26,
-                29,
-                34,
-                37
-            ],
-            "background": "",
-            "blockerGenerators": [
-                31
-            ]
-        },
-        {
-            "id": 27,
-            "moves": 19,
-            "targetScore": 9500,
-            "difficulty": "hard",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "purple",
-                    "target": 34
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 4
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstSmall",
-                    "target": 5
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "missingCells": [
-                27,
-                28,
-                35,
-                36
-            ],
-            "hardCandies": [
-                9,
-                14,
-                49,
-                54
-            ],
-            "background": "",
-            "blockerGenerators": [
-                32
-            ]
-        },
-        {
-            "id": 28,
-            "moves": 19,
-            "targetScore": 10000,
-            "difficulty": "hard",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "red",
-                    "target": 34
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "amber",
-                    "target": 30
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 4
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "missingCells": [
-                9,
-                18,
-                45,
-                54
-            ],
-            "hardCandies": [
-                19,
-                20,
-                43,
-                44
-            ],
-            "background": "",
-            "blockerGenerators": [
-                2
-            ]
-        },
-        {
-            "id": 29,
-            "moves": 19,
-            "targetScore": 10500,
-            "difficulty": "hard",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "blue",
-                    "target": 34
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 5
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstLarge",
-                    "target": 1
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "missingCells": [
-                3,
-                4,
-                59,
-                60
-            ],
-            "hardCandies": [
-                26,
-                29,
-                34,
-                37
-            ],
-            "background": "",
-            "blockerGenerators": [
-                56
-            ]
-        },
-        {
-            "id": 30,
-            "moves": 19,
-            "targetScore": 11000,
-            "difficulty": "expert",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "green",
-                    "target": 34
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "purple",
-                    "target": 32
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 4
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstLarge",
-                    "target": 1
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 6
-                }
-            ],
-            "missingCells": [
-                27,
-                28,
-                35,
-                36,
-                0,
-                7,
-                56,
-                63
-            ],
-            "hardCandies": [
-                18,
-                21,
-                42,
-                45,
-                27,
-                36
-            ],
-            "background": "",
-            "blockerGenerators": [
-                23,
-                60
-            ]
-        },
-        {
-            "id": 31,
-            "moves": 19,
-            "targetScore": 11500,
-            "difficulty": "expert",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "red",
-                    "target": 36
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 5
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstSmall",
-                    "target": 5
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "missingCells": [
-                27,
-                28,
-                35,
-                36
-            ],
-            "hardCandies": [
-                9,
-                14,
-                49,
-                54
-            ],
-            "background": "",
-            "blockerGenerators": [
-                3,
-                15
-            ]
-        },
-        {
-            "id": 32,
-            "moves": 19,
-            "targetScore": 12000,
-            "difficulty": "expert",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "amber",
-                    "target": 36
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "blue",
-                    "target": 32
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 5
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 6
-                }
-            ],
-            "missingCells": [
-                9,
-                18,
-                45,
-                54
-            ],
-            "hardCandies": [
-                18,
-                21,
-                42,
-                45,
-                27,
-                36
-            ],
-            "background": "",
-            "blockerGenerators": [
-                16,
-                62
-            ]
-        },
-        {
-            "id": 33,
-            "moves": 18,
-            "targetScore": 12500,
-            "difficulty": "expert",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "purple",
-                    "target": 36
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 5
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstLarge",
-                    "target": 1
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "missingCells": [
-                10,
-                19,
-                28,
-                37,
-                46
-            ],
-            "hardCandies": [
-                19,
-                20,
-                43,
-                44
-            ],
-            "background": "",
-            "blockerGenerators": [
-                6,
-                62
-            ]
-        },
-        {
-            "id": 34,
-            "moves": 18,
-            "targetScore": 13000,
-            "difficulty": "expert",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "green",
-                    "target": 38
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "red",
-                    "target": 34
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 5
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "missingCells": [
-                27,
-                28,
-                35,
-                36,
-                3,
-                4,
-                59,
-                60
-            ],
-            "hardCandies": [
-                9,
-                14,
-                49,
-                54
-            ],
-            "background": "",
-            "blockerGenerators": [
-                62,
-                47
-            ]
-        },
-        {
-            "id": 35,
-            "moves": 18,
-            "targetScore": 13500,
-            "difficulty": "expert",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "amber",
-                    "target": 38
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 5
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstSmall",
-                    "target": 6
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 6
-                }
-            ],
-            "missingCells": [
-                9,
-                18,
-                45,
-                54
-            ],
-            "hardCandies": [
-                18,
-                21,
-                42,
-                45,
-                27,
-                36
-            ],
-            "background": "",
-            "blockerGenerators": [
-                61,
-                55
-            ]
-        },
-        {
-            "id": 36,
-            "moves": 18,
-            "targetScore": 14000,
-            "difficulty": "expert",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "blue",
-                    "target": 38
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "purple",
-                    "target": 36
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 5
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "missingCells": [
-                0,
-                7,
-                56,
-                63,
-                3,
-                4,
-                59,
-                60
-            ],
-            "hardCandies": [
-                19,
-                20,
-                43,
-                44
-            ],
-            "background": "",
-            "blockerGenerators": [
-                16,
-                8
-            ]
-        },
-        {
-            "id": 37,
-            "moves": 17,
-            "targetScore": 14500,
-            "difficulty": "expert",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "red",
-                    "target": 40
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 5
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstLarge",
-                    "target": 1
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 6
-                }
-            ],
-            "missingCells": [
-                10,
-                19,
-                28,
-                37,
-                46
-            ],
-            "hardCandies": [
-                18,
-                21,
-                42,
-                45,
-                27,
-                36
-            ],
-            "background": "",
-            "blockerGenerators": [
-                1,
-                4
-            ]
-        },
-        {
-            "id": 38,
-            "moves": 17,
-            "targetScore": 15000,
-            "difficulty": "expert",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "amber",
-                    "target": 40
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "green",
-                    "target": 36
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 5
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "missingCells": [
-                27,
-                28,
-                35,
-                36,
-                0,
-                7,
-                56,
-                63
-            ],
-            "hardCandies": [
-                9,
-                14,
-                49,
-                54
-            ],
-            "background": "",
-            "blockerGenerators": [
-                16,
-                58
-            ]
-        },
-        {
-            "id": 39,
-            "moves": 17,
-            "targetScore": 15500,
-            "difficulty": "expert",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "purple",
-                    "target": 40
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 6
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstSmall",
-                    "target": 6
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 6
-                }
-            ],
-            "missingCells": [
-                9,
-                18,
-                45,
-                54
-            ],
-            "hardCandies": [
-                18,
-                21,
-                42,
-                45,
-                27,
-                36
-            ],
-            "background": "",
-            "blockerGenerators": [
-                24,
-                63
-            ]
-        },
-        {
-            "id": 40,
-            "moves": 17,
-            "targetScore": 16000,
-            "timeGoalSeconds": 180,
-            "difficulty": "expert",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "blue",
-                    "target": 40
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "red",
-                    "target": 38
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 5
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstLarge",
-                    "target": 1
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 10
-                }
-            ],
-            "missingCells": [
-                27,
-                28,
-                35,
-                36,
-                3,
-                4,
-                59,
-                60,
-                0,
-                7,
-                56,
-                63
-            ],
-            "hardCandies": [
-                18,
-                21,
-                42,
-                45,
-                27,
-                36,
-                9,
-                14,
-                49,
-                54
-            ],
-            "background": "",
-            "blockerGenerators": [
-                16,
-                47
-            ]
-        },
-        {
-            "id": 41,
-            "moves": 17,
-            "targetScore": 16500,
-            "difficulty": "expert",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "amber",
-                    "target": 42
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 6
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstSmall",
-                    "target": 6
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 6
-                }
-            ],
-            "missingCells": [
-                27,
-                28,
-                35,
-                36,
-                3,
-                4,
-                59,
-                60
-            ],
-            "hardCandies": [
-                18,
-                21,
-                42,
-                45,
-                27,
-                36
-            ],
-            "background": "",
-            "blockerGenerators": [
-                15,
-                32
-            ]
-        },
-        {
-            "id": 42,
-            "moves": 17,
-            "targetScore": 17000,
-            "difficulty": "expert",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "green",
-                    "target": 42
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "purple",
-                    "target": 40
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 6
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 4
-                }
-            ],
-            "missingCells": [
-                10,
-                19,
-                28,
-                37,
-                46
-            ],
-            "hardCandies": [
-                9,
-                14,
-                49,
-                54
-            ],
-            "background": "",
-            "blockerGenerators": [
-                57,
-                31
-            ]
-        },
-        {
-            "id": 43,
-            "moves": 17,
-            "targetScore": 17500,
-            "difficulty": "nightmare",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "red",
-                    "target": 44
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 6
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstLarge",
-                    "target": 2
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 28
-                }
-            ],
-            "missingCells": [
-                0,
-                7,
-                56,
-                63,
-                9,
-                18,
-                45,
-                54
-            ],
-            "hardCandies": [
-                20,
-                26,
-                29,
-                34,
-                43,
-                44,
-                11,
-                12,
-                21,
-                25,
-                30,
-                33,
-                38,
-                42,
-                51,
-                52,
-                13,
-                17,
-                22,
-                24,
-                31,
-                32,
-                39,
-                41,
-                50,
-                53,
-                2,
-                5
-            ],
-            "background": "",
-            "blockerGenerators": [
-                15,
-                59
-            ]
-        },
-        {
-            "id": 44,
-            "moves": 17,
-            "targetScore": 18000,
-            "difficulty": "nightmare",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "blue",
-                    "target": 44
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "amber",
-                    "target": 42
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 6
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 34
-                }
-            ],
-            "missingCells": [
-                27,
-                28,
-                35,
-                36,
-                10,
-                19,
-                28,
-                37,
-                46
-            ],
-            "hardCandies": [
-                20,
-                26,
-                29,
-                34,
-                43,
-                44,
-                11,
-                12,
-                21,
-                25,
-                30,
-                33,
-                38,
-                42,
-                51,
-                52,
-                13,
-                17,
-                22,
-                24,
-                31,
-                32,
-                39,
-                41,
-                50,
-                53,
-                2,
-                5,
-                14,
-                16,
-                23,
-                40,
-                47,
-                49
-            ],
-            "background": "",
-            "blockerGenerators": [
-                57,
-                0
-            ]
-        },
-        {
-            "id": 45,
-            "moves": 17,
-            "targetScore": 18500,
-            "timeGoalSeconds": 210,
-            "difficulty": "nightmare",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "purple",
-                    "target": 44
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 6
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstSmall",
-                    "target": 7
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 28
-                }
-            ],
-            "missingCells": [
-                3,
-                4,
-                59,
-                60,
-                9,
-                18,
-                45,
-                54
-            ],
-            "hardCandies": [
-                20,
-                26,
-                29,
-                34,
-                43,
-                44,
-                11,
-                12,
-                21,
-                25,
-                30,
-                33,
-                38,
-                42,
-                51,
-                52,
-                13,
-                17,
-                22,
-                24,
-                31,
-                32,
-                39,
-                41,
-                50,
-                53,
-                2,
-                5
-            ],
-            "background": "",
-            "blockerGenerators": [
-                7,
-                1
-            ]
-        },
-        {
-            "id": 46,
-            "moves": 16,
-            "targetScore": 19000,
-            "difficulty": "nightmare",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "green",
-                    "target": 46
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "red",
-                    "target": 44
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 6
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 40
-                }
-            ],
-            "missingCells": [
-                0,
-                7,
-                56,
-                63,
-                27,
-                28,
-                35,
-                36,
-                3,
-                4,
-                59,
-                60
-            ],
-            "hardCandies": [
-                20,
-                26,
-                29,
-                34,
-                43,
-                44,
-                11,
-                12,
-                21,
-                25,
-                30,
-                33,
-                38,
-                42,
-                51,
-                52,
-                13,
-                17,
-                22,
-                24,
-                31,
-                32,
-                39,
-                41,
-                50,
-                53,
-                2,
-                5,
-                14,
-                16,
-                23,
-                40,
-                47,
-                49,
-                58,
-                61,
-                1,
-                6,
-                8,
-                15
-            ],
-            "background": "",
-            "blockerGenerators": [
-                48,
-                57
-            ]
-        },
-        {
-            "id": 47,
-            "moves": 16,
-            "targetScore": 19500,
-            "difficulty": "nightmare",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "amber",
-                    "target": 46
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 7
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstLarge",
-                    "target": 2
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 34
-                }
-            ],
-            "missingCells": [
-                10,
-                19,
-                28,
-                37,
-                46
-            ],
-            "hardCandies": [
-                20,
-                26,
-                29,
-                34,
-                43,
-                44,
-                11,
-                12,
-                21,
-                25,
-                30,
-                33,
-                38,
-                42,
-                51,
-                52,
-                13,
-                17,
-                22,
-                24,
-                31,
-                32,
-                39,
-                41,
-                50,
-                53,
-                2,
-                5,
-                14,
-                16,
-                23,
-                40,
-                47,
-                49
-            ],
-            "background": "",
-            "blockerGenerators": [
-                57,
-                4
-            ]
-        },
-        {
-            "id": 48,
-            "moves": 16,
-            "targetScore": 20000,
-            "difficulty": "nightmare",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "blue",
-                    "target": 46
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "purple",
-                    "target": 44
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 7
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 34
-                }
-            ],
-            "missingCells": [
-                27,
-                28,
-                35,
-                36,
-                9,
-                18,
-                45,
-                54
-            ],
-            "hardCandies": [
-                20,
-                26,
-                29,
-                34,
-                43,
-                44,
-                11,
-                12,
-                21,
-                25,
-                30,
-                33,
-                38,
-                42,
-                51,
-                52,
-                13,
-                17,
-                22,
-                24,
-                31,
-                32,
-                39,
-                41,
-                50,
-                53,
-                2,
-                5,
-                14,
-                16,
-                23,
-                40,
-                47,
-                49
-            ],
-            "background": "",
-            "blockerGenerators": [
-                48,
-                63
-            ]
-        },
-        {
-            "id": 49,
-            "moves": 15,
-            "targetScore": 20500,
-            "difficulty": "nightmare",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "red",
-                    "target": 48
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "line",
-                    "target": 7
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstSmall",
-                    "target": 7
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 28
-                }
-            ],
-            "missingCells": [
-                3,
-                4,
-                59,
-                60,
-                10,
-                19,
-                28,
-                37,
-                46
-            ],
-            "hardCandies": [
-                20,
-                26,
-                29,
-                34,
-                43,
-                44,
-                11,
-                12,
-                21,
-                25,
-                30,
-                33,
-                38,
-                42,
-                51,
-                52,
-                13,
-                17,
-                22,
-                24,
-                31,
-                32,
-                39,
-                41,
-                50,
-                53,
-                2,
-                5
-            ],
-            "background": "",
-            "blockerGenerators": [
-                57,
-                7
-            ]
-        },
-        {
-            "id": 50,
-            "moves": 16,
-            "targetScore": 21000,
-            "difficulty": "nightmare",
-            "goals": [
-                {
-                    "type": "destroy-color",
-                    "color": "amber",
-                    "target": 46
-                },
-                {
-                    "type": "destroy-color",
-                    "color": "green",
-                    "target": 44
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstMedium",
-                    "target": 6
-                },
-                {
-                    "type": "activate-booster",
-                    "booster": "burstLarge",
-                    "target": 1
-                },
-                {
-                    "type": "destroy-hard-candies",
-                    "target": 40
-                }
-            ],
-            "missingCells": [
-                27,
-                28,
-                35,
-                36,
-                0,
-                7,
-                56,
-                63,
-                3,
-                4,
-                59,
-                60
-            ],
-            "hardCandies": [
-                20,
-                26,
-                29,
-                34,
-                43,
-                44,
-                11,
-                12,
-                21,
-                25,
-                30,
-                33,
-                38,
-                42,
-                51,
-                52,
-                13,
-                17,
-                22,
-                24,
-                31,
-                32,
-                39,
-                41,
-                50,
-                53,
-                2,
-                5,
-                14,
-                16,
-                23,
-                40,
-                47,
-                49,
-                58,
-                61,
-                1,
-                6,
-                8,
-                15
-            ],
-            "background": "",
-            "blockerGenerators": [
-                62,
-                57
-            ]
+          "type": "destroy-color",
+          "color": "red",
+          "target": 10
         }
-    ]
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "PRPAPPGG",
+          "BRBRBAGR",
+          "GBBRAPBR",
+          "BGBRABRB",
+          "GGBXRBPA",
+          "PPGPBGRG",
+          "RPGPBGPB",
+          "AGAPBPAG"
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "moves": 22,
+      "targetScore": 500,
+      "difficulty": "easy",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "amber",
+          "target": 12
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstSmall",
+          "target": 2
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "moves": 22,
+      "targetScore": 700,
+      "difficulty": "easy",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "blue",
+          "target": 14
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 2
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "moves": 24,
+      "targetScore": 950,
+      "difficulty": "easy",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "purple",
+          "target": 15
+        },
+        {
+          "type": "destroy-color",
+          "color": "green",
+          "target": 12
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 2
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "moves": 26,
+      "targetScore": 1250,
+      "difficulty": "easy",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "red",
+          "target": 18
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstSmall",
+          "target": 3
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstLarge",
+          "target": 1
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "moves": 24,
+      "targetScore": 1550,
+      "difficulty": "easy",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "amber",
+          "target": 18
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 2
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstSmall",
+          "target": 2
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "moves": 24,
+      "targetScore": 1850,
+      "difficulty": "easy",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "blue",
+          "target": 20
+        },
+        {
+          "type": "destroy-color",
+          "color": "purple",
+          "target": 16
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 2
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "moves": 22,
+      "targetScore": 2150,
+      "timeGoalSeconds": 180,
+      "difficulty": "easy",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "green",
+          "target": 20
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 3
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstSmall",
+          "target": 3
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "moves": 22,
+      "targetScore": 2550,
+      "difficulty": "easy",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "amber",
+          "target": 22
+        },
+        {
+          "type": "destroy-color",
+          "color": "red",
+          "target": 20
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 3
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "moves": 22,
+      "targetScore": 3100,
+      "difficulty": "normal",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "blue",
+          "target": 22
+        },
+        {
+          "type": "destroy-color",
+          "color": "purple",
+          "target": 20
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 2
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstLarge",
+          "target": 1
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          "........",
+          "........",
+          "..H..H..",
+          "..H..H..",
+          "........",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "moves": 23,
+      "targetScore": 3600,
+      "difficulty": "normal",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "red",
+          "target": 24
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstSmall",
+          "target": 3
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 2
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          "........",
+          "...HH...",
+          "........",
+          "........",
+          "...HH...",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "moves": 23,
+      "targetScore": 4000,
+      "difficulty": "normal",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "amber",
+          "target": 24
+        },
+        {
+          "type": "destroy-color",
+          "color": "green",
+          "target": 20
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 3
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "X......X",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "X......X"
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "moves": 22,
+      "targetScore": 4400,
+      "difficulty": "normal",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "blue",
+          "target": 24
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 3
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstSmall",
+          "target": 3
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          ".H....H.",
+          "........",
+          "........",
+          "........",
+          "........",
+          ".H....H.",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "moves": 22,
+      "targetScore": 4800,
+      "difficulty": "normal",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "purple",
+          "target": 26
+        },
+        {
+          "type": "destroy-color",
+          "color": "red",
+          "target": 22
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 3
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          "........",
+          "........",
+          "...XX...",
+          "...XX...",
+          "........",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "moves": 21,
+      "targetScore": 5200,
+      "timeGoalSeconds": 195,
+      "difficulty": "normal",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "green",
+          "target": 26
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 3
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstLarge",
+          "target": 1
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          "........",
+          "........",
+          "..H..H..",
+          "..H..H..",
+          "........",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 16,
+      "moves": 21,
+      "targetScore": 5600,
+      "difficulty": "normal",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "amber",
+          "target": 26
+        },
+        {
+          "type": "destroy-color",
+          "color": "blue",
+          "target": 24
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 3
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstSmall",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          ".X......",
+          "..X.....",
+          "........",
+          "........",
+          ".....X..",
+          "......X.",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 17,
+      "moves": 20,
+      "targetScore": 5800,
+      "difficulty": "normal",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "purple",
+          "target": 28
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 3
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 3
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          "........",
+          "...HH...",
+          "........",
+          "........",
+          "...HH...",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 18,
+      "moves": 20,
+      "targetScore": 6200,
+      "difficulty": "normal",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "red",
+          "target": 28
+        },
+        {
+          "type": "destroy-color",
+          "color": "green",
+          "target": 24
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 3
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "...XX...",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "........",
+          "...XX..."
+        ]
+      }
+    },
+    {
+      "id": 19,
+      "moves": 20,
+      "targetScore": 6600,
+      "difficulty": "normal",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "amber",
+          "target": 30
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 3
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstLarge",
+          "target": 1
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          ".H....H.",
+          "........",
+          "........",
+          "........",
+          "........",
+          ".H....H.",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 20,
+      "moves": 20,
+      "targetScore": 7000,
+      "difficulty": "hard",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "blue",
+          "target": 28
+        },
+        {
+          "type": "destroy-color",
+          "color": "purple",
+          "target": 26
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 3
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstLarge",
+          "target": 1
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          ".....T..",
+          "..X.....",
+          "...X....",
+          "..H.XH..",
+          "..H..X..",
+          "......X.",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 21,
+      "moves": 21,
+      "targetScore": 7400,
+      "difficulty": "hard",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "red",
+          "target": 30
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 4
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstSmall",
+          "target": 4
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          "........",
+          "........",
+          "..H..H..",
+          "..H..H..",
+          "........",
+          "........",
+          ".....T.."
+        ]
+      }
+    },
+    {
+      "id": 22,
+      "moves": 21,
+      "targetScore": 7700,
+      "timeGoalSeconds": 195,
+      "difficulty": "hard",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "amber",
+          "target": 30
+        },
+        {
+          "type": "destroy-color",
+          "color": "green",
+          "target": 26
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 3
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          ".......T",
+          "...HH...",
+          "........",
+          "........",
+          "...HH...",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 23,
+      "moves": 21,
+      "targetScore": 8000,
+      "difficulty": "hard",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "blue",
+          "target": 30
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 4
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstSmall",
+          "target": 4
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          "........",
+          "...HH...",
+          "........",
+          "........",
+          "...HH..T",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 24,
+      "moves": 20,
+      "targetScore": 8200,
+      "difficulty": "hard",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "purple",
+          "target": 32
+        },
+        {
+          "type": "destroy-color",
+          "color": "red",
+          "target": 28
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 4
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          ".H....H.",
+          "........",
+          "........",
+          "........",
+          "........",
+          ".H....H.",
+          "T......."
+        ]
+      }
+    },
+    {
+      "id": 25,
+      "moves": 20,
+      "targetScore": 8500,
+      "difficulty": "hard",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "amber",
+          "target": 32
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 4
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstLarge",
+          "target": 1
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "X......X",
+          ".H....H.",
+          "........",
+          "........",
+          "........",
+          "........",
+          ".H....H.",
+          "X...T..X"
+        ]
+      }
+    },
+    {
+      "id": 26,
+      "moves": 20,
+      "targetScore": 9000,
+      "difficulty": "hard",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "blue",
+          "target": 32
+        },
+        {
+          "type": "destroy-color",
+          "color": "green",
+          "target": 28
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 4
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "X......X",
+          "........",
+          "........",
+          "..H..H.T",
+          "..H..H..",
+          "........",
+          "........",
+          "X......X"
+        ]
+      }
+    },
+    {
+      "id": 27,
+      "moves": 19,
+      "targetScore": 9500,
+      "difficulty": "hard",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "purple",
+          "target": 34
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 4
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstSmall",
+          "target": 5
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          ".H....H.",
+          "........",
+          "...XX...",
+          "T..XX...",
+          "........",
+          ".H....H.",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 28,
+      "moves": 19,
+      "targetScore": 10000,
+      "difficulty": "hard",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "red",
+          "target": 34
+        },
+        {
+          "type": "destroy-color",
+          "color": "amber",
+          "target": 30
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 4
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "..T.....",
+          ".X......",
+          "..XHH...",
+          "........",
+          "........",
+          "...HHX..",
+          "......X.",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 29,
+      "moves": 19,
+      "targetScore": 10500,
+      "difficulty": "hard",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "blue",
+          "target": 34
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 5
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstLarge",
+          "target": 1
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "...XX...",
+          "........",
+          "........",
+          "..H..H..",
+          "..H..H..",
+          "........",
+          "........",
+          "T..XX..."
+        ]
+      }
+    },
+    {
+      "id": 30,
+      "moves": 19,
+      "targetScore": 11000,
+      "difficulty": "expert",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "green",
+          "target": 34
+        },
+        {
+          "type": "destroy-color",
+          "color": "purple",
+          "target": 32
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 4
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstLarge",
+          "target": 1
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 6
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "X......X",
+          "........",
+          "..H..H.T",
+          "...XX...",
+          "...XX...",
+          "..H..H..",
+          "........",
+          "X...T..X"
+        ]
+      }
+    },
+    {
+      "id": 31,
+      "moves": 19,
+      "targetScore": 11500,
+      "difficulty": "expert",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "red",
+          "target": 36
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 5
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstSmall",
+          "target": 5
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "...T....",
+          ".H....HT",
+          "........",
+          "...XX...",
+          "...XX...",
+          "........",
+          ".H....H.",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 32,
+      "moves": 19,
+      "targetScore": 12000,
+      "difficulty": "expert",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "amber",
+          "target": 36
+        },
+        {
+          "type": "destroy-color",
+          "color": "blue",
+          "target": 32
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 5
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 6
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          ".X......",
+          "T.X..H..",
+          "...H....",
+          "....H...",
+          "..H..X..",
+          "......X.",
+          "......T."
+        ]
+      }
+    },
+    {
+      "id": 33,
+      "moves": 18,
+      "targetScore": 12500,
+      "difficulty": "expert",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "purple",
+          "target": 36
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 5
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstLarge",
+          "target": 1
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "......T.",
+          "..X.....",
+          "...XH...",
+          "....X...",
+          ".....X..",
+          "...HH.X.",
+          "........",
+          "......T."
+        ]
+      }
+    },
+    {
+      "id": 34,
+      "moves": 18,
+      "targetScore": 13000,
+      "difficulty": "expert",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "green",
+          "target": 38
+        },
+        {
+          "type": "destroy-color",
+          "color": "red",
+          "target": 34
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 5
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "...XX...",
+          ".H....H.",
+          "........",
+          "...XX...",
+          "...XX...",
+          ".......T",
+          ".H....H.",
+          "...XX.T."
+        ]
+      }
+    },
+    {
+      "id": 35,
+      "moves": 18,
+      "targetScore": 13500,
+      "difficulty": "expert",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "amber",
+          "target": 38
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 5
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstSmall",
+          "target": 6
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 6
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          ".X......",
+          "..X..H..",
+          "...H....",
+          "....H...",
+          "..H..X..",
+          "......XT",
+          ".....T.."
+        ]
+      }
+    },
+    {
+      "id": 36,
+      "moves": 18,
+      "targetScore": 14000,
+      "difficulty": "expert",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "blue",
+          "target": 38
+        },
+        {
+          "type": "destroy-color",
+          "color": "purple",
+          "target": 36
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 5
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "X..XX..X",
+          "T.......",
+          "T..HH...",
+          "........",
+          "........",
+          "...HH...",
+          "........",
+          "X..XX..X"
+        ]
+      }
+    },
+    {
+      "id": 37,
+      "moves": 17,
+      "targetScore": 14500,
+      "difficulty": "expert",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "red",
+          "target": 40
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 5
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstLarge",
+          "target": 1
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 6
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          ".T..T...",
+          "..X.....",
+          "..HX.H..",
+          "...HX...",
+          "....HX..",
+          "..H..HX.",
+          "........",
+          "........"
+        ]
+      }
+    },
+    {
+      "id": 38,
+      "moves": 17,
+      "targetScore": 15000,
+      "difficulty": "expert",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "amber",
+          "target": 40
+        },
+        {
+          "type": "destroy-color",
+          "color": "green",
+          "target": 36
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 5
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "X......X",
+          ".H....H.",
+          "T.......",
+          "...XX...",
+          "...XX...",
+          "........",
+          ".H....H.",
+          "X.T....X"
+        ]
+      }
+    },
+    {
+      "id": 39,
+      "moves": 17,
+      "targetScore": 15500,
+      "difficulty": "expert",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "purple",
+          "target": 40
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 6
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstSmall",
+          "target": 6
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 6
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          ".X......",
+          "..X..H..",
+          "T..H....",
+          "....H...",
+          "..H..X..",
+          "......X.",
+          ".......T"
+        ]
+      }
+    },
+    {
+      "id": 40,
+      "moves": 17,
+      "targetScore": 16000,
+      "timeGoalSeconds": 180,
+      "difficulty": "expert",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "blue",
+          "target": 40
+        },
+        {
+          "type": "destroy-color",
+          "color": "red",
+          "target": 38
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 5
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstLarge",
+          "target": 1
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 10
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "X..XX..X",
+          ".H....H.",
+          "T.H..H..",
+          "...XX...",
+          "...XX...",
+          "..H..H.T",
+          ".H....H.",
+          "X..XX..X"
+        ]
+      }
+    },
+    {
+      "id": 41,
+      "moves": 17,
+      "targetScore": 16500,
+      "difficulty": "expert",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "amber",
+          "target": 42
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 6
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstSmall",
+          "target": 6
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 6
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "...XX...",
+          ".......T",
+          "..H..H..",
+          "...XX...",
+          "T..XX...",
+          "..H..H..",
+          "........",
+          "...XX..."
+        ]
+      }
+    },
+    {
+      "id": 42,
+      "moves": 17,
+      "targetScore": 17000,
+      "difficulty": "expert",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "green",
+          "target": 42
+        },
+        {
+          "type": "destroy-color",
+          "color": "purple",
+          "target": 40
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 6
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 4
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "........",
+          ".HX...H.",
+          "...X....",
+          "....X..T",
+          ".....X..",
+          "......X.",
+          ".H....H.",
+          ".T......"
+        ]
+      }
+    },
+    {
+      "id": 43,
+      "moves": 17,
+      "targetScore": 17500,
+      "difficulty": "nightmare",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "red",
+          "target": 44
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 6
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstLarge",
+          "target": 2
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 28
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "X.H..H.X",
+          ".X.HHH.T",
+          ".HX.HHH.",
+          "HHH..HHH",
+          "HHH...HH",
+          ".HHHHX..",
+          "..HHHHX.",
+          "X..T...X"
+        ]
+      }
+    },
+    {
+      "id": 44,
+      "moves": 17,
+      "targetScore": 18000,
+      "difficulty": "nightmare",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "blue",
+          "target": 44
+        },
+        {
+          "type": "destroy-color",
+          "color": "amber",
+          "target": 42
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 6
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 34
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "T.H..H..",
+          "..XHHHH.",
+          "HH.XHHHH",
+          "HHHXXHHH",
+          "HHHXXXHH",
+          "HHHHH.XH",
+          ".HHHHH..",
+          ".T......"
+        ]
+      }
+    },
+    {
+      "id": 45,
+      "moves": 17,
+      "targetScore": 18500,
+      "timeGoalSeconds": 210,
+      "difficulty": "nightmare",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "purple",
+          "target": 44
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 6
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstSmall",
+          "target": 7
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 28
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          ".THXXH.T",
+          ".X.HHH..",
+          ".HX.HHH.",
+          "HHH..HHH",
+          "HHH...HH",
+          ".HHHHX..",
+          "..HHHHX.",
+          "...XX..."
+        ]
+      }
+    },
+    {
+      "id": 46,
+      "moves": 16,
+      "targetScore": 19000,
+      "difficulty": "nightmare",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "green",
+          "target": 46
+        },
+        {
+          "type": "destroy-color",
+          "color": "red",
+          "target": 44
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 6
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 40
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "XHHXXHHX",
+          "H..HHHHH",
+          "HH..HHHH",
+          "HHHXXHHH",
+          "HHHXX.HH",
+          "HHHHH..H",
+          "THHHHH..",
+          "XTHXXH.X"
+        ]
+      }
+    },
+    {
+      "id": 47,
+      "moves": 16,
+      "targetScore": 19500,
+      "difficulty": "nightmare",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "amber",
+          "target": 46
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 7
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstLarge",
+          "target": 2
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 34
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "..H.TH..",
+          "..XHHHH.",
+          "HH.XHHHH",
+          "HHH.XHHH",
+          "HHH..XHH",
+          "HHHHH.XH",
+          ".HHHHH..",
+          ".T......"
+        ]
+      }
+    },
+    {
+      "id": 48,
+      "moves": 16,
+      "targetScore": 20000,
+      "difficulty": "nightmare",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "blue",
+          "target": 46
+        },
+        {
+          "type": "destroy-color",
+          "color": "purple",
+          "target": 44
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 7
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 34
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "..H..H..",
+          ".X.HHHH.",
+          "HHX.HHHH",
+          "HHHXXHHH",
+          "HHHXX.HH",
+          "HHHHHX.H",
+          "THHHHHX.",
+          ".......T"
+        ]
+      }
+    },
+    {
+      "id": 49,
+      "moves": 15,
+      "targetScore": 20500,
+      "difficulty": "nightmare",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "red",
+          "target": 48
+        },
+        {
+          "type": "activate-booster",
+          "booster": "line",
+          "target": 7
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstSmall",
+          "target": 7
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 28
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "..HXXH.T",
+          "..XHHH..",
+          ".H.XHHH.",
+          "HHH.XHHH",
+          "HHH..XHH",
+          ".HHHH.X.",
+          "..HHHH..",
+          ".T.XX..."
+        ]
+      }
+    },
+    {
+      "id": 50,
+      "moves": 16,
+      "targetScore": 21000,
+      "difficulty": "nightmare",
+      "goals": [
+        {
+          "type": "destroy-color",
+          "color": "amber",
+          "target": 46
+        },
+        {
+          "type": "destroy-color",
+          "color": "green",
+          "target": 44
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstMedium",
+          "target": 6
+        },
+        {
+          "type": "activate-booster",
+          "booster": "burstLarge",
+          "target": 1
+        },
+        {
+          "type": "destroy-hard-candies",
+          "target": 40
+        }
+      ],
+      "background": "",
+      "board": {
+        "rows": [
+          "XHHXXHHX",
+          "H..HHHHH",
+          "HH..HHHH",
+          "HHHXXHHH",
+          "HHHXX.HH",
+          "HHHHH..H",
+          ".HHHHH..",
+          "XTHXXHTX"
+        ]
+      }
+    }
+  ]
 }

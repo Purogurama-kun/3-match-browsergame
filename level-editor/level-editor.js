@@ -141,7 +141,7 @@ function normalizeLevelData(level) {
 }
 
 function loadLevels(levels, fileHandle, fileName) {
-    state.levels = levels.map((level) => normalizeLevelData(level));
+    state.levels = levels.map((level) => normalizeLevelData(stripDerivedFields(level)));
     state.fileHandle = fileHandle || null;
     state.fileName = fileName || '';
     state.selectedIndex = state.levels.length ? 0 : -1;
@@ -150,6 +150,18 @@ function loadLevels(levels, fileHandle, fileName) {
     setDirty(false);
     const nameLabel = state.fileName ? ` (${state.fileName})` : '';
     setStatus(`Loaded ${state.levels.length} levels${nameLabel}.`);
+}
+
+function stripDerivedFields(level) {
+    if (!level || !level.board || !Array.isArray(level.board.rows)) {
+        return level;
+    }
+    const cleaned = { ...level };
+    delete cleaned.missingCells;
+    delete cleaned.hardCandies;
+    delete cleaned.blockerGenerators;
+    delete cleaned.cellOverrides;
+    return cleaned;
 }
 
 function parseLevelsPayload(text) {
