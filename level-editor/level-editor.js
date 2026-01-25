@@ -490,7 +490,7 @@ function renderBoard(level) {
 
 function getTokenDisplay(token) {
     if (token === 'X' || token === '.') return '';
-    if (token === 'H') return 'H';
+    if (token === 'H') return '';
     if (token === 'T') return '⛓️';
     if (token === 'L' || token === 'V') return '💣';
     if (token === 'S') return '🧨';
