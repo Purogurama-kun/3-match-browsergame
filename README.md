@@ -78,14 +78,14 @@ You can also define a board layout in plain text instead of cell indices:
 {
   "board": {
     "rows": [
-      "........",
-      "..R..H..",
-      "..R..H..",
-      "..R..H..",
-      "..R..H..",
-      "........",
-      "....T...",
-      "....X..."
+      ".1.1.1.1.1.1.1.1",
+      ".1.1R1.1.1H1.1.1",
+      ".1.1R1.1.1H1.1.1",
+      ".1.1R1.1.1H1.1.1",
+      ".1.1R1.1.1H1.1.1",
+      ".1.1.1.1.1.1.1.1",
+      ".1.1.1.1T1.1.1.1",
+      ".1.1.1.1X1.1.1.1"
     ]
   }
 }
@@ -93,16 +93,16 @@ You can also define a board layout in plain text instead of cell indices:
 
 Board tokens:
 
-- `.` any candy (random)
-- `X` blocked / gap cell
-- `H` hard candy
-- `T` blocker generator
-- `R` red, `A` amber, `B` blue, `P` purple, `G` green
-- `L` line bomb (horizontal), `V` line bomb (vertical)
-- `S` burst small bomb, `M` burst medium bomb, `U` burst large bomb
-- `1`, `2`, `3` sugar chest stage 1-3
+- `.1` any candy (random)
+- `X1` blocked / gap cell
+- `H1` hard candy
+- `T1` blocker generator
+- `R1` red, `A1` amber, `B1` blue, `P1` purple, `G1` green
+- `L1` line bomb (horizontal), `V1` line bomb (vertical)
+- `S1` burst small bomb, `M1` burst medium bomb, `U1` burst large bomb
+- `C1`, `C2`, `C3` sugar chest stage 1-3
 
-Spaces are optional: `"R . . X . . . ."` works too. If a `board` is provided, it overrides `missingCells`, `hardCandies`, and `blockerGenerators`.
+Spaces are optional: `"R1 .1 .1 X1 .1 .1 .1 .1"` works too. If a `board` is provided, it overrides `missingCells`, `hardCandies`, and `blockerGenerators`.
 
 ### Story acts
 

@@ -71,15 +71,6 @@ const BOARD_TOKEN_COLORS: Record<string, ColorKey> = {
     G: 'green'
 };
 
-const BOARD_TOKEN_SPECIAL: Record<string, 'any' | 'blocked' | 'hard' | 'generator'> = {
-    '.': 'any',
-    '-': 'any',
-    X: 'blocked',
-    '#': 'blocked',
-    H: 'hard',
-    T: 'generator'
-};
-
 const BOARD_TOKEN_BOOSTERS: Record<string, { booster: ActivateBoosterGoal['booster']; lineOrientation?: LineOrientation }> = {
     L: { booster: BOOSTERS.LINE, lineOrientation: 'horizontal' },
     V: { booster: BOOSTERS.LINE, lineOrientation: 'vertical' },
@@ -88,10 +79,9 @@ const BOARD_TOKEN_BOOSTERS: Record<string, { booster: ActivateBoosterGoal['boost
     U: { booster: BOOSTERS.BURST_LARGE }
 };
 
-const BOARD_TOKEN_SUGAR_CHEST: Record<string, number> = {
-    '1': 1,
-    '2': 2,
-    '3': 3
+type ParsedBoardToken = {
+    type: string;
+    stage: string;
 };
 
 type LevelDifficultyValue = Difficulty | number;
@@ -800,6 +790,11 @@ type ParsedBoardLayout = {
     cellOverrides: BoardCellOverride[];
 };
 
+type ParsedBoardToken = {
+    type: string;
+    stage: string;
+};
+
 function parseBoardLayout(layout: BoardLayoutInput, levelId: number): ParsedBoardLayout | null {
     const rows = layout.rows ?? [];
     if (rows.length !== GRID_SIZE) {
@@ -821,25 +816,33 @@ function parseBoardLayout(layout: BoardLayoutInput, levelId: number): ParsedBoar
             return;
         }
         tokens.forEach((rawToken, colIndex) => {
-            const token = rawToken.trim().toUpperCase();
+            const parsed = parseBoardToken(rawToken);
             const index = rowIndex * GRID_SIZE + colIndex;
-            if (!token) {
+            if (!parsed) {
                 isValid = false;
                 return;
             }
-            const special = BOARD_TOKEN_SPECIAL[token];
-            if (special) {
-                if (special === 'blocked') blockedCells.push(index);
-                if (special === 'hard') hardCandies.push(index);
-                if (special === 'generator') blockerGenerators.push(index);
+            if (parsed.type === '.') {
                 return;
             }
-            const colorKey = BOARD_TOKEN_COLORS[token];
+            if (parsed.type === 'X') {
+                blockedCells.push(index);
+                return;
+            }
+            if (parsed.type === 'H') {
+                hardCandies.push(index);
+                return;
+            }
+            if (parsed.type === 'T') {
+                blockerGenerators.push(index);
+                return;
+            }
+            const colorKey = BOARD_TOKEN_COLORS[parsed.type];
             if (colorKey) {
                 cellOverrides.push({ index, color: getColorHex(colorKey) });
                 return;
             }
-            const boosterToken = BOARD_TOKEN_BOOSTERS[token];
+            const boosterToken = BOARD_TOKEN_BOOSTERS[parsed.type];
             if (boosterToken) {
                 cellOverrides.push({
                     index,
@@ -848,10 +851,12 @@ function parseBoardLayout(layout: BoardLayoutInput, levelId: number): ParsedBoar
                 });
                 return;
             }
-            const chestStage = BOARD_TOKEN_SUGAR_CHEST[token];
-            if (chestStage) {
-                cellOverrides.push({ index, sugarChestStage: chestStage });
-                return;
+            if (parsed.type === 'C') {
+                const stage = Number(parsed.stage);
+                if (stage >= 1 && stage <= 3) {
+                    cellOverrides.push({ index, sugarChestStage: stage });
+                    return;
+                }
             }
             console.warn(`Level ${levelId}: unknown board token "${rawToken}".`);
             isValid = false;
@@ -869,7 +874,48 @@ function tokenizeBoardRow(row: string): string[] {
     if (/\s/.test(trimmed)) {
         return trimmed.split(/\s+/);
     }
+    if (trimmed.length === GRID_SIZE * 2) {
+        const tokens: string[] = [];
+        for (let i = 0; i < trimmed.length; i += 2) {
+            tokens.push(trimmed.slice(i, i + 2));
+        }
+        return tokens;
+    }
+    if (trimmed.length === GRID_SIZE) {
+        return trimmed.split('');
+    }
     return trimmed.split('');
+}
+
+function parseBoardToken(rawToken: string): ParsedBoardToken | null {
+    const token = rawToken.trim().toUpperCase();
+    if (!token) return null;
+    if (token.length === 1) {
+        if (token === '.') return { type: '.', stage: '1' };
+        if (token === '1' || token === '2' || token === '3') {
+            return { type: 'C', stage: token };
+        }
+        return { type: token, stage: '1' };
+    }
+    const type = token.charAt(0);
+    const stage = token.charAt(1);
+    if (!stage) return null;
+    if (type === '.') {
+        return stage === '1' ? { type: '.', stage } : null;
+    }
+    if (type === 'C') {
+        return stage === '1' || stage === '2' || stage === '3' ? { type, stage } : null;
+    }
+    if (type === 'H' || type === 'X' || type === 'T') {
+        return stage === '1' ? { type, stage } : null;
+    }
+    if (BOARD_TOKEN_COLORS[type]) {
+        return stage === '1' ? { type, stage } : null;
+    }
+    if (BOARD_TOKEN_BOOSTERS[type]) {
+        return stage === '1' ? { type, stage } : null;
+    }
+    return null;
 }
 
 function setLevelsFromData(raw: unknown): boolean {
