@@ -715,7 +715,18 @@ function setupPalette() {
 }
 
 function buildPayload() {
-    return JSON.stringify({ levels: state.levels }, null, 2) + '\n';
+    const levels = state.levels.map((level) => {
+        if (level.board && Array.isArray(level.board.rows)) {
+            const cleaned = { ...level };
+            delete cleaned.missingCells;
+            delete cleaned.hardCandies;
+            delete cleaned.blockerGenerators;
+            delete cleaned.cellOverrides;
+            return cleaned;
+        }
+        return level;
+    });
+    return JSON.stringify({ levels }, null, 2) + '\n';
 }
 
 async function saveToHandle(handle) {
@@ -725,21 +736,7 @@ async function saveToHandle(handle) {
 }
 
 async function saveFile() {
-    if (!state.levels.length) {
-        setStatus('Nothing to save yet.', true);
-        return;
-    }
-    if (state.fileHandle && state.fileHandle.createWritable) {
-        try {
-            await saveToHandle(state.fileHandle);
-            setDirty(false);
-            setStatus(`Saved to ${state.fileHandle.name}.`);
-        } catch (error) {
-            setStatus(`Save failed: ${getErrorMessage(error)}`, true);
-        }
-        return;
-    }
-    await saveAsFile();
+    await saveToProject();
 }
 
 async function saveAsFile() {
@@ -780,6 +777,31 @@ async function saveAsFile() {
     URL.revokeObjectURL(url);
     setDirty(false);
     setStatus('Downloaded levels.json.');
+}
+
+async function saveToProject() {
+    if (!state.levels.length) {
+        setStatus('Nothing to save yet.', true);
+        return;
+    }
+    try {
+        const response = await fetch('/backend/save-levels.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: buildPayload()
+        });
+        if (!response.ok) {
+            throw new Error('Save failed with status ' + response.status);
+        }
+        const payload = await response.json();
+        if (!payload || payload.status !== 'ok') {
+            throw new Error(payload?.message || 'Save failed');
+        }
+        setDirty(false);
+        setStatus('Saved to assets/data/levels.json.');
+    } catch (error) {
+        setStatus(`Save failed: ${getErrorMessage(error)}`, true);
+    }
 }
 
 async function openFilePicker() {

@@ -54,7 +54,7 @@ For a deployable bundle, run `npm run publish`. It rebuilds the project and writ
 
 A lightweight level editor lives in `level-editor/`. It is a standalone, local-only web UI for editing `assets/data/levels.json`.
 
-Run the local server and open `http://localhost:5500/level-editor/` in the browser. The editor auto-loads `/assets/data/levels.json`. Use "Open levels.json" to link directly to the file, edit levels, then press Save to write back.
+Run the local server and open `http://localhost:5500/level-editor/` in the browser. The editor auto-loads `/assets/data/levels.json`. Use "Save to project" to write back via the local PHP server, or "Save levels.json" to download a copy.
 
 ## Content data (levels + story + modes)
 
