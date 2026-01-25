@@ -5,7 +5,8 @@ import {
     DestroyColorGoal,
     Difficulty,
     LevelDefinition,
-    LevelGoal
+    LevelGoal,
+    LineOrientation
 } from './types.js';
 import { t } from './i18n.js';
 import { getStoryActBackground } from './story.js';
@@ -77,6 +78,20 @@ const BOARD_TOKEN_SPECIAL: Record<string, 'any' | 'blocked' | 'hard' | 'generato
     '#': 'blocked',
     H: 'hard',
     T: 'generator'
+};
+
+const BOARD_TOKEN_BOOSTERS: Record<string, { booster: ActivateBoosterGoal['booster']; lineOrientation?: LineOrientation }> = {
+    L: { booster: BOOSTERS.LINE, lineOrientation: 'horizontal' },
+    V: { booster: BOOSTERS.LINE, lineOrientation: 'vertical' },
+    S: { booster: BOOSTERS.BURST_SMALL },
+    M: { booster: BOOSTERS.BURST_MEDIUM },
+    U: { booster: BOOSTERS.BURST_LARGE }
+};
+
+const BOARD_TOKEN_SUGAR_CHEST: Record<string, number> = {
+    '1': 1,
+    '2': 2,
+    '3': 3
 };
 
 type LevelDifficultyValue = Difficulty | number;
@@ -822,6 +837,20 @@ function parseBoardLayout(layout: BoardLayoutInput, levelId: number): ParsedBoar
             const colorKey = BOARD_TOKEN_COLORS[token];
             if (colorKey) {
                 cellOverrides.push({ index, color: getColorHex(colorKey) });
+                return;
+            }
+            const boosterToken = BOARD_TOKEN_BOOSTERS[token];
+            if (boosterToken) {
+                cellOverrides.push({
+                    index,
+                    booster: boosterToken.booster,
+                    ...(boosterToken.lineOrientation ? { lineOrientation: boosterToken.lineOrientation } : {})
+                });
+                return;
+            }
+            const chestStage = BOARD_TOKEN_SUGAR_CHEST[token];
+            if (chestStage) {
+                cellOverrides.push({ index, sugarChestStage: chestStage });
                 return;
             }
             console.warn(`Level ${levelId}: unknown board token "${rawToken}".`);

@@ -98,6 +98,9 @@ Board tokens:
 - `H` hard candy
 - `T` blocker generator
 - `R` red, `A` amber, `B` blue, `P` purple, `G` green
+- `L` line bomb (horizontal), `V` line bomb (vertical)
+- `S` burst small bomb, `M` burst medium bomb, `U` burst large bomb
+- `1`, `2`, `3` sugar chest stage 1-3
 
 Spaces are optional: `"R . . X . . . ."` works too. If a `board` is provided, it overrides `missingCells`, `hardCandies`, and `blockerGenerators`.
 

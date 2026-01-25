@@ -46,9 +46,23 @@ class Board {
             hard?: boolean;
             blocked?: boolean;
             generator?: boolean;
+            booster?: BoosterType;
+            lineOrientation?: LineOrientation;
+            sugarChestStage?: number;
         }>;
     }): void {
-        const overrideMap = new Map<number, { color?: string; hard?: boolean; blocked?: boolean; generator?: boolean }>();
+        const overrideMap = new Map<
+            number,
+            {
+                color?: string;
+                hard?: boolean;
+                blocked?: boolean;
+                generator?: boolean;
+                booster?: BoosterType;
+                lineOrientation?: LineOrientation;
+                sugarChestStage?: number;
+            }
+        >();
         (config?.cellOverrides ?? []).forEach((override) => {
             overrideMap.set(override.index, override);
         });
@@ -76,19 +90,33 @@ class Board {
                 blocked,
                 generator: isGenerator
             };
+            const hasOverrideChest = typeof override?.sugarChestStage === 'number';
             const shouldSpawnChest =
-                !blocked && !state.hard && !state.generator && !override?.color && this.shouldSpawnSugarChest();
+                !blocked &&
+                !state.hard &&
+                !state.generator &&
+                !override?.color &&
+                !hasOverrideChest &&
+                this.shouldSpawnSugarChest();
             if (blocked) {
                 state.color = '';
             } else if (override?.color) {
                 state.color = override.color;
-            } else if (shouldSpawnChest) {
+            } else if (shouldSpawnChest || hasOverrideChest) {
                 state.color = '';
             } else {
                 state.color = this.pickColorForIndex(i);
             }
+            if (!blocked && !state.generator && !hasOverrideChest && override?.booster) {
+                state.booster = override.booster;
+                if (override.booster === BOOSTERS.LINE && override.lineOrientation) {
+                    state.lineOrientation = override.lineOrientation;
+                }
+            }
             this.cellStates.push(state);
-            if (shouldSpawnChest) {
+            if (hasOverrideChest && !blocked) {
+                this.setSugarChestStage(i, override.sugarChestStage ?? 1);
+            } else if (shouldSpawnChest) {
                 this.setSugarChestStage(i, 1);
             }
         }

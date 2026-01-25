@@ -98,6 +98,9 @@ type BoardCellOverride = {
     hard?: boolean;
     blocked?: boolean;
     generator?: boolean;
+    booster?: BoosterType;
+    lineOrientation?: LineOrientation;
+    sugarChestStage?: number;
 };
 
 export {

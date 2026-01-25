@@ -6,9 +6,17 @@ const GOAL_TYPES = ['destroy-color', 'activate-booster', 'destroy-hard-candies']
 
 const BOARD_TOKENS = [
     { token: '.', label: 'Any', className: 'any', swatch: '#ffffff' },
-    { token: 'X', label: 'Missing', className: 'blocked', swatch: '#3f3f46' },
+    { token: 'X', label: 'Missing', className: 'void', swatch: '#3f3f46' },
     { token: 'H', label: 'Hard', className: 'hard', swatch: '#f5d27a' },
     { token: 'T', label: 'Generator', className: 'generator', swatch: '#fca5a5' },
+    { token: 'L', label: 'Line bomb', className: 'bomb-line bomb-line-horizontal', swatch: '#fde68a' },
+    { token: 'V', label: 'Line bomb vertical', className: 'bomb-line bomb-line-vertical', swatch: '#fde68a' },
+    { token: 'S', label: 'Burst small', className: 'bomb-small', swatch: '#86efac' },
+    { token: 'M', label: 'Burst medium', className: 'bomb-medium', swatch: '#fdba74' },
+    { token: 'U', label: 'Burst large', className: 'bomb-large', swatch: '#67e8f9' },
+    { token: '1', label: 'Sugar chest I', className: 'sugar-chest sugar-chest-1', swatch: '#ffffff' },
+    { token: '2', label: 'Sugar chest II', className: 'sugar-chest sugar-chest-2', swatch: '#ffffff' },
+    { token: '3', label: 'Sugar chest III', className: 'sugar-chest sugar-chest-3', swatch: '#ffffff' },
     { token: 'R', label: 'Red', className: 'red', swatch: '#ff7b7b' },
     { token: 'A', label: 'Amber', className: 'amber', swatch: '#ffd166' },
     { token: 'B', label: 'Blue', className: 'blue', swatch: '#7dd3fc' },
@@ -27,6 +35,21 @@ const COLOR_HEX_TO_TOKEN = {
     '#7dd3fc': 'B',
     '#a78bfa': 'P',
     '#6ee7b7': 'G'
+};
+
+const TOKEN_TO_COLOR = {
+    R: '#ff7b7b',
+    A: '#ffd166',
+    B: '#7dd3fc',
+    P: '#a78bfa',
+    G: '#6ee7b7'
+};
+
+const NATURAL_COLORS = Object.values(TOKEN_TO_COLOR);
+const SUGAR_CHEST_STAGE_TO_TOKEN = {
+    1: '1',
+    2: '2',
+    3: '3'
 };
 
 const DEFAULT_LEVEL = {
@@ -381,6 +404,37 @@ function createBoardRowsFromLevel(level) {
     if (Array.isArray(level.cellOverrides)) {
         level.cellOverrides.forEach((override) => {
             if (!override || typeof override.index !== 'number') return;
+            if (override.blocked) {
+                setToken(override.index, 'X');
+                return;
+            }
+            if (override.sugarChestStage) {
+                const token = SUGAR_CHEST_STAGE_TO_TOKEN[override.sugarChestStage];
+                if (token) {
+                    setToken(override.index, token);
+                }
+                return;
+            }
+            if (override.generator) {
+                setToken(override.index, 'T');
+                return;
+            }
+            if (override.hard) {
+                setToken(override.index, 'H');
+                return;
+            }
+            if (override.booster) {
+                if (override.booster === 'line') {
+                    setToken(override.index, override.lineOrientation === 'vertical' ? 'V' : 'L');
+                } else if (override.booster === 'burstSmall') {
+                    setToken(override.index, 'S');
+                } else if (override.booster === 'burstMedium') {
+                    setToken(override.index, 'M');
+                } else if (override.booster === 'burstLarge') {
+                    setToken(override.index, 'U');
+                }
+                return;
+            }
             if (override.color) {
                 const token = COLOR_HEX_TO_TOKEN[override.color.toLowerCase()];
                 if (token) {
@@ -429,9 +483,52 @@ function renderBoard(level) {
         level.board = { rows: createBoardRowsFromLevel(level) };
     }
     ensureBoard(level);
+    applyBoardBackground(level);
     renderBoardGrid(level.board.rows);
     syncBoardTextarea(level.board.rows);
-    syncMissingCells(level);
+}
+
+function getTokenDisplay(token) {
+    if (token === 'X' || token === '.') return '';
+    if (token === 'H') return 'H';
+    if (token === 'T') return '⛓️';
+    if (token === 'L' || token === 'V') return '💣';
+    if (token === 'S') return '🧨';
+    if (token === 'M') return '💥';
+    if (token === 'U') return '☢️';
+    if (token === '1' || token === '2' || token === '3') return '';
+    return '';
+}
+
+function getTokenColor(token, index) {
+    const color = TOKEN_TO_COLOR[token];
+    if (color) return color;
+    if (token === 'X' || token === '1' || token === '2' || token === '3') return '';
+    return NATURAL_COLORS[(index * 7 + 3) % NATURAL_COLORS.length];
+}
+
+function getBackgroundForLevelId(levelId) {
+    if (levelId >= 1 && levelId <= 15) {
+        return '/assets/images/vendor-plaza.png';
+    }
+    if (levelId >= 16 && levelId <= 25) {
+        return '/assets/images/ribbon-alley.png';
+    }
+    if (levelId >= 26 && levelId <= 49) {
+        return '/assets/images/lantern-bridge.png';
+    }
+    if (levelId === 50) {
+        return '/assets/images/festival.png';
+    }
+    return '/assets/images/vendor-plaza.png';
+}
+
+function applyBoardBackground(level) {
+    const fallbackId = typeof level.id === 'number' ? level.id : state.selectedIndex + 1;
+    const background = level.background && level.background.trim().length > 0
+        ? level.background
+        : getBackgroundForLevelId(fallbackId || 1);
+    ui.boardGrid.style.setProperty('--board-background', `url(${background})`);
 }
 
 function renderBoardGrid(rows) {
@@ -440,10 +537,17 @@ function renderBoardGrid(rows) {
         row.split('').forEach((token, colIndex) => {
             const cell = document.createElement('button');
             cell.type = 'button';
-            cell.className = `editor__cell editor__cell--${TOKEN_CLASS_MAP[token] || 'any'}`;
-            cell.textContent = token;
+            cell.className = getTokenClassName(token);
+            cell.textContent = getTokenDisplay(token);
             cell.dataset.row = String(rowIndex);
             cell.dataset.col = String(colIndex);
+            cell.dataset.token = token;
+            const color = getTokenColor(token, rowIndex * GRID_SIZE + colIndex);
+            if (color) {
+                cell.style.setProperty('--cell-color', color);
+            } else {
+                cell.style.removeProperty('--cell-color');
+            }
             cell.addEventListener('click', () => {
                 applyTokenToCell(Number(cell.dataset.row), Number(cell.dataset.col), state.boardToken);
             });
@@ -463,21 +567,74 @@ function applyTokenToCell(row, col, token) {
     const cellIndex = row * GRID_SIZE + col;
     const cell = ui.boardGrid.children[cellIndex];
     if (cell) {
-        cell.className = `editor__cell editor__cell--${TOKEN_CLASS_MAP[token] || 'any'}`;
-        cell.textContent = token;
+        cell.className = getTokenClassName(token);
+        cell.textContent = getTokenDisplay(token);
+        cell.dataset.token = token;
+        const color = getTokenColor(token, cellIndex);
+        if (color) {
+            cell.style.setProperty('--cell-color', color);
+        } else {
+            cell.style.removeProperty('--cell-color');
+        }
     }
     syncBoardTextarea(rows);
-    syncMissingCells(level);
+    syncBoardDerivedFields(level);
     markDirty();
 }
 
-function syncMissingCells(level) {
+function getTokenClassName(token) {
+    const tokenClass = TOKEN_CLASS_MAP[token] || 'any';
+    const classList = tokenClass.split(' ').map((name) => `editor__cell--${name}`);
+    return ['editor__cell', ...classList].join(' ');
+}
+
+function syncBoardDerivedFields(level) {
     if (!level.board || !Array.isArray(level.board.rows)) return;
     const missing = [];
+    const hard = [];
+    const generators = [];
+    const overrides = [];
     level.board.rows.forEach((row, rowIndex) => {
         row.split('').forEach((token, colIndex) => {
+            const index = rowIndex * GRID_SIZE + colIndex;
             if (token === 'X') {
-                missing.push(rowIndex * GRID_SIZE + colIndex);
+                missing.push(index);
+                return;
+            }
+            if (token === 'H') {
+                hard.push(index);
+                return;
+            }
+            if (token === 'T') {
+                generators.push(index);
+                return;
+            }
+            if (token === 'R' || token === 'A' || token === 'B' || token === 'P' || token === 'G') {
+                overrides.push({ index, color: TOKEN_TO_COLOR[token] });
+                return;
+            }
+            if (token === 'L') {
+                overrides.push({ index, booster: 'line', lineOrientation: 'horizontal' });
+                return;
+            }
+            if (token === 'V') {
+                overrides.push({ index, booster: 'line', lineOrientation: 'vertical' });
+                return;
+            }
+            if (token === 'S') {
+                overrides.push({ index, booster: 'burstSmall' });
+                return;
+            }
+            if (token === 'M') {
+                overrides.push({ index, booster: 'burstMedium' });
+                return;
+            }
+            if (token === 'U') {
+                overrides.push({ index, booster: 'burstLarge' });
+                return;
+            }
+            if (token === '1' || token === '2' || token === '3') {
+                overrides.push({ index, sugarChestStage: Number(token) });
             }
         });
     });
@@ -485,6 +642,21 @@ function syncMissingCells(level) {
         level.missingCells = missing;
     } else {
         delete level.missingCells;
+    }
+    if (hard.length) {
+        level.hardCandies = hard;
+    } else {
+        delete level.hardCandies;
+    }
+    if (generators.length) {
+        level.blockerGenerators = generators;
+    } else {
+        delete level.blockerGenerators;
+    }
+    if (overrides.length) {
+        level.cellOverrides = overrides;
+    } else {
+        delete level.cellOverrides;
     }
 }
 
@@ -511,6 +683,20 @@ function setupPalette() {
         const swatch = document.createElement('span');
         swatch.className = 'editor__palette-swatch';
         swatch.style.background = entry.swatch;
+        if (entry.token === '1') {
+            swatch.style.backgroundImage = 'url(/assets/images/sugar-chest-01.webp)';
+        }
+        if (entry.token === '2') {
+            swatch.style.backgroundImage = 'url(/assets/images/sugar-chest-02.webp)';
+        }
+        if (entry.token === '3') {
+            swatch.style.backgroundImage = 'url(/assets/images/sugar-chest-03.webp)';
+        }
+        if (entry.token === '1' || entry.token === '2' || entry.token === '3') {
+            swatch.style.backgroundSize = 'contain';
+            swatch.style.backgroundPosition = 'center';
+            swatch.style.backgroundRepeat = 'no-repeat';
+        }
 
         const label = document.createElement('span');
         label.textContent = `${entry.label} (${entry.token})`;
@@ -736,6 +922,7 @@ ui.clearBoard.addEventListener('click', () => {
     if (!level || !level.board) return;
     level.board.rows = createEmptyBoardRows();
     renderBoard(level);
+    syncBoardDerivedFields(level);
     markDirty();
 });
 
@@ -752,6 +939,7 @@ ui.fillBoard.addEventListener('click', () => {
     });
     level.board.rows = rows;
     renderBoard(level);
+    syncBoardDerivedFields(level);
     markDirty();
 });
 
@@ -820,6 +1008,9 @@ ui.levelBackground.addEventListener('input', () => {
     updateTextField(ui.levelBackground, (value) => {
         level.background = value;
     });
+    if (level.board) {
+        applyBoardBackground(level);
+    }
 });
 
 window.addEventListener('beforeunload', (event) => {

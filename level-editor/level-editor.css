@@ -381,55 +381,163 @@ body {
     display: grid;
     grid-template-columns: repeat(8, 32px);
     row-gap: 4px;
-    column-gap: 0.25;
+    column-gap: 0.25rem;
+    padding: 10px;
+    border-radius: 16px;
+    position: relative;
+    background: transparent;
+    isolation: isolate;
+    box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.08);
+}
+
+.editor__board-grid::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background-image: var(--board-background);
+    background-size: cover;
+    background-position: center;
+    opacity: 0.25;
+    z-index: 0;
 }
 
 .editor__cell {
+    position: relative;
     width: 32px;
     height: 32px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: #fff;
+    font-size: 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.25)),
+        var(--cell-color, #f8fafc);
     cursor: pointer;
     font-weight: 700;
-    color: var(--ink);
+    color: #111827;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.4);
+    box-shadow:
+        inset 0 2px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -2px 6px rgba(0, 0, 0, 0.35),
+        0 6px 12px rgba(0, 0, 0, 0.25);
+    z-index: 1;
 }
 
 .editor__cell--any {
-    background: #fff;
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.25)),
+        var(--cell-color, #f8fafc);
 }
 
-.editor__cell--blocked {
-    background: #3f3f46;
-    color: #fff;
+.editor__cell--void {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    color: transparent;
+    cursor: default;
 }
 
 .editor__cell--hard {
-    background: #f5d27a;
+    background:
+        linear-gradient(140deg, rgba(255, 255, 255, 0.18), rgba(0, 0, 0, 0.55)),
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.85) 0 6px, rgba(251, 191, 36, 0.16) 6px 12px),
+        var(--cell-color, #f5d27a);
+    border: 2px solid #fff8dc;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .editor__cell--generator {
-    background: #fca5a5;
+    background:
+        linear-gradient(140deg, rgba(255, 255, 255, 0.16), rgba(0, 0, 0, 0.55)),
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.85) 0 6px, rgba(251, 191, 36, 0.16) 6px 12px),
+        var(--cell-color, #fde68a);
+    border: 2px solid #fff8dc;
+    color: #f8fafc;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
 .editor__cell--red {
-    background: #ff7b7b;
+    --cell-color: #ff7b7b;
 }
 
 .editor__cell--amber {
-    background: #ffd166;
+    --cell-color: #ffd166;
 }
 
 .editor__cell--blue {
-    background: #7dd3fc;
+    --cell-color: #7dd3fc;
 }
 
 .editor__cell--purple {
-    background: #a78bfa;
+    --cell-color: #a78bfa;
 }
 
 .editor__cell--green {
-    background: #6ee7b7;
+    --cell-color: #6ee7b7;
+}
+
+.editor__cell--bomb-line {
+
+}
+
+.editor__cell--bomb-line-horizontal::after,
+.editor__cell--bomb-line-vertical::before {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow:
+        -1px 0 #000,
+         1px 0 #000,
+         0 -1px #000,
+         0  1px #000;
+}
+
+.editor__cell--bomb-line-horizontal::after {
+    content: "↔";
+}
+
+.editor__cell--bomb-line-vertical::before {
+    content: "↕";
+}
+
+.editor__cell--bomb-small {
+}
+
+.editor__cell--bomb-medium {
+}
+
+.editor__cell--bomb-large {
+    color: #f8fafc;
+}
+
+.editor__cell--sugar-chest {
+    background-color: transparent;
+    background-image: var(--sugar-chest-image, none);
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    border-color: rgba(255, 255, 255, 0.18);
+    box-shadow:
+        inset 0 2px 0 rgba(255, 255, 255, 0.16),
+        inset 0 -2px 6px rgba(0, 0, 0, 0.35),
+        0 6px 12px rgba(0, 0, 0, 0.25);
+}
+
+.editor__cell--sugar-chest-1 {
+    --sugar-chest-image: url(/assets/images/sugar-chest-01.webp);
+}
+
+.editor__cell--sugar-chest-2 {
+    --sugar-chest-image: url(/assets/images/sugar-chest-02.webp);
+}
+
+.editor__cell--sugar-chest-3 {
+    --sugar-chest-image: url(/assets/images/sugar-chest-03.webp);
 }
 
 .editor__board-actions {
@@ -459,7 +567,13 @@ body {
     }
 
     .editor__board-grid {
-        grid-template-columns: repeat(8, minmax(28px, 1fr));
+        grid-template-columns: repeat(8, 28px);
+    }
+
+    .editor__cell {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
     }
 }
 
