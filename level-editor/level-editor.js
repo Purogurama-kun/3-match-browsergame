@@ -6,7 +6,7 @@ const GOAL_TYPES = ['destroy-color', 'activate-booster', 'destroy-hard-candies']
 
 const BOARD_TOKENS = [
     { token: '.', label: 'Any', className: 'any', swatch: '#ffffff' },
-    { token: 'X', label: 'Blocked', className: 'blocked', swatch: '#3f3f46' },
+    { token: 'X', label: 'Missing', className: 'blocked', swatch: '#3f3f46' },
     { token: 'H', label: 'Hard', className: 'hard', swatch: '#f5d27a' },
     { token: 'T', label: 'Generator', className: 'generator', swatch: '#fca5a5' },
     { token: 'R', label: 'Red', className: 'red', swatch: '#ff7b7b' },
@@ -21,6 +21,13 @@ const TOKEN_CLASS_MAP = BOARD_TOKENS.reduce((acc, entry) => {
     acc[entry.token] = entry.className;
     return acc;
 }, {});
+const COLOR_HEX_TO_TOKEN = {
+    '#ff7b7b': 'R',
+    '#ffd166': 'A',
+    '#7dd3fc': 'B',
+    '#a78bfa': 'P',
+    '#6ee7b7': 'G'
+};
 
 const DEFAULT_LEVEL = {
     id: 1,
@@ -362,6 +369,42 @@ function createEmptyBoardRows() {
     return Array.from({ length: GRID_SIZE }, () => '.'.repeat(GRID_SIZE));
 }
 
+function createBoardRowsFromLevel(level) {
+    const rows = createEmptyBoardRows().map((row) => row.split(''));
+    const setToken = (index, token) => {
+        const row = Math.floor(index / GRID_SIZE);
+        const col = index % GRID_SIZE;
+        if (!rows[row]) return;
+        rows[row][col] = token;
+    };
+
+    if (Array.isArray(level.cellOverrides)) {
+        level.cellOverrides.forEach((override) => {
+            if (!override || typeof override.index !== 'number') return;
+            if (override.color) {
+                const token = COLOR_HEX_TO_TOKEN[override.color.toLowerCase()];
+                if (token) {
+                    setToken(override.index, token);
+                }
+            }
+        });
+    }
+
+    if (Array.isArray(level.hardCandies)) {
+        level.hardCandies.forEach((index) => setToken(index, 'H'));
+    }
+
+    if (Array.isArray(level.blockerGenerators)) {
+        level.blockerGenerators.forEach((index) => setToken(index, 'T'));
+    }
+
+    if (Array.isArray(level.missingCells)) {
+        level.missingCells.forEach((index) => setToken(index, 'X'));
+    }
+
+    return rows.map((row) => row.join(''));
+}
+
 function normalizeBoardRows(rows) {
     return Array.from({ length: GRID_SIZE }, (_, rowIndex) => {
         const raw = typeof rows[rowIndex] === 'string' ? rows[rowIndex] : '';
@@ -382,9 +425,13 @@ function renderBoard(level) {
     if (!enabled) {
         return;
     }
+    if (!level.board) {
+        level.board = { rows: createBoardRowsFromLevel(level) };
+    }
     ensureBoard(level);
     renderBoardGrid(level.board.rows);
     syncBoardTextarea(level.board.rows);
+    syncMissingCells(level);
 }
 
 function renderBoardGrid(rows) {
@@ -420,7 +467,25 @@ function applyTokenToCell(row, col, token) {
         cell.textContent = token;
     }
     syncBoardTextarea(rows);
+    syncMissingCells(level);
     markDirty();
+}
+
+function syncMissingCells(level) {
+    if (!level.board || !Array.isArray(level.board.rows)) return;
+    const missing = [];
+    level.board.rows.forEach((row, rowIndex) => {
+        row.split('').forEach((token, colIndex) => {
+            if (token === 'X') {
+                missing.push(rowIndex * GRID_SIZE + colIndex);
+            }
+        });
+    });
+    if (missing.length) {
+        level.missingCells = missing;
+    } else {
+        delete level.missingCells;
+    }
 }
 
 function syncBoardTextarea(rows) {
@@ -658,7 +723,7 @@ ui.boardEnabled.addEventListener('change', () => {
     const level = state.levels[state.selectedIndex];
     if (!level) return;
     if (ui.boardEnabled.checked) {
-        level.board = { rows: createEmptyBoardRows() };
+        level.board = { rows: createBoardRowsFromLevel(level) };
     } else {
         delete level.board;
     }
@@ -697,6 +762,7 @@ ui.boardRows.addEventListener('input', () => {
     const rows = parseBoardTextarea(ui.boardRows.value);
     level.board.rows = rows;
     renderBoardGrid(rows);
+    syncMissingCells(level);
     markDirty();
 });
 
