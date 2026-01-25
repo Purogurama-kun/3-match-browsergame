@@ -56,14 +56,14 @@ class HardCandy {
             const index = candidates.splice(pick, 1)[0];
             if (index === undefined) break;
             this.board.setBooster(index, BOOSTERS.NONE);
-            this.board.setHardCandy(index, true);
+            this.board.setHardCandy(index, true, 1);
             this.renderer.updateCell(index, this.board.getCellState(index));
         }
     }
 
     hardenCell(index: number): void {
         this.board.setBooster(index, BOOSTERS.NONE);
-        this.board.setHardCandy(index, true);
+        this.board.setHardCandy(index, true, 1);
         this.renderer.updateCell(index, this.board.getCellState(index));
     }
 

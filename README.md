@@ -95,7 +95,7 @@ Board tokens:
 
 - `.1` any candy (random)
 - `X1` blocked / gap cell
-- `H1` hard candy
+- `H1` hard candy (1 hit), `H2` (2 hits), `H3` (3 hits)
 - `T1` blocker generator
 - `R1` red, `A1` amber, `B1` blue, `P1` purple, `G1` green
 - `L1` line bomb (horizontal), `V1` line bomb (vertical)

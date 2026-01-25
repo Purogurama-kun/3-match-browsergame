@@ -79,10 +79,6 @@ const BOARD_TOKEN_BOOSTERS: Record<string, { booster: ActivateBoosterGoal['boost
     U: { booster: BOOSTERS.BURST_LARGE }
 };
 
-type ParsedBoardToken = {
-    type: string;
-    stage: string;
-};
 
 type LevelDifficultyValue = Difficulty | number;
 
@@ -831,6 +827,10 @@ function parseBoardLayout(layout: BoardLayoutInput, levelId: number): ParsedBoar
             }
             if (parsed.type === 'H') {
                 hardCandies.push(index);
+                const stage = Number(parsed.stage);
+                if (stage > 1) {
+                    cellOverrides.push({ index, hard: true, hardStage: stage });
+                }
                 return;
             }
             if (parsed.type === 'T') {
@@ -906,7 +906,10 @@ function parseBoardToken(rawToken: string): ParsedBoardToken | null {
     if (type === 'C') {
         return stage === '1' || stage === '2' || stage === '3' ? { type, stage } : null;
     }
-    if (type === 'H' || type === 'X' || type === 'T') {
+    if (type === 'H') {
+        return stage === '1' || stage === '2' || stage === '3' ? { type, stage } : null;
+    }
+    if (type === 'X' || type === 'T') {
         return stage === '1' ? { type, stage } : null;
     }
     if (BOARD_TOKEN_COLORS[type]) {

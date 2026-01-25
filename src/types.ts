@@ -96,6 +96,7 @@ type BoardCellOverride = {
     index: number;
     color?: string;
     hard?: boolean;
+    hardStage?: number;
     blocked?: boolean;
     generator?: boolean;
     booster?: BoosterType;

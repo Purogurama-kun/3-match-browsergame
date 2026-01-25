@@ -1,1967 +1,1971 @@
 {
-  "levels": [
-    {
-      "id": 1,
-      "moves": 20,
-      "targetScore": 300,
-      "difficulty": "easy",
-      "goals": [
+    "levels": [
         {
-          "type": "destroy-color",
-          "color": "red",
-          "target": 10
+            "id": 1,
+            "moves": 20,
+            "targetScore": 300,
+            "difficulty": "easy",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 10
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1H1.1.1.1.1",
+                    ".1.1.1.1.1H2.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1H3.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 2,
+            "moves": 22,
+            "targetScore": 500,
+            "difficulty": "easy",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "amber",
+                    "target": 12
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstSmall",
+                    "target": 2
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 3,
+            "moves": 22,
+            "targetScore": 700,
+            "difficulty": "easy",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "blue",
+                    "target": 14
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 2
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 4,
+            "moves": 24,
+            "targetScore": 950,
+            "difficulty": "easy",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "purple",
+                    "target": 15
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "green",
+                    "target": 12
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 2
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 5,
+            "moves": 26,
+            "targetScore": 1250,
+            "difficulty": "easy",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 18
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstSmall",
+                    "target": 3
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstLarge",
+                    "target": 1
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 6,
+            "moves": 24,
+            "targetScore": 1550,
+            "difficulty": "easy",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "amber",
+                    "target": 18
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 2
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstSmall",
+                    "target": 2
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 7,
+            "moves": 24,
+            "targetScore": 1850,
+            "difficulty": "easy",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "blue",
+                    "target": 20
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "purple",
+                    "target": 16
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 2
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 8,
+            "moves": 22,
+            "targetScore": 2150,
+            "timeGoalSeconds": 180,
+            "difficulty": "easy",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "green",
+                    "target": 20
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 3
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstSmall",
+                    "target": 3
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 9,
+            "moves": 22,
+            "targetScore": 2550,
+            "difficulty": "easy",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "amber",
+                    "target": 22
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 20
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 3
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 10,
+            "moves": 22,
+            "targetScore": 3100,
+            "difficulty": "normal",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "blue",
+                    "target": 22
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "purple",
+                    "target": 20
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 2
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstLarge",
+                    "target": 1
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1H1.1.1H1.1.1",
+                    ".1.1H1.1.1H1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 11,
+            "moves": 23,
+            "targetScore": 3600,
+            "difficulty": "normal",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 24
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstSmall",
+                    "target": 3
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 2
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1H1H1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1H1H1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 12,
+            "moves": 23,
+            "targetScore": 4000,
+            "difficulty": "normal",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "amber",
+                    "target": 24
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "green",
+                    "target": 20
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 3
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    "X1.1.1.1.1.1.1X1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    "X1.1.1.1.1.1.1X1"
+                ]
+            }
+        },
+        {
+            "id": 13,
+            "moves": 22,
+            "targetScore": 4400,
+            "difficulty": "normal",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "blue",
+                    "target": 24
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 3
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstSmall",
+                    "target": 3
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1H1.1.1.1.1H1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1H1.1.1.1.1H1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 14,
+            "moves": 22,
+            "targetScore": 4800,
+            "difficulty": "normal",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "purple",
+                    "target": 26
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 22
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 3
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1X1X1.1.1.1",
+                    ".1.1.1X1X1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 15,
+            "moves": 21,
+            "targetScore": 5200,
+            "timeGoalSeconds": 195,
+            "difficulty": "normal",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "green",
+                    "target": 26
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 3
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstLarge",
+                    "target": 1
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1H1.1.1H1.1.1",
+                    ".1.1H1.1.1H1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 16,
+            "moves": 21,
+            "targetScore": 5600,
+            "difficulty": "normal",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "amber",
+                    "target": 26
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "blue",
+                    "target": 24
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 3
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstSmall",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1X1.1.1.1.1.1.1",
+                    ".1.1X1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1X1.1.1",
+                    ".1.1.1.1.1.1X1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 17,
+            "moves": 20,
+            "targetScore": 5800,
+            "difficulty": "normal",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "purple",
+                    "target": 28
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 3
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 3
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1H1H1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1H1H1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 18,
+            "moves": 20,
+            "targetScore": 6200,
+            "difficulty": "normal",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 28
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "green",
+                    "target": 24
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 3
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1X1X1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1X1X1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 19,
+            "moves": 20,
+            "targetScore": 6600,
+            "difficulty": "normal",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "amber",
+                    "target": 30
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 3
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstLarge",
+                    "target": 1
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1H1.1.1.1.1H1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1H1.1.1.1.1H1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 20,
+            "moves": 20,
+            "targetScore": 7000,
+            "difficulty": "hard",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "blue",
+                    "target": 28
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "purple",
+                    "target": 26
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 3
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstLarge",
+                    "target": 1
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1T1.1.1",
+                    ".1.1X1.1.1.1.1.1",
+                    ".1.1.1X1.1.1.1.1",
+                    ".1.1H1.1X1H1.1.1",
+                    ".1.1H1.1.1X1.1.1",
+                    ".1.1.1.1.1.1X1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 21,
+            "moves": 21,
+            "targetScore": 7400,
+            "difficulty": "hard",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 30
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 4
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstSmall",
+                    "target": 4
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1H1.1.1H1.1.1",
+                    ".1.1H1.1.1H1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1T1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 22,
+            "moves": 21,
+            "targetScore": 7700,
+            "timeGoalSeconds": 195,
+            "difficulty": "hard",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "amber",
+                    "target": 30
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "green",
+                    "target": 26
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 3
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1T1",
+                    ".1.1.1H1H1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1H1H1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 23,
+            "moves": 21,
+            "targetScore": 8000,
+            "difficulty": "hard",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "blue",
+                    "target": 30
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 4
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstSmall",
+                    "target": 4
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1H1H1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1H1H1.1.1T1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 24,
+            "moves": 20,
+            "targetScore": 8200,
+            "difficulty": "hard",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "purple",
+                    "target": 32
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 28
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 4
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1H1.1.1.1.1H1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1H1.1.1.1.1H1.1",
+                    "T1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 25,
+            "moves": 20,
+            "targetScore": 8500,
+            "difficulty": "hard",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "amber",
+                    "target": 32
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 4
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstLarge",
+                    "target": 1
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    "X1.1.1.1.1.1.1X1",
+                    ".1H1.1.1.1.1H1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1H1.1.1.1.1H1.1",
+                    "X1.1.1.1T1.1.1X1"
+                ]
+            }
+        },
+        {
+            "id": 26,
+            "moves": 20,
+            "targetScore": 9000,
+            "difficulty": "hard",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "blue",
+                    "target": 32
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "green",
+                    "target": 28
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 4
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    "X1.1.1.1.1.1.1X1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1H1.1.1H1.1T1",
+                    ".1.1H1.1.1H1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    "X1.1.1.1.1.1.1X1"
+                ]
+            }
+        },
+        {
+            "id": 27,
+            "moves": 19,
+            "targetScore": 9500,
+            "difficulty": "hard",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "purple",
+                    "target": 34
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 4
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstSmall",
+                    "target": 5
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1H1.1.1.1.1H1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1X1X1.1.1.1",
+                    "T1.1.1X1X1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1H1.1.1.1.1H1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 28,
+            "moves": 19,
+            "targetScore": 10000,
+            "difficulty": "hard",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 34
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "amber",
+                    "target": 30
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 4
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1T1.1.1.1.1.1",
+                    ".1X1.1.1.1.1.1.1",
+                    ".1.1X1H1H1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1H1H1X1.1.1",
+                    ".1.1.1.1.1.1X1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 29,
+            "moves": 19,
+            "targetScore": 10500,
+            "difficulty": "hard",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "blue",
+                    "target": 34
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 5
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstLarge",
+                    "target": 1
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1X1X1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1H1.1.1H1.1.1",
+                    ".1.1H1.1.1H1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    "T1.1.1X1X1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 30,
+            "moves": 19,
+            "targetScore": 11000,
+            "difficulty": "expert",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "green",
+                    "target": 34
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "purple",
+                    "target": 32
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 4
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstLarge",
+                    "target": 1
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 6
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    "X1.1.1.1.1.1.1X1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1H1.1.1H1.1T1",
+                    ".1.1.1X1X1.1.1.1",
+                    ".1.1.1X1X1.1.1.1",
+                    ".1.1H1.1.1H1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    "X1.1.1.1T1.1.1X1"
+                ]
+            }
+        },
+        {
+            "id": 31,
+            "moves": 19,
+            "targetScore": 11500,
+            "difficulty": "expert",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 36
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 5
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstSmall",
+                    "target": 5
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1T1.1.1.1.1",
+                    ".1H1.1.1.1.1H1T1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1X1X1.1.1.1",
+                    ".1.1.1X1X1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1H1.1.1.1.1H1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 32,
+            "moves": 19,
+            "targetScore": 12000,
+            "difficulty": "expert",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "amber",
+                    "target": 36
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "blue",
+                    "target": 32
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 5
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 6
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1X1.1.1.1.1.1.1",
+                    "T1.1X1.1.1H1.1.1",
+                    ".1.1.1H1.1.1.1.1",
+                    ".1.1.1.1H1.1.1.1",
+                    ".1.1H1.1.1X1.1.1",
+                    ".1.1.1.1.1.1X1.1",
+                    ".1.1.1.1.1.1T1.1"
+                ]
+            }
+        },
+        {
+            "id": 33,
+            "moves": 18,
+            "targetScore": 12500,
+            "difficulty": "expert",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "purple",
+                    "target": 36
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 5
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstLarge",
+                    "target": 1
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1T1.1",
+                    ".1.1X1.1.1.1.1.1",
+                    ".1.1.1X1H1.1.1.1",
+                    ".1.1.1.1X1.1.1.1",
+                    ".1.1.1.1.1X1.1.1",
+                    ".1.1.1H1H1.1X1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1T1.1"
+                ]
+            }
+        },
+        {
+            "id": 34,
+            "moves": 18,
+            "targetScore": 13000,
+            "difficulty": "expert",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "green",
+                    "target": 38
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 34
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 5
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1X1X1.1.1.1",
+                    ".1H1.1.1.1.1H1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1X1X1.1.1.1",
+                    ".1.1.1X1X1.1.1.1",
+                    ".1.1.1.1.1.1.1T1",
+                    ".1H1.1.1.1.1H1.1",
+                    ".1.1.1X1X1.1T1.1"
+                ]
+            }
+        },
+        {
+            "id": 35,
+            "moves": 18,
+            "targetScore": 13500,
+            "difficulty": "expert",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "amber",
+                    "target": 38
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 5
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstSmall",
+                    "target": 6
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 6
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1X1.1.1.1.1.1.1",
+                    ".1.1X1.1.1H1.1.1",
+                    ".1.1.1H1.1.1.1.1",
+                    ".1.1.1.1H1.1.1.1",
+                    ".1.1H1.1.1X1.1.1",
+                    ".1.1.1.1.1.1X1T1",
+                    ".1.1.1.1.1T1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 36,
+            "moves": 18,
+            "targetScore": 14000,
+            "difficulty": "expert",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "blue",
+                    "target": 38
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "purple",
+                    "target": 36
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 5
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    "X1.1.1X1X1.1.1X1",
+                    "T1.1.1.1.1.1.1.1",
+                    "T1.1.1H1H1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1H1H1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    "X1.1.1X1X1.1.1X1"
+                ]
+            }
+        },
+        {
+            "id": 37,
+            "moves": 17,
+            "targetScore": 14500,
+            "difficulty": "expert",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 40
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 5
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstLarge",
+                    "target": 1
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 6
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1T1.1.1T1.1.1.1",
+                    ".1.1X1.1.1.1.1.1",
+                    ".1.1H1X1.1H1.1.1",
+                    ".1.1.1H1X1.1.1.1",
+                    ".1.1.1.1H1X1.1.1",
+                    ".1.1H1.1.1H1X1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 38,
+            "moves": 17,
+            "targetScore": 15000,
+            "difficulty": "expert",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "amber",
+                    "target": 40
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "green",
+                    "target": 36
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 5
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    "X1.1.1.1.1.1.1X1",
+                    ".1H1.1.1.1.1H1.1",
+                    "T1.1.1.1.1.1.1.1",
+                    ".1.1.1X1X1.1.1.1",
+                    ".1.1.1X1X1.1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1H1.1.1.1.1H1.1",
+                    "X1.1T1.1.1.1.1X1"
+                ]
+            }
+        },
+        {
+            "id": 39,
+            "moves": 17,
+            "targetScore": 15500,
+            "difficulty": "expert",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "purple",
+                    "target": 40
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 6
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstSmall",
+                    "target": 6
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 6
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1X1.1.1.1.1.1.1",
+                    ".1.1X1.1.1H1.1.1",
+                    "T1.1.1H1.1.1.1.1",
+                    ".1.1.1.1H1.1.1.1",
+                    ".1.1H1.1.1X1.1.1",
+                    ".1.1.1.1.1.1X1.1",
+                    ".1.1.1.1.1.1.1T1"
+                ]
+            }
+        },
+        {
+            "id": 40,
+            "moves": 17,
+            "targetScore": 16000,
+            "timeGoalSeconds": 180,
+            "difficulty": "expert",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "blue",
+                    "target": 40
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 38
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 5
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstLarge",
+                    "target": 1
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 10
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    "X1.1.1X1X1.1.1X1",
+                    ".1H1.1.1.1.1H1.1",
+                    "T1.1H1.1.1H1.1.1",
+                    ".1.1.1X1X1.1.1.1",
+                    ".1.1.1X1X1.1.1.1",
+                    ".1.1H1.1.1H1.1T1",
+                    ".1H1.1.1.1.1H1.1",
+                    "X1.1.1X1X1.1.1X1"
+                ]
+            }
+        },
+        {
+            "id": 41,
+            "moves": 17,
+            "targetScore": 16500,
+            "difficulty": "expert",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "amber",
+                    "target": 42
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 6
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstSmall",
+                    "target": 6
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 6
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1X1X1.1.1.1",
+                    ".1.1.1.1.1.1.1T1",
+                    ".1.1H1.1.1H1.1.1",
+                    ".1.1.1X1X1.1.1.1",
+                    "T1.1.1X1X1.1.1.1",
+                    ".1.1H1.1.1H1.1.1",
+                    ".1.1.1.1.1.1.1.1",
+                    ".1.1.1X1X1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 42,
+            "moves": 17,
+            "targetScore": 17000,
+            "difficulty": "expert",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "green",
+                    "target": 42
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "purple",
+                    "target": 40
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 6
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 4
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1.1.1.1.1.1.1",
+                    ".1H1X1.1.1.1H1.1",
+                    ".1.1.1X1.1.1.1.1",
+                    ".1.1.1.1X1.1.1T1",
+                    ".1.1.1.1.1X1.1.1",
+                    ".1.1.1.1.1.1X1.1",
+                    ".1H1.1.1.1.1H1.1",
+                    ".1T1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 43,
+            "moves": 17,
+            "targetScore": 17500,
+            "difficulty": "nightmare",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 44
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 6
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstLarge",
+                    "target": 2
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 28
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    "X1.1H1.1.1H1.1X1",
+                    ".1X1.1H1H1H1.1T1",
+                    ".1H1X1.1H1H1H1.1",
+                    "H1H1H1.1.1H1H1H1",
+                    "H1H1H1.1.1.1H1H1",
+                    ".1H1H1H1H1X1.1.1",
+                    ".1.1H1H1H1H1X1.1",
+                    "X1.1.1T1.1.1.1X1"
+                ]
+            }
+        },
+        {
+            "id": 44,
+            "moves": 17,
+            "targetScore": 18000,
+            "difficulty": "nightmare",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "blue",
+                    "target": 44
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "amber",
+                    "target": 42
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 6
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 34
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    "T1.1H1.1.1H1.1.1",
+                    ".1.1X1H1H1H1H1.1",
+                    "H1H1.1X1H1H1H1H1",
+                    "H1H1H1X1X1H1H1H1",
+                    "H1H1H1X1X1X1H1H1",
+                    "H1H1H1H1H1.1X1H1",
+                    ".1H1H1H1H1H1.1.1",
+                    ".1T1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 45,
+            "moves": 17,
+            "targetScore": 18500,
+            "timeGoalSeconds": 210,
+            "difficulty": "nightmare",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "purple",
+                    "target": 44
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 6
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstSmall",
+                    "target": 7
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 28
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1T1H1X1X1H1.1T1",
+                    ".1X1.1H1H1H1.1.1",
+                    ".1H1X1.1H1H1H1.1",
+                    "H1H1H1.1.1H1H1H1",
+                    "H1H1H1.1.1.1H1H1",
+                    ".1H1H1H1H1X1.1.1",
+                    ".1.1H1H1H1H1X1.1",
+                    ".1.1.1X1X1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 46,
+            "moves": 16,
+            "targetScore": 19000,
+            "difficulty": "nightmare",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "green",
+                    "target": 46
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 44
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 6
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 40
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    "X1H1H1X1X1H1H1X1",
+                    "H1.1.1H1H1H1H1H1",
+                    "H1H1.1.1H1H1H1H1",
+                    "H1H1H1X1X1H1H1H1",
+                    "H1H1H1X1X1.1H1H1",
+                    "H1H1H1H1H1.1.1H1",
+                    "T1H1H1H1H1H1.1.1",
+                    "X1T1H1X1X1H1.1X1"
+                ]
+            }
+        },
+        {
+            "id": 47,
+            "moves": 16,
+            "targetScore": 19500,
+            "difficulty": "nightmare",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "amber",
+                    "target": 46
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 7
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstLarge",
+                    "target": 2
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 34
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1H1.1T1H1.1.1",
+                    ".1.1X1H1H1H1H1.1",
+                    "H1H1.1X1H1H1H1H1",
+                    "H1H1H1.1X1H1H1H1",
+                    "H1H1H1.1.1X1H1H1",
+                    "H1H1H1H1H1.1X1H1",
+                    ".1H1H1H1H1H1.1.1",
+                    ".1T1.1.1.1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 48,
+            "moves": 16,
+            "targetScore": 20000,
+            "difficulty": "nightmare",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "blue",
+                    "target": 46
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "purple",
+                    "target": 44
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 7
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 34
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1H1.1.1H1.1.1",
+                    ".1X1.1H1H1H1H1.1",
+                    "H1H1X1.1H1H1H1H1",
+                    "H1H1H1X1X1H1H1H1",
+                    "H1H1H1X1X1.1H1H1",
+                    "H1H1H1H1H1X1.1H1",
+                    "T1H1H1H1H1H1X1.1",
+                    ".1.1.1.1.1.1.1T1"
+                ]
+            }
+        },
+        {
+            "id": 49,
+            "moves": 15,
+            "targetScore": 20500,
+            "difficulty": "nightmare",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 48
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "line",
+                    "target": 7
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstSmall",
+                    "target": 7
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 28
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    ".1.1H1X1X1H1.1T1",
+                    ".1.1X1H1H1H1.1.1",
+                    ".1H1.1X1H1H1H1.1",
+                    "H1H1H1.1X1H1H1H1",
+                    "H1H1H1.1.1X1H1H1",
+                    ".1H1H1H1H1.1X1.1",
+                    ".1.1H1H1H1H1.1.1",
+                    ".1T1.1X1X1.1.1.1"
+                ]
+            }
+        },
+        {
+            "id": 50,
+            "moves": 16,
+            "targetScore": 21000,
+            "difficulty": "nightmare",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "amber",
+                    "target": 46
+                },
+                {
+                    "type": "destroy-color",
+                    "color": "green",
+                    "target": 44
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstMedium",
+                    "target": 6
+                },
+                {
+                    "type": "activate-booster",
+                    "booster": "burstLarge",
+                    "target": 1
+                },
+                {
+                    "type": "destroy-hard-candies",
+                    "target": 40
+                }
+            ],
+            "background": "",
+            "board": {
+                "rows": [
+                    "X1H1H1X1X1H1H1X1",
+                    "H1.1.1H1H1H1H1H1",
+                    "H1H1.1.1H1H1H1H1",
+                    "H1H1H1X1X1H1H1H1",
+                    "H1H1H1X1X1.1H1H1",
+                    "H1H1H1H1H1.1.1H1",
+                    ".1H1H1H1H1H1.1.1",
+                    "X1T1H1X1X1H1T1X1"
+                ]
+            }
         }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          "P1R1P1A1P1P1G1G1",
-          "B1R1B1R1B1A1G1R1",
-          "G1B1B1R1A1P1B1R1",
-          "B1G1B1R1A1B1R1B1",
-          "G1G1B1X1R1B1P1A1",
-          "P1P1G1P1B1G1R1G1",
-          "R1P1G1P1B1G1P1B1",
-          "A1G1A1P1B1P1A1G1"
-        ]
-      }
-    },
-    {
-      "id": 2,
-      "moves": 22,
-      "targetScore": 500,
-      "difficulty": "easy",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "amber",
-          "target": 12
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstSmall",
-          "target": 2
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 3,
-      "moves": 22,
-      "targetScore": 700,
-      "difficulty": "easy",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "blue",
-          "target": 14
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 2
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 4,
-      "moves": 24,
-      "targetScore": 950,
-      "difficulty": "easy",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "purple",
-          "target": 15
-        },
-        {
-          "type": "destroy-color",
-          "color": "green",
-          "target": 12
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 2
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 5,
-      "moves": 26,
-      "targetScore": 1250,
-      "difficulty": "easy",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "red",
-          "target": 18
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstSmall",
-          "target": 3
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstLarge",
-          "target": 1
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 6,
-      "moves": 24,
-      "targetScore": 1550,
-      "difficulty": "easy",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "amber",
-          "target": 18
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 2
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstSmall",
-          "target": 2
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 7,
-      "moves": 24,
-      "targetScore": 1850,
-      "difficulty": "easy",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "blue",
-          "target": 20
-        },
-        {
-          "type": "destroy-color",
-          "color": "purple",
-          "target": 16
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 2
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 8,
-      "moves": 22,
-      "targetScore": 2150,
-      "timeGoalSeconds": 180,
-      "difficulty": "easy",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "green",
-          "target": 20
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 3
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstSmall",
-          "target": 3
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 9,
-      "moves": 22,
-      "targetScore": 2550,
-      "difficulty": "easy",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "amber",
-          "target": 22
-        },
-        {
-          "type": "destroy-color",
-          "color": "red",
-          "target": 20
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 3
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 10,
-      "moves": 22,
-      "targetScore": 3100,
-      "difficulty": "normal",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "blue",
-          "target": 22
-        },
-        {
-          "type": "destroy-color",
-          "color": "purple",
-          "target": 20
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 2
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstLarge",
-          "target": 1
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1H1.1.1H1.1.1",
-          ".1.1H1.1.1H1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 11,
-      "moves": 23,
-      "targetScore": 3600,
-      "difficulty": "normal",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "red",
-          "target": 24
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstSmall",
-          "target": 3
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 2
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1H1H1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1H1H1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 12,
-      "moves": 23,
-      "targetScore": 4000,
-      "difficulty": "normal",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "amber",
-          "target": 24
-        },
-        {
-          "type": "destroy-color",
-          "color": "green",
-          "target": 20
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 3
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          "X1.1.1.1.1.1.1X1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          "X1.1.1.1.1.1.1X1"
-        ]
-      }
-    },
-    {
-      "id": 13,
-      "moves": 22,
-      "targetScore": 4400,
-      "difficulty": "normal",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "blue",
-          "target": 24
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 3
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstSmall",
-          "target": 3
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1H1.1.1.1.1H1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1H1.1.1.1.1H1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 14,
-      "moves": 22,
-      "targetScore": 4800,
-      "difficulty": "normal",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "purple",
-          "target": 26
-        },
-        {
-          "type": "destroy-color",
-          "color": "red",
-          "target": 22
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 3
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1X1X1.1.1.1",
-          ".1.1.1X1X1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 15,
-      "moves": 21,
-      "targetScore": 5200,
-      "timeGoalSeconds": 195,
-      "difficulty": "normal",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "green",
-          "target": 26
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 3
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstLarge",
-          "target": 1
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1H1.1.1H1.1.1",
-          ".1.1H1.1.1H1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 16,
-      "moves": 21,
-      "targetScore": 5600,
-      "difficulty": "normal",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "amber",
-          "target": 26
-        },
-        {
-          "type": "destroy-color",
-          "color": "blue",
-          "target": 24
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 3
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstSmall",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1X1.1.1.1.1.1.1",
-          ".1.1X1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1X1.1.1",
-          ".1.1.1.1.1.1X1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 17,
-      "moves": 20,
-      "targetScore": 5800,
-      "difficulty": "normal",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "purple",
-          "target": 28
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 3
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 3
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1H1H1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1H1H1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 18,
-      "moves": 20,
-      "targetScore": 6200,
-      "difficulty": "normal",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "red",
-          "target": 28
-        },
-        {
-          "type": "destroy-color",
-          "color": "green",
-          "target": 24
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 3
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1X1X1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1X1X1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 19,
-      "moves": 20,
-      "targetScore": 6600,
-      "difficulty": "normal",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "amber",
-          "target": 30
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 3
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstLarge",
-          "target": 1
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1H1.1.1.1.1H1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1H1.1.1.1.1H1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 20,
-      "moves": 20,
-      "targetScore": 7000,
-      "difficulty": "hard",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "blue",
-          "target": 28
-        },
-        {
-          "type": "destroy-color",
-          "color": "purple",
-          "target": 26
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 3
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstLarge",
-          "target": 1
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1T1.1.1",
-          ".1.1X1.1.1.1.1.1",
-          ".1.1.1X1.1.1.1.1",
-          ".1.1H1.1X1H1.1.1",
-          ".1.1H1.1.1X1.1.1",
-          ".1.1.1.1.1.1X1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 21,
-      "moves": 21,
-      "targetScore": 7400,
-      "difficulty": "hard",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "red",
-          "target": 30
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 4
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstSmall",
-          "target": 4
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1H1.1.1H1.1.1",
-          ".1.1H1.1.1H1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1T1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 22,
-      "moves": 21,
-      "targetScore": 7700,
-      "timeGoalSeconds": 195,
-      "difficulty": "hard",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "amber",
-          "target": 30
-        },
-        {
-          "type": "destroy-color",
-          "color": "green",
-          "target": 26
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 3
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1T1",
-          ".1.1.1H1H1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1H1H1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 23,
-      "moves": 21,
-      "targetScore": 8000,
-      "difficulty": "hard",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "blue",
-          "target": 30
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 4
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstSmall",
-          "target": 4
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1H1H1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1H1H1.1.1T1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 24,
-      "moves": 20,
-      "targetScore": 8200,
-      "difficulty": "hard",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "purple",
-          "target": 32
-        },
-        {
-          "type": "destroy-color",
-          "color": "red",
-          "target": 28
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 4
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1H1.1.1.1.1H1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1H1.1.1.1.1H1.1",
-          "T1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 25,
-      "moves": 20,
-      "targetScore": 8500,
-      "difficulty": "hard",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "amber",
-          "target": 32
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 4
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstLarge",
-          "target": 1
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          "X1.1.1.1.1.1.1X1",
-          ".1H1.1.1.1.1H1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1H1.1.1.1.1H1.1",
-          "X1.1.1.1T1.1.1X1"
-        ]
-      }
-    },
-    {
-      "id": 26,
-      "moves": 20,
-      "targetScore": 9000,
-      "difficulty": "hard",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "blue",
-          "target": 32
-        },
-        {
-          "type": "destroy-color",
-          "color": "green",
-          "target": 28
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 4
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          "X1.1.1.1.1.1.1X1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1H1.1.1H1.1T1",
-          ".1.1H1.1.1H1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          "X1.1.1.1.1.1.1X1"
-        ]
-      }
-    },
-    {
-      "id": 27,
-      "moves": 19,
-      "targetScore": 9500,
-      "difficulty": "hard",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "purple",
-          "target": 34
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 4
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstSmall",
-          "target": 5
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1H1.1.1.1.1H1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1X1X1.1.1.1",
-          "T1.1.1X1X1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1H1.1.1.1.1H1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 28,
-      "moves": 19,
-      "targetScore": 10000,
-      "difficulty": "hard",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "red",
-          "target": 34
-        },
-        {
-          "type": "destroy-color",
-          "color": "amber",
-          "target": 30
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 4
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1T1.1.1.1.1.1",
-          ".1X1.1.1.1.1.1.1",
-          ".1.1X1H1H1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1H1H1X1.1.1",
-          ".1.1.1.1.1.1X1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 29,
-      "moves": 19,
-      "targetScore": 10500,
-      "difficulty": "hard",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "blue",
-          "target": 34
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 5
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstLarge",
-          "target": 1
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1X1X1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1H1.1.1H1.1.1",
-          ".1.1H1.1.1H1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          "T1.1.1X1X1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 30,
-      "moves": 19,
-      "targetScore": 11000,
-      "difficulty": "expert",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "green",
-          "target": 34
-        },
-        {
-          "type": "destroy-color",
-          "color": "purple",
-          "target": 32
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 4
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstLarge",
-          "target": 1
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 6
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          "X1.1.1.1.1.1.1X1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1H1.1.1H1.1T1",
-          ".1.1.1X1X1.1.1.1",
-          ".1.1.1X1X1.1.1.1",
-          ".1.1H1.1.1H1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          "X1.1.1.1T1.1.1X1"
-        ]
-      }
-    },
-    {
-      "id": 31,
-      "moves": 19,
-      "targetScore": 11500,
-      "difficulty": "expert",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "red",
-          "target": 36
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 5
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstSmall",
-          "target": 5
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1T1.1.1.1.1",
-          ".1H1.1.1.1.1H1T1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1X1X1.1.1.1",
-          ".1.1.1X1X1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1H1.1.1.1.1H1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 32,
-      "moves": 19,
-      "targetScore": 12000,
-      "difficulty": "expert",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "amber",
-          "target": 36
-        },
-        {
-          "type": "destroy-color",
-          "color": "blue",
-          "target": 32
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 5
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 6
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1X1.1.1.1.1.1.1",
-          "T1.1X1.1.1H1.1.1",
-          ".1.1.1H1.1.1.1.1",
-          ".1.1.1.1H1.1.1.1",
-          ".1.1H1.1.1X1.1.1",
-          ".1.1.1.1.1.1X1.1",
-          ".1.1.1.1.1.1T1.1"
-        ]
-      }
-    },
-    {
-      "id": 33,
-      "moves": 18,
-      "targetScore": 12500,
-      "difficulty": "expert",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "purple",
-          "target": 36
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 5
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstLarge",
-          "target": 1
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1T1.1",
-          ".1.1X1.1.1.1.1.1",
-          ".1.1.1X1H1.1.1.1",
-          ".1.1.1.1X1.1.1.1",
-          ".1.1.1.1.1X1.1.1",
-          ".1.1.1H1H1.1X1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1T1.1"
-        ]
-      }
-    },
-    {
-      "id": 34,
-      "moves": 18,
-      "targetScore": 13000,
-      "difficulty": "expert",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "green",
-          "target": 38
-        },
-        {
-          "type": "destroy-color",
-          "color": "red",
-          "target": 34
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 5
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1X1X1.1.1.1",
-          ".1H1.1.1.1.1H1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1X1X1.1.1.1",
-          ".1.1.1X1X1.1.1.1",
-          ".1.1.1.1.1.1.1T1",
-          ".1H1.1.1.1.1H1.1",
-          ".1.1.1X1X1.1T1.1"
-        ]
-      }
-    },
-    {
-      "id": 35,
-      "moves": 18,
-      "targetScore": 13500,
-      "difficulty": "expert",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "amber",
-          "target": 38
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 5
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstSmall",
-          "target": 6
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 6
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1X1.1.1.1.1.1.1",
-          ".1.1X1.1.1H1.1.1",
-          ".1.1.1H1.1.1.1.1",
-          ".1.1.1.1H1.1.1.1",
-          ".1.1H1.1.1X1.1.1",
-          ".1.1.1.1.1.1X1T1",
-          ".1.1.1.1.1T1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 36,
-      "moves": 18,
-      "targetScore": 14000,
-      "difficulty": "expert",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "blue",
-          "target": 38
-        },
-        {
-          "type": "destroy-color",
-          "color": "purple",
-          "target": 36
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 5
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          "X1.1.1X1X1.1.1X1",
-          "T1.1.1.1.1.1.1.1",
-          "T1.1.1H1H1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1H1H1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          "X1.1.1X1X1.1.1X1"
-        ]
-      }
-    },
-    {
-      "id": 37,
-      "moves": 17,
-      "targetScore": 14500,
-      "difficulty": "expert",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "red",
-          "target": 40
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 5
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstLarge",
-          "target": 1
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 6
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1T1.1.1T1.1.1.1",
-          ".1.1X1.1.1.1.1.1",
-          ".1.1H1X1.1H1.1.1",
-          ".1.1.1H1X1.1.1.1",
-          ".1.1.1.1H1X1.1.1",
-          ".1.1H1.1.1H1X1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 38,
-      "moves": 17,
-      "targetScore": 15000,
-      "difficulty": "expert",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "amber",
-          "target": 40
-        },
-        {
-          "type": "destroy-color",
-          "color": "green",
-          "target": 36
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 5
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          "X1.1.1.1.1.1.1X1",
-          ".1H1.1.1.1.1H1.1",
-          "T1.1.1.1.1.1.1.1",
-          ".1.1.1X1X1.1.1.1",
-          ".1.1.1X1X1.1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1H1.1.1.1.1H1.1",
-          "X1.1T1.1.1.1.1X1"
-        ]
-      }
-    },
-    {
-      "id": 39,
-      "moves": 17,
-      "targetScore": 15500,
-      "difficulty": "expert",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "purple",
-          "target": 40
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 6
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstSmall",
-          "target": 6
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 6
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1X1.1.1.1.1.1.1",
-          ".1.1X1.1.1H1.1.1",
-          "T1.1.1H1.1.1.1.1",
-          ".1.1.1.1H1.1.1.1",
-          ".1.1H1.1.1X1.1.1",
-          ".1.1.1.1.1.1X1.1",
-          ".1.1.1.1.1.1.1T1"
-        ]
-      }
-    },
-    {
-      "id": 40,
-      "moves": 17,
-      "targetScore": 16000,
-      "timeGoalSeconds": 180,
-      "difficulty": "expert",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "blue",
-          "target": 40
-        },
-        {
-          "type": "destroy-color",
-          "color": "red",
-          "target": 38
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 5
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstLarge",
-          "target": 1
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 10
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          "X1.1.1X1X1.1.1X1",
-          ".1H1.1.1.1.1H1.1",
-          "T1.1H1.1.1H1.1.1",
-          ".1.1.1X1X1.1.1.1",
-          ".1.1.1X1X1.1.1.1",
-          ".1.1H1.1.1H1.1T1",
-          ".1H1.1.1.1.1H1.1",
-          "X1.1.1X1X1.1.1X1"
-        ]
-      }
-    },
-    {
-      "id": 41,
-      "moves": 17,
-      "targetScore": 16500,
-      "difficulty": "expert",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "amber",
-          "target": 42
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 6
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstSmall",
-          "target": 6
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 6
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1X1X1.1.1.1",
-          ".1.1.1.1.1.1.1T1",
-          ".1.1H1.1.1H1.1.1",
-          ".1.1.1X1X1.1.1.1",
-          "T1.1.1X1X1.1.1.1",
-          ".1.1H1.1.1H1.1.1",
-          ".1.1.1.1.1.1.1.1",
-          ".1.1.1X1X1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 42,
-      "moves": 17,
-      "targetScore": 17000,
-      "difficulty": "expert",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "green",
-          "target": 42
-        },
-        {
-          "type": "destroy-color",
-          "color": "purple",
-          "target": 40
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 6
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 4
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1.1.1.1.1.1.1",
-          ".1H1X1.1.1.1H1.1",
-          ".1.1.1X1.1.1.1.1",
-          ".1.1.1.1X1.1.1T1",
-          ".1.1.1.1.1X1.1.1",
-          ".1.1.1.1.1.1X1.1",
-          ".1H1.1.1.1.1H1.1",
-          ".1T1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 43,
-      "moves": 17,
-      "targetScore": 17500,
-      "difficulty": "nightmare",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "red",
-          "target": 44
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 6
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstLarge",
-          "target": 2
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 28
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          "X1.1H1.1.1H1.1X1",
-          ".1X1.1H1H1H1.1T1",
-          ".1H1X1.1H1H1H1.1",
-          "H1H1H1.1.1H1H1H1",
-          "H1H1H1.1.1.1H1H1",
-          ".1H1H1H1H1X1.1.1",
-          ".1.1H1H1H1H1X1.1",
-          "X1.1.1T1.1.1.1X1"
-        ]
-      }
-    },
-    {
-      "id": 44,
-      "moves": 17,
-      "targetScore": 18000,
-      "difficulty": "nightmare",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "blue",
-          "target": 44
-        },
-        {
-          "type": "destroy-color",
-          "color": "amber",
-          "target": 42
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 6
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 34
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          "T1.1H1.1.1H1.1.1",
-          ".1.1X1H1H1H1H1.1",
-          "H1H1.1X1H1H1H1H1",
-          "H1H1H1X1X1H1H1H1",
-          "H1H1H1X1X1X1H1H1",
-          "H1H1H1H1H1.1X1H1",
-          ".1H1H1H1H1H1.1.1",
-          ".1T1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 45,
-      "moves": 17,
-      "targetScore": 18500,
-      "timeGoalSeconds": 210,
-      "difficulty": "nightmare",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "purple",
-          "target": 44
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 6
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstSmall",
-          "target": 7
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 28
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1T1H1X1X1H1.1T1",
-          ".1X1.1H1H1H1.1.1",
-          ".1H1X1.1H1H1H1.1",
-          "H1H1H1.1.1H1H1H1",
-          "H1H1H1.1.1.1H1H1",
-          ".1H1H1H1H1X1.1.1",
-          ".1.1H1H1H1H1X1.1",
-          ".1.1.1X1X1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 46,
-      "moves": 16,
-      "targetScore": 19000,
-      "difficulty": "nightmare",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "green",
-          "target": 46
-        },
-        {
-          "type": "destroy-color",
-          "color": "red",
-          "target": 44
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 6
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 40
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          "X1H1H1X1X1H1H1X1",
-          "H1.1.1H1H1H1H1H1",
-          "H1H1.1.1H1H1H1H1",
-          "H1H1H1X1X1H1H1H1",
-          "H1H1H1X1X1.1H1H1",
-          "H1H1H1H1H1.1.1H1",
-          "T1H1H1H1H1H1.1.1",
-          "X1T1H1X1X1H1.1X1"
-        ]
-      }
-    },
-    {
-      "id": 47,
-      "moves": 16,
-      "targetScore": 19500,
-      "difficulty": "nightmare",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "amber",
-          "target": 46
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 7
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstLarge",
-          "target": 2
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 34
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1H1.1T1H1.1.1",
-          ".1.1X1H1H1H1H1.1",
-          "H1H1.1X1H1H1H1H1",
-          "H1H1H1.1X1H1H1H1",
-          "H1H1H1.1.1X1H1H1",
-          "H1H1H1H1H1.1X1H1",
-          ".1H1H1H1H1H1.1.1",
-          ".1T1.1.1.1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 48,
-      "moves": 16,
-      "targetScore": 20000,
-      "difficulty": "nightmare",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "blue",
-          "target": 46
-        },
-        {
-          "type": "destroy-color",
-          "color": "purple",
-          "target": 44
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 7
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 34
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1H1.1.1H1.1.1",
-          ".1X1.1H1H1H1H1.1",
-          "H1H1X1.1H1H1H1H1",
-          "H1H1H1X1X1H1H1H1",
-          "H1H1H1X1X1.1H1H1",
-          "H1H1H1H1H1X1.1H1",
-          "T1H1H1H1H1H1X1.1",
-          ".1.1.1.1.1.1.1T1"
-        ]
-      }
-    },
-    {
-      "id": 49,
-      "moves": 15,
-      "targetScore": 20500,
-      "difficulty": "nightmare",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "red",
-          "target": 48
-        },
-        {
-          "type": "activate-booster",
-          "booster": "line",
-          "target": 7
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstSmall",
-          "target": 7
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 28
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          ".1.1H1X1X1H1.1T1",
-          ".1.1X1H1H1H1.1.1",
-          ".1H1.1X1H1H1H1.1",
-          "H1H1H1.1X1H1H1H1",
-          "H1H1H1.1.1X1H1H1",
-          ".1H1H1H1H1.1X1.1",
-          ".1.1H1H1H1H1.1.1",
-          ".1T1.1X1X1.1.1.1"
-        ]
-      }
-    },
-    {
-      "id": 50,
-      "moves": 16,
-      "targetScore": 21000,
-      "difficulty": "nightmare",
-      "goals": [
-        {
-          "type": "destroy-color",
-          "color": "amber",
-          "target": 46
-        },
-        {
-          "type": "destroy-color",
-          "color": "green",
-          "target": 44
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstMedium",
-          "target": 6
-        },
-        {
-          "type": "activate-booster",
-          "booster": "burstLarge",
-          "target": 1
-        },
-        {
-          "type": "destroy-hard-candies",
-          "target": 40
-        }
-      ],
-      "background": "",
-      "board": {
-        "rows": [
-          "X1H1H1X1X1H1H1X1",
-          "H1.1.1H1H1H1H1H1",
-          "H1H1.1.1H1H1H1H1",
-          "H1H1H1X1X1H1H1H1",
-          "H1H1H1X1X1.1H1H1",
-          "H1H1H1H1H1.1.1H1",
-          ".1H1H1H1H1H1.1.1",
-          "X1T1H1X1X1H1T1X1"
-        ]
-      }
-    }
-  ]
+    ]
 }

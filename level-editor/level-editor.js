@@ -8,6 +8,8 @@ const BOARD_TOKENS = [
     { token: '.1', label: 'Any', className: 'any', swatch: '#ffffff' },
     { token: 'X1', label: 'Missing', className: 'void', swatch: '#3f3f46' },
     { token: 'H1', label: 'Hard', className: 'hard', swatch: '#f5d27a' },
+    { token: 'H2', label: 'Hard (2 hits)', className: 'hard hard-2', swatch: '#f5d27a' },
+    { token: 'H3', label: 'Hard (3 hits)', className: 'hard hard-3', swatch: '#f5d27a' },
     { token: 'T1', label: 'Generator', className: 'generator', swatch: '#fca5a5' },
     { token: 'L1', label: 'Line bomb', className: 'bomb-line bomb-line-horizontal', swatch: '#fde68a' },
     { token: 'V1', label: 'Line bomb vertical', className: 'bomb-line bomb-line-vertical', swatch: '#fde68a' },
@@ -601,7 +603,11 @@ function getTokenClassName(token) {
     const stage = token.charAt(1);
     let tokenClass = 'any';
     if (type === 'X') tokenClass = 'void';
-    if (type === 'H') tokenClass = 'hard';
+    if (type === 'H') {
+        tokenClass = 'hard';
+        if (stage === '2') tokenClass += ' hard-2';
+        if (stage === '3') tokenClass += ' hard-3';
+    }
     if (type === 'T') tokenClass = 'generator';
     if (type === 'L') tokenClass = 'bomb-line bomb-line-horizontal';
     if (type === 'V') tokenClass = 'bomb-line bomb-line-vertical';
@@ -669,7 +675,10 @@ function normalizeBoardToken(raw) {
         if (type === 'C') {
             return stage === '1' || stage === '2' || stage === '3' ? `C${stage}` : '.1';
         }
-        if (type === '.' || type === 'X' || type === 'H' || type === 'T' || type === 'L' || type === 'V' || type === 'S' || type === 'M' || type === 'U') {
+        if (type === 'H') {
+            return stage === '1' || stage === '2' || stage === '3' ? `H${stage}` : '.1';
+        }
+        if (type === '.' || type === 'X' || type === 'T' || type === 'L' || type === 'V' || type === 'S' || type === 'M' || type === 'U') {
             return stage === '1' ? `${type}1` : '.1';
         }
         if (type === 'R' || type === 'A' || type === 'B' || type === 'P' || type === 'G') {

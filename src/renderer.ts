@@ -598,6 +598,7 @@ class Renderer {
         cell.textContent = '';
         cell.style.removeProperty('--cell-color');
         cell.classList.remove('board__cell--sugar-chest');
+        cell.classList.remove('board__cell--hard-2', 'board__cell--hard-3');
         cell.style.removeProperty('--sugar-chest-image');
         if (state.blocked) {
             cell.classList.add('board__cell--void');
@@ -626,6 +627,12 @@ class Renderer {
         }
         if (state.hard) {
             cell.classList.add('board__cell--hard');
+            if (state.hardStage === 2) {
+                cell.classList.add('board__cell--hard-2');
+            }
+            if (state.hardStage === 3) {
+                cell.classList.add('board__cell--hard-3');
+            }
         }
         this.applyBoosterVisual(cell, state.booster, state.lineOrientation);
     }
@@ -662,6 +669,7 @@ class Renderer {
 
     private getRenderedKey(state: CellState): string {
         const stage = typeof state.sugarChestStage === 'number' ? state.sugarChestStage : '';
+        const hardStage = typeof state.hardStage === 'number' ? state.hardStage : '';
         const orientation = state.lineOrientation ?? '';
         const color = state.color ?? '';
         return [
@@ -672,6 +680,7 @@ class Renderer {
             state.hard ? '1' : '0',
             state.generator ? '1' : '0',
             stage,
+            hardStage,
             orientation
         ].join('|');
     }
