@@ -227,6 +227,10 @@ function renderLevelForm() {
     ui.levelDifficulty.value = level.difficulty ?? 'easy';
     ui.levelBackground.value = level.background ?? '';
 
+    ui.boardEnabled.checked = true;
+    if (!level.board) {
+        level.board = { rows: createBoardRowsFromLevel(level) };
+    }
     renderGoals(level);
     renderBoard(level);
 }
@@ -473,8 +477,7 @@ function normalizeBoardRows(rows) {
 }
 
 function renderBoard(level) {
-    const enabled = Boolean(level.board);
-    ui.boardEnabled.checked = enabled;
+    const enabled = ui.boardEnabled.checked && Boolean(level.board);
     ui.boardPanel.classList.toggle('editor__board--hidden', !enabled);
     if (!enabled) {
         return;
