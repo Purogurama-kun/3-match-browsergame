@@ -379,13 +379,14 @@ body {
 
 .editor__board-grid {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 6px;
+    grid-template-columns: repeat(8, 32px);
+    row-gap: 4px;
+    column-gap: 0.25;
 }
 
 .editor__cell {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 8px;
     border: 1px solid var(--border);
     background: #fff;
