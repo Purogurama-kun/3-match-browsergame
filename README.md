@@ -50,6 +50,12 @@ Running the server after `npm run build` lets the manifest and service worker re
 
 For a deployable bundle, run `npm run publish`. It rebuilds the project and writes a `public/` folder containing everything that should be uploaded to the server.
 
+## Level editor (local tool)
+
+A lightweight level editor lives in `level-editor/`. It is a standalone, local-only web UI for editing `assets/data/levels.json`.
+
+Run the local server and open `http://localhost:5500/level-editor/` in the browser. The editor auto-loads `/assets/data/levels.json`. Use "Open levels.json" to link directly to the file, edit levels, then press Save to write back.
+
 ## Content data (levels + story + modes)
 
 Non-programmer friendly content files live in `assets/data/`:

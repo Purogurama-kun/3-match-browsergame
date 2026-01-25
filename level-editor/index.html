@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Level Editor</title>
+    <link rel="stylesheet" href="/level-editor/level-editor.css" />
+</head>
+<body class="editor">
+    <header class="editor__header">
+        <div>
+            <p class="editor__eyebrow">Match-3 Tools</p>
+            <h1 class="editor__title">Level Editor</h1>
+            <p class="editor__subtitle">Edit level data locally and write straight to assets/data/levels.json.</p>
+        </div>
+        <div class="editor__header-actions">
+            <button class="editor__button" type="button" id="open-file">Open levels.json</button>
+            <button class="editor__button editor__button--ghost" type="button" id="load-project">Load from project</button>
+            <button class="editor__button editor__button--primary" type="button" id="save-file">Save</button>
+            <button class="editor__button editor__button--ghost" type="button" id="save-as">Save as</button>
+        </div>
+    </header>
+
+    <section class="editor__status" id="status">No file loaded yet.</section>
+
+    <div class="editor__layout">
+        <aside class="editor__sidebar">
+            <div class="editor__sidebar-actions">
+                <button class="editor__button" type="button" id="add-level">Add level</button>
+                <button class="editor__button editor__button--ghost" type="button" id="duplicate-level">Duplicate</button>
+                <button class="editor__button editor__button--ghost" type="button" id="delete-level">Delete</button>
+                <button class="editor__button editor__button--ghost" type="button" id="move-level-up">Move up</button>
+                <button class="editor__button editor__button--ghost" type="button" id="move-level-down">Move down</button>
+                <button class="editor__button editor__button--ghost" type="button" id="renumber-levels">Auto renumber IDs</button>
+            </div>
+            <div class="editor__list-header">
+                <span>Levels</span>
+                <span class="editor__list-count" id="level-count">0</span>
+            </div>
+            <ul class="editor__level-list" id="level-list"></ul>
+        </aside>
+
+        <main class="editor__main">
+            <section class="editor__panel" id="empty-state">
+                <h2 class="editor__panel-title">Get started</h2>
+                <p class="editor__panel-text">Open the existing levels.json file or load it from the project to start editing.</p>
+                <ul class="editor__panel-list">
+                    <li>Use Open levels.json to edit the real file directly (recommended).</li>
+                    <li>Use Load from project to preview levels without saving.</li>
+                </ul>
+            </section>
+
+            <section class="editor__panel editor__panel--hidden" id="level-editor">
+                <div class="editor__panel-header">
+                    <h2 class="editor__panel-title" id="level-title">Level</h2>
+                    <span class="editor__chip" id="dirty-indicator">Saved</span>
+                </div>
+
+                <div class="editor__grid">
+                    <label class="editor__field">
+                        <span class="editor__label">ID</span>
+                        <input class="editor__input" type="number" id="level-id" min="1" step="1" />
+                    </label>
+                    <label class="editor__field">
+                        <span class="editor__label">Moves</span>
+                        <input class="editor__input" type="number" id="level-moves" min="1" step="1" />
+                    </label>
+                    <label class="editor__field">
+                        <span class="editor__label">Target score</span>
+                        <input class="editor__input" type="number" id="level-target" min="1" step="1" />
+                    </label>
+                    <label class="editor__field">
+                        <span class="editor__label">Time goal (seconds)</span>
+                        <input class="editor__input" type="number" id="level-time" min="1" step="1" placeholder="Optional" />
+                    </label>
+                    <label class="editor__field">
+                        <span class="editor__label">Difficulty</span>
+                        <select class="editor__input" id="level-difficulty"></select>
+                    </label>
+                    <label class="editor__field">
+                        <span class="editor__label">Background</span>
+                        <input class="editor__input" type="text" id="level-background" placeholder="Optional" />
+                    </label>
+                </div>
+
+                <div class="editor__section">
+                    <div class="editor__section-header">
+                        <h3 class="editor__section-title">Goals</h3>
+                        <button class="editor__button editor__button--ghost" type="button" id="add-goal">Add goal</button>
+                    </div>
+                    <div class="editor__goals" id="goals"></div>
+                </div>
+
+                <div class="editor__section">
+                    <div class="editor__section-header">
+                        <h3 class="editor__section-title">Board layout</h3>
+                        <label class="editor__toggle">
+                            <input type="checkbox" id="board-enabled" />
+                            <span>Use custom board layout</span>
+                        </label>
+                    </div>
+                    <div class="editor__board editor__board--hidden" id="board-panel">
+                        <div class="editor__palette" id="board-palette"></div>
+                        <div class="editor__board-grid" id="board-grid"></div>
+                        <div class="editor__board-actions">
+                            <button class="editor__button editor__button--ghost" type="button" id="clear-board">Clear board</button>
+                            <button class="editor__button editor__button--ghost" type="button" id="fill-board">Fill with random colors</button>
+                        </div>
+                        <label class="editor__field editor__field--wide">
+                            <span class="editor__label">Board rows (advanced)</span>
+                            <textarea class="editor__textarea" id="board-rows" rows="8" spellcheck="false"></textarea>
+                        </label>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <input type="file" id="file-input" accept="application/json,.json" hidden />
+    <script type="module" src="/level-editor/level-editor.js"></script>
+</body>
+</html>
