@@ -10,6 +10,7 @@ import { getStoryActs, getStoryActLabel as getStoryActLabelText } from './story.
 
 const TIME_GOAL_ICON_SRC = 'assets/images/timer.svg';
 const SCORE_GOAL_ICON_SYMBOL = '🎯';
+const MIRA_PROFILE_SRC = 'assets/images/mira-profile.png';
 
 type LevelSelectOptions = {
     onStart: (level: number) => void;
@@ -48,6 +49,15 @@ class LevelSelectView {
         this.difficultyChip.className = 'level-select__difficulty';
         this.selectedLabel.textContent = '';
         this.selectedLabel.append(this.levelTitleNode, this.difficultyChip);
+        this.miraMarker = document.createElement('span');
+        this.miraMarker.className = 'level-select__mira';
+        this.miraMarker.setAttribute('aria-hidden', 'true');
+        this.miraMarker.hidden = true;
+        const miraImage = document.createElement('img');
+        miraImage.className = 'hud__profile-image level-select__mira-image';
+        miraImage.src = MIRA_PROFILE_SRC;
+        miraImage.alt = '';
+        this.miraMarker.appendChild(miraImage);
         this.maxLevel = getLevelCount();
         this.options = options;
         this.buildPath();
@@ -81,6 +91,8 @@ class LevelSelectView {
     private readonly maxLevel: number;
     private readonly options: LevelSelectOptions;
     private readonly levelButtons: HTMLButtonElement[] = [];
+    private readonly levelNodes: HTMLLIElement[] = [];
+    private readonly miraMarker: HTMLSpanElement;
     private readonly actLabels: StoryActLabel[] = [];
     private highestLevel = 1;
     private selectedLevel = 1;
@@ -138,6 +150,7 @@ class LevelSelectView {
             this.tryAddActLabel(item, level);
             this.path.appendChild(item);
             this.levelButtons.push(button);
+            this.levelNodes.push(item);
         }
     }
 
@@ -175,6 +188,21 @@ class LevelSelectView {
                 : t('levelSelect.nodeLockedLabel', { level });
             button.setAttribute('aria-label', label);
         });
+        this.updateMiraMarker(unlockedLevel);
+    }
+
+    private updateMiraMarker(unlockedLevel: number): void {
+        const clampedLevel = this.clampLevel(unlockedLevel);
+        const targetNode = this.levelNodes[clampedLevel - 1];
+        if (!targetNode) {
+            this.miraMarker.hidden = true;
+            return;
+        }
+        if (this.miraMarker.parentElement !== targetNode) {
+            this.miraMarker.remove();
+            targetNode.appendChild(this.miraMarker);
+        }
+        this.miraMarker.hidden = false;
     }
 
     private renderSelected(): void {

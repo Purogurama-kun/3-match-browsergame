@@ -172,6 +172,8 @@
     display: flex;
     position: relative;
     z-index: 1;
+    align-items: center;
+    gap: 0.6rem;
 }
 
 .level-select__node--act {
@@ -246,6 +248,27 @@
     color: rgba(255, 255, 255, 0.35);
     cursor: not-allowed;
     box-shadow: none;
+}
+
+.level-select__mira {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.level-select__mira-image {
+    width: 2.2rem;
+    height: 2.2rem;
+}
+
+.level-select__node:nth-child(even) .level-select__mira {
+    order: -1;
+    margin-right: 0.6rem;
+}
+
+.level-select__node:nth-child(odd) .level-select__mira {
+    margin-left: 0.6rem;
 }
 
 .level-select__act-label {
