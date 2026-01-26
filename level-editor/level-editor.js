@@ -97,6 +97,7 @@ const ui = {
     levelTime: document.getElementById('level-time'),
     levelDifficulty: document.getElementById('level-difficulty'),
     levelBackground: document.getElementById('level-background'),
+    levelAutoHardGoal: document.getElementById('level-auto-hard-goal'),
     goals: document.getElementById('goals'),
     addGoal: document.getElementById('add-goal'),
     boardEnabled: document.getElementById('board-enabled'),
@@ -240,6 +241,7 @@ function renderLevelForm() {
     ui.levelTime.value = level.timeGoalSeconds ?? '';
     ui.levelDifficulty.value = level.difficulty ?? 'easy';
     ui.levelBackground.value = level.background ?? '';
+    ui.levelAutoHardGoal.checked = level.autoHardCandyGoal !== false;
 
     ui.boardEnabled.checked = true;
     if (!level.board) {
@@ -1089,6 +1091,17 @@ ui.levelBackground.addEventListener('input', () => {
     if (level.board) {
         applyBoardBackground(level);
     }
+});
+
+ui.levelAutoHardGoal.addEventListener('change', () => {
+    const level = state.levels[state.selectedIndex];
+    if (!level) return;
+    if (ui.levelAutoHardGoal.checked) {
+        delete level.autoHardCandyGoal;
+    } else {
+        level.autoHardCandyGoal = false;
+    }
+    markDirty();
 });
 
 window.addEventListener('beforeunload', (event) => {

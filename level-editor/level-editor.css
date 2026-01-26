@@ -338,6 +338,13 @@ body {
     color: var(--ink-soft);
 }
 
+.editor__toggle--field {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+}
+
 .editor__board {
     display: grid;
     gap: 12px;

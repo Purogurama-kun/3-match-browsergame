@@ -1962,6 +1962,38 @@
                     "X1T1H3X1X1H3T1X1"
                 ]
             }
+        },
+        {
+            "id": 51,
+            "moves": 20,
+            "targetScore": 8000,
+            "difficulty": "nightmare",
+            "goals": [
+                {
+                    "type": "destroy-color",
+                    "color": "red",
+                    "target": 30
+                },
+                {
+                    "type": "activate-booster",
+                    "target": 5,
+                    "booster": "burstMedium"
+                }
+            ],
+            "autoHardCandyGoal": false,
+            "background": "",
+            "board": {
+                "rows": [
+                    "X1.1.1.1.1.1.1X1",
+                    "X1.1.1.1.1.1.1X1",
+                    "X1.1.1.1.1.1.1X1",
+                    "X1X1Q1Q1Q1Q1X1X1",
+                    "X1X1M1M1M1M1X1X1",
+                    "X1H3H3H3H3H3H3X1",
+                    "X1N1N1N1N1N1N1X1",
+                    "X1C1C1C1C1C1C1X1"
+                ]
+            }
         }
     ]
 }

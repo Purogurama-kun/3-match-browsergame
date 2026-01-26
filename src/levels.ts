@@ -736,7 +736,8 @@ function normalizeLevelDefinition(definition: LevelDefinitionInput, id: number):
             ? Math.max(180, definitionBase.timeGoalSeconds)
             : undefined;
     const hasHardCandyGoal = goals.some((goal) => goal.type === 'destroy-hard-candies');
-    if (!hasHardCandyGoal && resolvedHardCandies && resolvedHardCandies.length > 0) {
+    const autoHardCandyGoal = definitionBase.autoHardCandyGoal !== false;
+    if (autoHardCandyGoal && !hasHardCandyGoal && resolvedHardCandies && resolvedHardCandies.length > 0) {
         goals.push({ type: 'destroy-hard-candies', target: resolvedHardCandies.length });
     }
     const rawBackground = definitionBase.background;
