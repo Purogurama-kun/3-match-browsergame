@@ -500,38 +500,38 @@ body {
     pointer-events: none;
     opacity: 0.95;
     background:
-        linear-gradient(#f8fafc, #f8fafc) top / 100% var(--hardening-border, 4px) no-repeat,
-        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 2px), transparent calc(var(--hardening-cap, 2px) + 1px))
-            top left / calc(var(--hardening-border, 4px) * 2) calc(var(--hardening-border, 4px) * 2) no-repeat,
-        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 2px), transparent calc(var(--hardening-cap, 2px) + 1px))
-            top right / calc(var(--hardening-border, 4px) * 2) calc(var(--hardening-border, 4px) * 2) no-repeat;
+        linear-gradient(#f8fafc, #f8fafc) top / 100% var(--hardening-border, 5px) no-repeat,
+        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 3px), transparent calc(var(--hardening-cap, 3px) + 1px))
+            top left / calc(var(--hardening-border, 5px) * 2) calc(var(--hardening-border, 5px) * 2) no-repeat,
+        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 3px), transparent calc(var(--hardening-cap, 3px) + 1px))
+            top right / calc(var(--hardening-border, 5px) * 2) calc(var(--hardening-border, 5px) * 2) no-repeat;
 }
 
 .editor__cell--hardening-2::before {
     background:
-        linear-gradient(#f8fafc, #f8fafc) top / 100% var(--hardening-border, 4px) no-repeat,
-        linear-gradient(#f8fafc, #f8fafc) right / var(--hardening-border, 4px) 100% no-repeat,
-        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 2px), transparent calc(var(--hardening-cap, 2px) + 1px))
-            top left / calc(var(--hardening-border, 4px) * 2) calc(var(--hardening-border, 4px) * 2) no-repeat,
-        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 2px), transparent calc(var(--hardening-cap, 2px) + 1px))
-            top right / calc(var(--hardening-border, 4px) * 2) calc(var(--hardening-border, 4px) * 2) no-repeat,
-        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 2px), transparent calc(var(--hardening-cap, 2px) + 1px))
-            bottom right / calc(var(--hardening-border, 4px) * 2) calc(var(--hardening-border, 4px) * 2) no-repeat;
+        linear-gradient(#f8fafc, #f8fafc) top / 100% var(--hardening-border, 5px) no-repeat,
+        linear-gradient(#f8fafc, #f8fafc) right / var(--hardening-border, 5px) 100% no-repeat,
+        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 3px), transparent calc(var(--hardening-cap, 3px) + 1px))
+            top left / calc(var(--hardening-border, 5px) * 2) calc(var(--hardening-border, 5px) * 2) no-repeat,
+        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 3px), transparent calc(var(--hardening-cap, 3px) + 1px))
+            top right / calc(var(--hardening-border, 5px) * 2) calc(var(--hardening-border, 5px) * 2) no-repeat,
+        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 3px), transparent calc(var(--hardening-cap, 3px) + 1px))
+            bottom right / calc(var(--hardening-border, 5px) * 2) calc(var(--hardening-border, 5px) * 2) no-repeat;
 }
 
 .editor__cell--hardening-3::before {
     background:
-        linear-gradient(#f8fafc, #f8fafc) top / 100% var(--hardening-border, 4px) no-repeat,
-        linear-gradient(#f8fafc, #f8fafc) right / var(--hardening-border, 4px) 100% no-repeat,
-        linear-gradient(#f8fafc, #f8fafc) bottom / 100% var(--hardening-border, 4px) no-repeat,
-        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 2px), transparent calc(var(--hardening-cap, 2px) + 1px))
-            top left / calc(var(--hardening-border, 4px) * 2) calc(var(--hardening-border, 4px) * 2) no-repeat,
-        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 2px), transparent calc(var(--hardening-cap, 2px) + 1px))
-            top right / calc(var(--hardening-border, 4px) * 2) calc(var(--hardening-border, 4px) * 2) no-repeat,
-        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 2px), transparent calc(var(--hardening-cap, 2px) + 1px))
-            bottom right / calc(var(--hardening-border, 4px) * 2) calc(var(--hardening-border, 4px) * 2) no-repeat,
-        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 2px), transparent calc(var(--hardening-cap, 2px) + 1px))
-            bottom left / calc(var(--hardening-border, 4px) * 2) calc(var(--hardening-border, 4px) * 2) no-repeat;
+        linear-gradient(#f8fafc, #f8fafc) top / 100% var(--hardening-border, 5px) no-repeat,
+        linear-gradient(#f8fafc, #f8fafc) right / var(--hardening-border, 5px) 100% no-repeat,
+        linear-gradient(#f8fafc, #f8fafc) bottom / 100% var(--hardening-border, 5px) no-repeat,
+        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 3px), transparent calc(var(--hardening-cap, 3px) + 1px))
+            top left / calc(var(--hardening-border, 5px) * 2) calc(var(--hardening-border, 5px) * 2) no-repeat,
+        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 3px), transparent calc(var(--hardening-cap, 3px) + 1px))
+            top right / calc(var(--hardening-border, 5px) * 2) calc(var(--hardening-border, 5px) * 2) no-repeat,
+        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 3px), transparent calc(var(--hardening-cap, 3px) + 1px))
+            bottom right / calc(var(--hardening-border, 5px) * 2) calc(var(--hardening-border, 5px) * 2) no-repeat,
+        radial-gradient(circle, #f8fafc 0 var(--hardening-cap, 3px), transparent calc(var(--hardening-cap, 3px) + 1px))
+            bottom left / calc(var(--hardening-border, 5px) * 2) calc(var(--hardening-border, 5px) * 2) no-repeat;
 }
 
 .editor__cell--red {
