@@ -19,7 +19,7 @@ type PowerupManagerOptions = {
     rearrangeBoardColors: () => boolean;
     dropCells: () => void;
     checkMatches: () => void;
-    destroyCellAndMaybeFinishGenerator: (index: number) => void;
+    destroyCells: (indices: Iterable<number>) => void;
     getRowCol: (index: number) => { row: number; col: number };
     areAdjacent: (a: number, b: number) => boolean;
     resetHintState: () => void;
@@ -42,7 +42,7 @@ class PowerupManager {
     private rearrangeBoardColors: () => boolean;
     private dropCells: () => void;
     private checkMatches: () => void;
-    private destroyCellAndMaybeFinishGenerator: (index: number) => void;
+    private destroyCells: (indices: Iterable<number>) => void;
     private getRowCol: (index: number) => { row: number; col: number };
     private areAdjacent: (a: number, b: number) => boolean;
     private resetHintState: () => void;
@@ -67,7 +67,7 @@ class PowerupManager {
         this.rearrangeBoardColors = options.rearrangeBoardColors;
         this.dropCells = options.dropCells;
         this.checkMatches = options.checkMatches;
-        this.destroyCellAndMaybeFinishGenerator = options.destroyCellAndMaybeFinishGenerator;
+        this.destroyCells = options.destroyCells;
         this.getRowCol = options.getRowCol;
         this.areAdjacent = options.areAdjacent;
         this.resetHintState = options.resetHintState;
@@ -255,7 +255,7 @@ class PowerupManager {
         if (!this.isPerformanceMode()) {
             this.renderer.screenShake();
         }
-        affected.forEach((index) => this.destroyCellAndMaybeFinishGenerator(index));
+        this.destroyCells(affected);
         this.defer(() => {
             this.dropCells();
             this.releasePowerupLock();

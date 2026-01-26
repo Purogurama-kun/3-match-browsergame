@@ -113,7 +113,7 @@ class Match3Game implements ModeContext {
                 rearrangeBoardColors: () => this.rearrangeBoardColors(),
                 dropCells: () => this.dropCells(),
                 checkMatches: () => this.checkMatches(),
-                destroyCellAndMaybeFinishGenerator: (index) => this.candie.destroyCellAndMaybeFinishGenerator(index),
+                destroyCells: (indices) => this.handleBombDestruction(indices),
                 getRowCol: (index) => this.getRowCol(index),
                 areAdjacent: (a, b) => this.areAdjacent(a, b),
                 resetHintState: () => this.resetHintState(),
