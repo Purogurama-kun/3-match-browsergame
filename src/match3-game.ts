@@ -61,6 +61,13 @@ type LevelWinReward = {
     coins: number;
 } | null;
 
+type LevelSelectRequest = {
+    focusLevel?: number;
+    fromLevel?: number;
+    animateMira?: boolean;
+    showDetails?: boolean;
+};
+
 const RECORDING_COLOR_HEX: Record<SnapshotCell['color'], string> = {
     red: '#ff7b7b',
     yellow: '#ffd166',
@@ -324,7 +331,7 @@ class Match3Game implements ModeContext {
     private timeAttemptListener: ((time: number) => void) | null = null;
     private levelWinRewardListener: ((level: number) => LevelWinReward) | null = null;
     private exitGameListener: (() => void) | null = null;
-    private levelSelectListener: (() => void) | null = null;
+    private levelSelectListener: ((request?: LevelSelectRequest) => void) | null = null;
     private leaderboardState: LeaderboardState | null = null;
     private runSugarCoins = 0;
     private readonly generatorSpreadInterval = 2;
@@ -387,7 +394,7 @@ class Match3Game implements ModeContext {
         this.hud.onExitGame(handler);
     }
 
-    onLevelSelectRequested(handler: () => void): void {
+    onLevelSelectRequested(handler: (request?: LevelSelectRequest) => void): void {
         this.levelSelectListener = handler;
     }
 
@@ -1008,8 +1015,17 @@ class Match3Game implements ModeContext {
                 secondaryButtonText: t('button.candyWorld'),
                 onSecondary: () => this.requestLevelSelect(),
                 onClose: () => {
-                    if (result === 'win' && hasMoreLevels) {
-                        void this.startLevel(nextLevel);
+                    if (result === 'win') {
+                        if (hasMoreLevels) {
+                            this.requestLevelSelect({
+                                focusLevel: nextLevel,
+                                fromLevel: completedLevel,
+                                animateMira: true,
+                                showDetails: true
+                            });
+                            return;
+                        }
+                        this.requestLevelSelect({ focusLevel: completedLevel, showDetails: true });
                         return;
                     }
                     this.switchMode(new LevelModeState(nextLevel));
@@ -1083,8 +1099,8 @@ class Match3Game implements ModeContext {
         this.exitGameListener?.();
     }
 
-    private requestLevelSelect(): void {
-        this.levelSelectListener?.();
+    private requestLevelSelect(request?: LevelSelectRequest): void {
+        this.levelSelectListener?.(request);
     }
 
     private awardScore(basePoints: number): void {
@@ -1769,3 +1785,4 @@ class Match3Game implements ModeContext {
 }
 
 export { Match3Game };
+export type { LevelSelectRequest };

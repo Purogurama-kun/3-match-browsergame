@@ -17,6 +17,16 @@ type LevelSelectOptions = {
     onClose: () => void;
 };
 
+type LevelSelectOpenOptions = {
+    focusLevel?: number;
+    fromLevel?: number;
+    animateMira?: boolean;
+    showDetails?: boolean;
+};
+
+const MIRA_MOVE_DURATION = 1050;
+const MIRA_DETAILS_DELAY = 220;
+
 type LevelSelectGoalIcon =
     | { variant: 'time'; src: string }
     | { variant: 'color'; color: string }
@@ -97,21 +107,29 @@ class LevelSelectView {
     private highestLevel = 1;
     private selectedLevel = 1;
     private isDetailsOpen = false;
+    private miraAnimationTimer: number | null = null;
+    private miraTransitionHandler: ((event: TransitionEvent) => void) | null = null;
+    private miraDetailsTimer: number | null = null;
 
-    open(highestLevel: number): void {
+    open(highestLevel: number, options?: LevelSelectOpenOptions): void {
         this.highestLevel = this.clampLevel(highestLevel);
-        this.selectedLevel = this.highestLevel;
+        const requestedLevel = this.clampLevel(options?.focusLevel ?? this.highestLevel);
+        const unlockedLevel = this.getUnlockedLevel();
+        this.selectedLevel = Math.min(requestedLevel, unlockedLevel);
         document.body.classList.add('match-app--level-select');
         this.container.removeAttribute('hidden');
         this.hideDetails();
+        this.cleanupMiraAnimation();
         this.render();
         this.resetScrollPosition();
+        this.runOpenAnimation(options);
     }
 
     hide(): void {
         this.container.setAttribute('hidden', 'true');
         document.body.classList.remove('match-app--level-select');
         this.hideDetails();
+        this.cleanupMiraAnimation();
     }
 
     update(highestLevel: number): void {
@@ -169,6 +187,27 @@ class LevelSelectView {
         this.renderSelected();
     }
 
+    private runOpenAnimation(options?: LevelSelectOpenOptions): void {
+        if (!options?.showDetails && !options?.animateMira) {
+            return;
+        }
+        if (options.animateMira && typeof options.fromLevel === 'number') {
+            const targetLevel = this.clampLevel(options.focusLevel ?? this.getUnlockedLevel());
+            this.animateMiraMarker(options.fromLevel, targetLevel, () => {
+                if (options.showDetails) {
+                    this.miraDetailsTimer = window.setTimeout(() => {
+                        this.miraDetailsTimer = null;
+                        this.showDetails();
+                    }, MIRA_DETAILS_DELAY);
+                }
+            });
+            return;
+        }
+        if (options.showDetails) {
+            this.showDetails();
+        }
+    }
+
     private renderNodes(): void {
         const unlockedLevel = this.getUnlockedLevel();
         const currentLevel = this.getCurrentLevel();
@@ -189,6 +228,76 @@ class LevelSelectView {
             button.setAttribute('aria-label', label);
         });
         this.updateMiraMarker(unlockedLevel);
+    }
+
+    private animateMiraMarker(fromLevel: number, toLevel: number, onComplete: () => void): void {
+        const startLevel = this.clampLevel(fromLevel);
+        const endLevel = this.clampLevel(toLevel);
+        if (startLevel === endLevel) {
+            this.updateMiraMarker(endLevel);
+            onComplete();
+            return;
+        }
+        const startNode = this.levelNodes[startLevel - 1];
+        const endNode = this.levelNodes[endLevel - 1];
+        if (!startNode || !endNode) {
+            this.updateMiraMarker(endLevel);
+            onComplete();
+            return;
+        }
+        this.cleanupMiraAnimation();
+        this.updateMiraMarker(startLevel);
+        const startRect = this.miraMarker.getBoundingClientRect();
+        this.path.classList.add('level-select__path--animating');
+        this.updateMiraMarker(endLevel);
+        const endRect = this.miraMarker.getBoundingClientRect();
+        const deltaX = Math.round(startRect.left - endRect.left);
+        const deltaY = Math.round(startRect.top - endRect.top);
+        this.miraMarker.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+        const finish = (): void => {
+            if (this.miraAnimationTimer !== null) {
+                window.clearTimeout(this.miraAnimationTimer);
+                this.miraAnimationTimer = null;
+            }
+            this.miraMarker.removeEventListener('transitionend', handleTransitionEnd);
+            this.miraTransitionHandler = null;
+            this.miraMarker.classList.remove('level-select__mira--moving');
+            this.miraMarker.style.removeProperty('transform');
+            this.path.classList.remove('level-select__path--animating');
+            onComplete();
+        };
+        const handleTransitionEnd = (event: TransitionEvent): void => {
+            if (event.propertyName !== 'transform') {
+                return;
+            }
+            finish();
+        };
+        this.miraTransitionHandler = handleTransitionEnd;
+        this.miraMarker.addEventListener('transitionend', handleTransitionEnd);
+        void this.miraMarker.offsetHeight;
+        this.miraAnimationTimer = window.setTimeout(finish, MIRA_MOVE_DURATION + 300);
+        window.requestAnimationFrame(() => {
+            this.miraMarker.classList.add('level-select__mira--moving');
+            this.miraMarker.style.transform = 'translate(0px, 0px)';
+        });
+    }
+
+    private cleanupMiraAnimation(): void {
+        if (this.miraAnimationTimer !== null) {
+            window.clearTimeout(this.miraAnimationTimer);
+            this.miraAnimationTimer = null;
+        }
+        if (this.miraDetailsTimer !== null) {
+            window.clearTimeout(this.miraDetailsTimer);
+            this.miraDetailsTimer = null;
+        }
+        if (this.miraTransitionHandler) {
+            this.miraMarker.removeEventListener('transitionend', this.miraTransitionHandler);
+            this.miraTransitionHandler = null;
+        }
+        this.miraMarker.classList.remove('level-select__mira--moving');
+        this.miraMarker.style.removeProperty('transform');
+        this.path.classList.remove('level-select__path--animating');
     }
 
     private updateMiraMarker(unlockedLevel: number): void {

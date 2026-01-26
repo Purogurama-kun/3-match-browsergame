@@ -200,7 +200,11 @@
     border-radius: 999px;
     box-shadow: none;
     pointer-events: none;
-    transition: height 0.25s ease;
+    transition: height var(--level-select-progress-transition, 0.25s) ease;
+}
+
+.level-select__path--animating {
+    --level-select-progress-transition: 1s;
 }
 
 .level-select__path::-webkit-scrollbar {
@@ -332,6 +336,11 @@
     align-items: center;
     justify-content: center;
     pointer-events: none;
+}
+
+.level-select__mira--moving {
+    transition: transform 1.05s cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: transform;
 }
 
 .level-select__mira-image {

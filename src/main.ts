@@ -1,4 +1,4 @@
-import { Match3Game } from './match3-game.js';
+import { Match3Game, type LevelSelectRequest } from './match3-game.js';
 import { ConfirmDialog } from './confirm-dialog.js';
 import { getRequiredElement } from './dom.js';
 import { GoogleAuth, GoogleUser } from './google-auth.js';
@@ -110,7 +110,7 @@ class GameApp {
         this.tutorialButton.addEventListener('click', () => this.showTutorial());
         this.profileButton.addEventListener('click', () => this.showProfile());
         this.game.onExitGameRequested(() => this.handleExitGame());
-        this.game.onLevelSelectRequested(() => this.returnToLevelSelect());
+        this.game.onLevelSelectRequested((request) => this.returnToLevelSelect(request));
         this.game.onDeleteProgressRequested(() => {
             void this.handleDeleteProgress();
         });
@@ -277,13 +277,13 @@ class GameApp {
         this.returnToMenu();
     }
 
-    private returnToLevelSelect(): void {
+    private returnToLevelSelect(request?: LevelSelectRequest): void {
         this.body.classList.remove('match-app--playing');
         this.body.classList.remove('match-app--menu');
         this.hideLeaderboard();
         this.hideMainMenu();
         this.game.stop();
-        this.showLevelSelect();
+        this.showLevelSelect(request);
     }
 
     private handleLocaleChange(locale: Locale): void {
@@ -313,13 +313,13 @@ class GameApp {
         this.mainMenu.setAttribute('hidden', 'true');
     }
 
-    private showLevelSelect(): void {
+    private showLevelSelect(request?: LevelSelectRequest): void {
         if (this.isProgressLoading) return;
         this.hideLeaderboard();
         this.shopView.hide();
         this.hideProfile();
         this.hideMainMenu();
-        this.levelSelectView.open(this.progress.highestLevel);
+        this.levelSelectView.open(this.progress.highestLevel, request);
     }
 
     private hideLevelSelect(): void {
