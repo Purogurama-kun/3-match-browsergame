@@ -123,7 +123,24 @@ class MultiplierTracker {
     }
 
     private isGoodMove(baseMoveScore: number): boolean {
-        return baseMoveScore > 0;
+        const threshold = this.getGoodMoveThreshold();
+        return baseMoveScore >= threshold;
+    }
+
+    private getGoodMoveThreshold(): number {
+        let threshold = Number.POSITIVE_INFINITY;
+        this.evaluation.tiers.forEach((tier) => {
+            if (
+                tier.miraTier === 'decent' ||
+                tier.miraTier === 'good' ||
+                tier.miraTier === 'great' ||
+                tier.miraTier === 'epic' ||
+                tier.miraTier === 'legendary'
+            ) {
+                threshold = Math.min(threshold, tier.minScore);
+            }
+        });
+        return Number.isFinite(threshold) ? threshold : Number.POSITIVE_INFINITY;
     }
 
     private getChainBonusForCount(chainCount: number): number {
