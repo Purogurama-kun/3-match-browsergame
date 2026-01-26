@@ -44,6 +44,19 @@
     min-height: 1.1em;
 }
 
+.shop__section {
+    padding-top: 0.4rem;
+}
+
+.shop__section-title {
+    margin: 0.75rem 0 0.45rem;
+    padding: 0 1.25rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+}
+
 .shop__grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -262,6 +275,10 @@
 }
 
 @media (max-width: 600px) {
+    .shop__section-title {
+        padding: 0 0.75rem;
+    }
+
     .shop__grid {
         padding: 0 0.75rem 1rem;
     }

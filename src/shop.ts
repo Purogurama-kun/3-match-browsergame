@@ -41,7 +41,8 @@ class ShopView {
         onClose: () => void;
     }) {
         this.container = getRequiredElement('shop');
-        this.itemsContainer = getRequiredElement('shop-items');
+        this.permanentItemsContainer = getRequiredElement('shop-items-permanent');
+        this.consumableItemsContainer = getRequiredElement('shop-items-consumable');
         this.coinLabel = getRequiredElement('shop-coin-count');
         this.feedback = getRequiredElement('shop-feedback');
         this.closeButton = getRequiredElement('shop-close');
@@ -54,7 +55,8 @@ class ShopView {
     }
 
     private readonly container: HTMLElement;
-    private readonly itemsContainer: HTMLElement;
+    private readonly permanentItemsContainer: HTMLElement;
+    private readonly consumableItemsContainer: HTMLElement;
     private readonly coinLabel: HTMLElement;
     private readonly feedback: HTMLElement;
     private readonly closeButton: HTMLButtonElement;
@@ -219,7 +221,7 @@ class ShopView {
             item.appendChild(iconWrapper);
             item.appendChild(info);
             item.appendChild(button);
-            this.itemsContainer.appendChild(item);
+            this.consumableItemsContainer.appendChild(item);
 
             this.entries[type] = {
                 button,
@@ -309,7 +311,7 @@ class ShopView {
         item.appendChild(iconWrapper);
         item.appendChild(info);
         item.appendChild(button);
-        this.itemsContainer.appendChild(item);
+        this.permanentItemsContainer.appendChild(item);
 
         return {
             button,
