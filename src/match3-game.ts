@@ -69,7 +69,7 @@ const RECORDING_COLOR_HEX: Record<SnapshotCell['color'], string> = {
     none: '#14182f'
 };
 
-const SHIFTING_CANDY_DROP_CHANCE = 0.05;
+const SHIFTING_CANDY_DROP_CHANCE = 0.01;
 
 const RECORDING_BOMB_ICONS: Record<SnapshotCell['bomb'], { center: string; corner: string }> = {
     small: { center: '🧨', corner: '' },
