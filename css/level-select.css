@@ -125,6 +125,27 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    isolation: isolate;
+}
+
+.level-select__map::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle, rgba(255, 255, 255, 0.45) 0 2.5px, transparent 4px),
+        radial-gradient(circle, rgba(255, 255, 255, 0.35) 0 1.8px, transparent 3.5px),
+        radial-gradient(circle, rgba(255, 230, 230, 0.35) 0 2px, transparent 3.8px);
+    background-size: 140px 140px, 180px 180px, 220px 220px;
+    background-position: 10px 20px, 60px 90px, 30px 140px;
+    opacity: 0.55;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.level-select__map > * {
+    position: relative;
+    z-index: 1;
 }
 
 .level-select__subtitle {
