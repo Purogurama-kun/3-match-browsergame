@@ -56,6 +56,7 @@ class MultiplierTracker {
         this.goodMoveChain = 0;
         if (this.state) {
             this.state.comboChainBonus = 0;
+            this.state.comboChainCount = 0;
         }
     }
 
@@ -118,6 +119,7 @@ class MultiplierTracker {
         const bonus = this.getChainBonusForCount(this.goodMoveChain);
         if (this.state) {
             this.state.comboChainBonus = bonus;
+            this.state.comboChainCount = this.goodMoveChain;
         }
         return bonus;
     }

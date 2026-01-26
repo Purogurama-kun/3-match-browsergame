@@ -81,6 +81,7 @@ type GameState = {
     difficulty: Difficulty;
     comboMultiplier: number;
     comboChainBonus: number;
+    comboChainCount: number;
     timeRemaining?: number;
     survivalTime?: number;
     timeCapacity?: number;

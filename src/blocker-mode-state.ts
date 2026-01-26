@@ -37,6 +37,7 @@ class BlockerModeState implements GameModeState {
             difficulty: 'easy',
             comboMultiplier: 1,
             comboChainBonus: 0,
+            comboChainCount: 0,
             powerups: createFreshPowerupInventory()
             ,
             cellShapeMode: 'square'

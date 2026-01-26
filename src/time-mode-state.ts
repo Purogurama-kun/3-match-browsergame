@@ -45,6 +45,7 @@ class TimeModeState implements GameModeState {
             difficulty: 'easy',
             comboMultiplier: 1,
             comboChainBonus: 0,
+            comboChainCount: 0,
             timeRemaining: this.config.startingTime,
             survivalTime: 0,
             timeCapacity: this.config.startingTime,

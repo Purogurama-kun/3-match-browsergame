@@ -239,7 +239,8 @@ class Hud {
     }
 
     private updateMultiplierDisplay(state: GameState): void {
-        this.chainModifierValue.textContent = '🗲 ' + state.comboChainBonus.toFixed(2);
+        this.chainModifierValue.textContent =
+            '🗲 ' + state.comboChainBonus.toFixed(2) + ' [' + state.comboChainCount + ']';
         if (state.mode === 'time') {
             const timeMultiplier = state.timeDrainMultiplier ?? 1;
             this.multiplierValue.textContent = 'x' + timeMultiplier.toFixed(2);
