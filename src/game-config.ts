@@ -8,10 +8,16 @@ type ComboMultiplierStep = {
     delta: number;
 };
 
+type ComboChainBonusStep = {
+    minChain: number;
+    bonus: number;
+};
+
 type ComboMultiplierConfig = {
     min: number;
     max: number;
     steps: ComboMultiplierStep[];
+    chainBonuses: ComboChainBonusStep[];
 };
 
 type ScoringConfig = {
@@ -43,13 +49,21 @@ const DEFAULT_COMBO_STEPS: ComboMultiplierStep[] = [
     { maxScore: 29, delta: -0.15 }
 ];
 
+const DEFAULT_CHAIN_BONUSES: ComboChainBonusStep[] = [
+    { minChain: 3, bonus: 0.15 },
+    { minChain: 4, bonus: 0.2 },
+    { minChain: 5, bonus: 0.25 },
+    { minChain: 6, bonus: 0.3 }
+];
+
 const DEFAULT_GAME_CONFIG: GameConfig = {
     scoring: {
         baseCellPoints: 10,
         comboMultiplier: {
             min: 0.5,
             max: 5,
-            steps: DEFAULT_COMBO_STEPS
+            steps: DEFAULT_COMBO_STEPS,
+            chainBonuses: DEFAULT_CHAIN_BONUSES
         },
         boosterScoreValues: {
             [BOOSTERS.LINE]: 0,
@@ -98,6 +112,10 @@ function parseGameConfig(raw: unknown): GameConfig | null {
     const comboMin = readNumber(comboRaw.min, DEFAULT_GAME_CONFIG.scoring.comboMultiplier.min, { min: 0 });
     const comboMax = readNumber(comboRaw.max, DEFAULT_GAME_CONFIG.scoring.comboMultiplier.max, { min: comboMin });
     const steps = readComboSteps(comboRaw.steps, DEFAULT_GAME_CONFIG.scoring.comboMultiplier.steps);
+    const chainBonuses = readChainBonuses(
+        comboRaw.chainBonuses,
+        DEFAULT_GAME_CONFIG.scoring.comboMultiplier.chainBonuses
+    );
 
     return {
         scoring: {
@@ -105,7 +123,8 @@ function parseGameConfig(raw: unknown): GameConfig | null {
             comboMultiplier: {
                 min: comboMin,
                 max: comboMax,
-                steps
+                steps,
+                chainBonuses
             },
             boosterScoreValues: readBoosterScoreValues(
                 scoringRaw.boosterScoreValues,
@@ -140,6 +159,26 @@ function readComboSteps(value: unknown, fallback: ComboMultiplierStep[]): ComboM
     if (steps.length === 0) {
         return fallback.map((step) => ({ ...step }));
     }
+    return steps;
+}
+
+function readChainBonuses(value: unknown, fallback: ComboChainBonusStep[]): ComboChainBonusStep[] {
+    if (!Array.isArray(value)) {
+        return fallback.map((step) => ({ ...step }));
+    }
+    const steps: ComboChainBonusStep[] = [];
+    value.forEach((entry) => {
+        if (!entry || typeof entry !== 'object') return;
+        const record = entry as Record<string, unknown>;
+        const minChain = readInt(record.minChain, NaN, { min: 1 });
+        const bonus = readNumber(record.bonus, NaN);
+        if (!Number.isFinite(minChain) || !Number.isFinite(bonus)) return;
+        steps.push({ minChain, bonus });
+    });
+    if (steps.length === 0) {
+        return fallback.map((step) => ({ ...step }));
+    }
+    steps.sort((a, b) => a.minChain - b.minChain);
     return steps;
 }
 
@@ -245,7 +284,8 @@ function cloneGameConfig(config: GameConfig): GameConfig {
             comboMultiplier: {
                 min: config.scoring.comboMultiplier.min,
                 max: config.scoring.comboMultiplier.max,
-                steps: config.scoring.comboMultiplier.steps.map((step) => ({ ...step }))
+                steps: config.scoring.comboMultiplier.steps.map((step) => ({ ...step })),
+                chainBonuses: config.scoring.comboMultiplier.chainBonuses.map((step) => ({ ...step }))
             },
             boosterScoreValues: { ...config.scoring.boosterScoreValues },
             evaluation: cloneMoveEvaluation(config.scoring.evaluation)
@@ -257,6 +297,7 @@ export {
     GameConfig,
     ScoringConfig,
     ComboMultiplierStep,
+    ComboChainBonusStep,
     MoveEvaluationConfig,
     MoveEvaluationTier,
     getGameConfig,

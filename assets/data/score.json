@@ -10,6 +10,12 @@
         { "minScore": 60, "delta": 0.2 },
         { "exactScore": 0, "delta": -0.3 },
         { "maxScore": 29, "delta": -0.15 }
+      ],
+      "chainBonuses": [
+        { "minChain": 3, "bonus": 0.15 },
+        { "minChain": 4, "bonus": 0.2 },
+        { "minChain": 5, "bonus": 0.25 },
+        { "minChain": 6, "bonus": 0.3 }
       ]
     },
     "boosterScoreValues": {

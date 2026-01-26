@@ -98,6 +98,7 @@ class Match3Game implements ModeContext {
             minMultiplier: this.minMultiplier,
             maxMultiplier: this.maxMultiplier,
             steps: this.comboSteps,
+            chainBonuses: this.gameConfig.scoring.comboMultiplier.chainBonuses,
             evaluation: this.gameConfig.scoring.evaluation
         });
         this.powerups = new PowerupManager(

@@ -2,7 +2,7 @@ import { Renderer } from './renderer.js';
 import { SoundManager } from './sound-manager.js';
 import { t, TranslationKey } from './i18n.js';
 import type { GameState } from './types.js';
-import type { ComboMultiplierStep, MoveEvaluationConfig } from './game-config.js';
+import type { ComboChainBonusStep, ComboMultiplierStep, MoveEvaluationConfig } from './game-config.js';
 
 type MultiplierTrackerOptions = {
     renderer: Renderer;
@@ -10,6 +10,7 @@ type MultiplierTrackerOptions = {
     minMultiplier: number;
     maxMultiplier: number;
     steps: ComboMultiplierStep[];
+    chainBonuses: ComboChainBonusStep[];
     evaluation: MoveEvaluationConfig;
 };
 
@@ -19,6 +20,7 @@ class MultiplierTracker {
     private minMultiplier: number;
     private maxMultiplier: number;
     private steps: ComboMultiplierStep[];
+    private chainBonuses: ComboChainBonusStep[];
     private evaluation: MoveEvaluationConfig;
     private state: GameState | null = null;
     private moveActive = false;
@@ -32,6 +34,7 @@ class MultiplierTracker {
         this.minMultiplier = options.minMultiplier;
         this.maxMultiplier = options.maxMultiplier;
         this.steps = options.steps;
+        this.chainBonuses = options.chainBonuses;
         this.evaluation = options.evaluation;
     }
 
@@ -146,11 +149,13 @@ class MultiplierTracker {
     }
 
     private getChainBonusForCount(chainCount: number): number {
-        if (chainCount >= 6) return 0.3;
-        if (chainCount === 5) return 0.25;
-        if (chainCount === 4) return 0.2;
-        if (chainCount === 3) return 0.15;
-        return 0;
+        let resolved = 0;
+        this.chainBonuses.forEach((step) => {
+            if (chainCount >= step.minChain) {
+                resolved = step.bonus;
+            }
+        });
+        return resolved;
     }
 
     private getMiraTier(baseMoveScore: number): 'legendary' | 'epic' | 'great' | 'good' | 'decent' | null {
