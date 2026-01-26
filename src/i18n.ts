@@ -228,6 +228,7 @@ const TRANSLATIONS = {
         'tutorial.section.boosters': 'Boosters',
         'tutorial.section.matches': 'Matches',
         'tutorial.section.bombMatches': 'Bomb matches',
+        'tutorial.section.specialCandies': 'Special candies',
         'tutorial.section.mechanics': 'Game Mechanics',
         'tutorial.section.obstacles': 'Obstacles',
         'tutorial.section.modes': 'Modes',
@@ -259,6 +260,8 @@ const TRANSLATIONS = {
         'tutorial.bombMatches.largeLargeTitle': 'Large blast bomb + Large blast bomb',
         'tutorial.mechanics.multiplierText':
             'The score multiplier rises after strong moves, drops after weak or empty moves, and applies to every point you earn. Consecutive good moves add a chain bonus that boosts the multiplier further.',
+        'tutorial.mechanics.shiftingTitle': 'Shifting candy',
+        'tutorial.mechanics.shiftingText': 'Changes color between moves and avoids creating instant matches.',
         'tutorial.mechanics.chainTitle': 'Chain bonus',
         'tutorial.mechanics.chainText': 'Keep landing good moves in a row to grow the chain bonus.',
         'tutorial.obstacles.hardTitle': 'Hard candies',
@@ -523,6 +526,7 @@ const TRANSLATIONS = {
         'tutorial.section.boosters': 'Booster',
         'tutorial.section.matches': 'Matches',
         'tutorial.section.bombMatches': 'Bomben-Matches',
+        'tutorial.section.specialCandies': 'Spezialbonbons',
         'tutorial.section.mechanics': 'Spielmechanik',
         'tutorial.section.obstacles': 'Hindernisse',
         'tutorial.section.modes': 'Modi',
@@ -555,6 +559,8 @@ const TRANSLATIONS = {
         'tutorial.bombMatches.largeLargeTitle': 'Große Explosionsbombe + Große Explosionsbombe',
         'tutorial.mechanics.multiplierText':
             'Der Punkte-Multiplikator steigt nach starken Zügen, fällt nach schwachen oder leeren Zügen und gilt für jeden Punkt. Aufeinanderfolgende gute Züge geben einen Kettenbonus, der den Multiplikator weiter erhöht.',
+        'tutorial.mechanics.shiftingTitle': 'Wechselbonbon',
+        'tutorial.mechanics.shiftingText': 'Wechselt zwischen Zügen die Farbe und vermeidet sofortige Matches.',
         'tutorial.mechanics.chainTitle': 'Kettenbonus',
         'tutorial.mechanics.chainText': 'Lande mehrere gute Züge nacheinander, um den Kettenbonus zu erhöhen.',
         'tutorial.obstacles.hardTitle': 'Harte Bonbons',
