@@ -495,25 +495,25 @@ body {
 .editor__cell--hardening::before {
     content: "";
     position: absolute;
-    inset: 4px;
+    inset: 0;
     border-radius: 8px;
     pointer-events: none;
-    opacity: 0.85;
+    opacity: 0.95;
     background:
-        linear-gradient(#f8fafc, #f8fafc) top / 100% 2px no-repeat;
+        linear-gradient(#f8fafc, #f8fafc) top / 100% 4px no-repeat;
 }
 
 .editor__cell--hardening-2::before {
     background:
-        linear-gradient(#f8fafc, #f8fafc) top / 100% 2px no-repeat,
-        linear-gradient(#f8fafc, #f8fafc) right / 2px 100% no-repeat;
+        linear-gradient(#f8fafc, #f8fafc) top / 100% 4px no-repeat,
+        linear-gradient(#f8fafc, #f8fafc) right / 4px 100% no-repeat;
 }
 
 .editor__cell--hardening-3::before {
     background:
-        linear-gradient(#f8fafc, #f8fafc) top / 100% 2px no-repeat,
-        linear-gradient(#f8fafc, #f8fafc) right / 2px 100% no-repeat,
-        linear-gradient(#f8fafc, #f8fafc) bottom / 100% 2px no-repeat;
+        linear-gradient(#f8fafc, #f8fafc) top / 100% 4px no-repeat,
+        linear-gradient(#f8fafc, #f8fafc) right / 4px 100% no-repeat,
+        linear-gradient(#f8fafc, #f8fafc) bottom / 100% 4px no-repeat;
 }
 
 .editor__cell--red {
