@@ -259,6 +259,10 @@ const TRANSLATIONS = {
             'The score multiplier rises after strong moves, drops after weak or empty moves, and applies to every point you earn.',
         'tutorial.obstacles.hardTitle': 'Hard candies',
         'tutorial.obstacles.hardText': 'Adjacent matches crack them before they can be cleared.',
+        'tutorial.obstacles.hard2Title': 'Hard candy 2',
+        'tutorial.obstacles.hard2Text': 'Needs two adjacent matches to clear.',
+        'tutorial.obstacles.hard3Title': 'Hard candy 3',
+        'tutorial.obstacles.hard3Text': 'Needs three adjacent matches to clear.',
         'tutorial.obstacles.chestTitle': 'Sugar chests',
         'tutorial.obstacles.chestText':
             'Adjacent matches crack them until they burst into sugar coins. It takes 3 adjacent matches to break a chest.',
@@ -547,6 +551,10 @@ const TRANSLATIONS = {
             'Der Punkte-Multiplikator steigt nach starken Zügen, fällt nach schwachen oder leeren Zügen und gilt für jeden Punkt.',
         'tutorial.obstacles.hardTitle': 'Harte Bonbons',
         'tutorial.obstacles.hardText': 'Benachbarte Matches knacken sie, bevor sie entfernt werden.',
+        'tutorial.obstacles.hard2Title': 'Hartes Bonbon 2',
+        'tutorial.obstacles.hard2Text': 'Zwei benachbarte Matches sind nötig, bevor es entfernt wird.',
+        'tutorial.obstacles.hard3Title': 'Hartes Bonbon 3',
+        'tutorial.obstacles.hard3Text': 'Drei benachbarte Matches sind nötig, bevor es entfernt wird.',
         'tutorial.obstacles.chestTitle': 'Zuckerkisten',
         'tutorial.obstacles.chestText':
             'Benachbarte Matches knacken sie, bis sie in Zuckermünzen platzen. Es braucht 3 benachbarte Matches, um eine Kiste zu sprengen.',
