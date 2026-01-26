@@ -19,6 +19,7 @@ const BOARD_TOKENS = [
     { token: 'C1', label: 'Sugar chest I', className: 'sugar-chest sugar-chest-1', swatch: '#ffffff' },
     { token: 'C2', label: 'Sugar chest II', className: 'sugar-chest sugar-chest-2', swatch: '#ffffff' },
     { token: 'C3', label: 'Sugar chest III', className: 'sugar-chest sugar-chest-3', swatch: '#ffffff' },
+    { token: 'Q1', label: 'Shifting candy', className: 'shifting', swatch: '#cffafe' },
     { token: 'R1', label: 'Red', className: 'red', swatch: '#ff7b7b' },
     { token: 'A1', label: 'Amber', className: 'amber', swatch: '#ffd166' },
     { token: 'B1', label: 'Blue', className: 'blue', swatch: '#7dd3fc' },
@@ -449,6 +450,10 @@ function createBoardRowsFromLevel(level) {
                 }
                 return;
             }
+            if (override.shifting) {
+                setToken(override.index, 'Q1');
+                return;
+            }
             if (override.color) {
                 const token = COLOR_HEX_TO_TOKEN[override.color.toLowerCase()];
                 if (token) {
@@ -511,6 +516,7 @@ function getTokenDisplay(token) {
     if (type === 'M') return '💥';
     if (type === 'U') return '☢️';
     if (type === 'C') return '';
+    if (type === 'Q') return '✺';
     return '';
 }
 
@@ -519,6 +525,7 @@ function getTokenColor(token, index) {
     const color = TOKEN_TO_COLOR[type];
     if (color) return color;
     if (type === 'X' || type === 'C') return '';
+    if (type === 'Q') return '#cffafe';
     return NATURAL_COLORS[(index * 7 + 3) % NATURAL_COLORS.length];
 }
 
@@ -615,6 +622,7 @@ function getTokenClassName(token) {
     if (type === 'M') tokenClass = 'bomb-medium';
     if (type === 'U') tokenClass = 'bomb-large';
     if (type === 'C') tokenClass = `sugar-chest sugar-chest-${stage}`;
+    if (type === 'Q') tokenClass = 'shifting';
     if (type === 'R') tokenClass = 'red';
     if (type === 'A') tokenClass = 'amber';
     if (type === 'B') tokenClass = 'blue';
@@ -678,7 +686,7 @@ function normalizeBoardToken(raw) {
         if (type === 'H') {
             return stage === '1' || stage === '2' || stage === '3' ? `H${stage}` : '.1';
         }
-        if (type === '.' || type === 'X' || type === 'T' || type === 'L' || type === 'V' || type === 'S' || type === 'M' || type === 'U') {
+        if (type === '.' || type === 'X' || type === 'T' || type === 'L' || type === 'V' || type === 'S' || type === 'M' || type === 'U' || type === 'Q') {
             return stage === '1' ? `${type}1` : '.1';
         }
         if (type === 'R' || type === 'A' || type === 'B' || type === 'P' || type === 'G') {

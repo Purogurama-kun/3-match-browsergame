@@ -104,6 +104,7 @@ type BoardCellOverride = {
     booster?: BoosterType;
     lineOrientation?: LineOrientation;
     sugarChestStage?: number;
+    shifting?: boolean;
 };
 
 export {

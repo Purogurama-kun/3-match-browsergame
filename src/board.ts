@@ -12,6 +12,8 @@ type CellState = {
     blocked: boolean;
     generator: boolean;
     sugarChestStage?: number;
+    shifting: boolean;
+    shiftingNextColor?: string;
 };
 
 type ColumnEntry = {
@@ -22,6 +24,8 @@ type ColumnEntry = {
     hardStage?: number;
     generator: boolean;
     sugarChestStage?: number;
+    shifting: boolean;
+    shiftingNextColor?: string;
 };
 
 type DropMove = {
@@ -52,6 +56,7 @@ class Board {
             booster?: BoosterType;
             lineOrientation?: LineOrientation;
             sugarChestStage?: number;
+            shifting?: boolean;
         }>;
     }): void {
         const overrideMap = new Map<
@@ -65,6 +70,7 @@ class Board {
                 booster?: BoosterType;
                 lineOrientation?: LineOrientation;
                 sugarChestStage?: number;
+                shifting?: boolean;
             }
         >();
         (config?.cellOverrides ?? []).forEach((override) => {
@@ -94,7 +100,8 @@ class Board {
                 booster: BOOSTERS.NONE,
                 hard,
                 blocked,
-                generator: isGenerator
+                generator: isGenerator,
+                shifting: false
             };
             if (hard) {
                 state.hardStage = hardStage ?? 1;
@@ -120,6 +127,24 @@ class Board {
                 state.booster = override.booster;
                 if (override.booster === BOOSTERS.LINE && override.lineOrientation) {
                     state.lineOrientation = override.lineOrientation;
+                }
+            }
+            const wantsShift = Boolean(override?.shifting);
+            const canShift =
+                wantsShift &&
+                !blocked &&
+                !state.generator &&
+                !state.hard &&
+                !hasOverrideChest &&
+                !override?.booster &&
+                Boolean(state.color);
+            state.shifting = canShift;
+            if (state.shifting) {
+                const nextColor = this.pickNextShiftColor(state.color);
+                if (nextColor) {
+                    state.shiftingNextColor = nextColor;
+                } else {
+                    delete state.shiftingNextColor;
                 }
             }
             this.cellStates.push(state);
@@ -159,6 +184,10 @@ class Board {
     setBooster(index: number, type: BoosterType): void {
         const state = this.getCellState(index);
         state.booster = type;
+        if (type !== BOOSTERS.NONE) {
+            state.shifting = false;
+            delete state.shiftingNextColor;
+        }
         if (type !== BOOSTERS.LINE) {
             delete state.lineOrientation;
         }
@@ -195,6 +224,10 @@ class Board {
         const state = this.getCellState(index);
         state.hard = isHard;
         if (isHard) {
+            state.shifting = false;
+            delete state.shiftingNextColor;
+        }
+        if (isHard) {
             state.hardStage = this.normalizeHardStage(stage) ?? 1;
         } else {
             delete state.hardStage;
@@ -215,6 +248,8 @@ class Board {
             delete state.hardStage;
         }
         state.booster = BOOSTERS.NONE;
+        state.shifting = false;
+        delete state.shiftingNextColor;
         delete state.lineOrientation;
     }
 
@@ -238,6 +273,8 @@ class Board {
         state.hard = false;
         delete state.hardStage;
         state.generator = false;
+        state.shifting = false;
+        delete state.shiftingNextColor;
         delete state.lineOrientation;
         delete state.sugarChestStage;
     }
@@ -298,6 +335,13 @@ class Board {
         throw new Error('Unable to pick a non-matching color');
     }
 
+    private pickNextShiftColor(currentColor: string): string | undefined {
+        if (!currentColor) return undefined;
+        const candidates = COLORS.filter((color) => color !== currentColor);
+        if (candidates.length === 0) return undefined;
+        return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
     private getExistingColor(index: number): string | null {
         const state = this.cellStates[index];
         if (!state) return null;
@@ -317,6 +361,55 @@ class Board {
         return typeof this.getCellState(index).sugarChestStage === 'number';
     }
 
+    isShiftingCandy(index: number): boolean {
+        return this.getCellState(index).shifting;
+    }
+
+    getShiftingNextColor(index: number): string | undefined {
+        return this.getCellState(index).shiftingNextColor;
+    }
+
+    setShiftingCandy(index: number, enabled: boolean): void {
+        const state = this.getCellState(index);
+        if (!enabled) {
+            state.shifting = false;
+            delete state.shiftingNextColor;
+            return;
+        }
+        const canShift =
+            !state.blocked &&
+            !state.generator &&
+            !state.hard &&
+            state.sugarChestStage === undefined &&
+            state.booster === BOOSTERS.NONE &&
+            Boolean(state.color);
+        state.shifting = canShift;
+        if (canShift) {
+            const nextColor = this.pickNextShiftColor(state.color);
+            if (nextColor) {
+                state.shiftingNextColor = nextColor;
+            } else {
+                delete state.shiftingNextColor;
+            }
+        } else {
+            delete state.shiftingNextColor;
+        }
+    }
+
+    setShiftingNextColor(index: number, color: string | null | undefined): void {
+        const state = this.getCellState(index);
+        if (!state.shifting) {
+            delete state.shiftingNextColor;
+            return;
+        }
+        const nextColor = color ?? this.pickNextShiftColor(state.color);
+        if (nextColor) {
+            state.shiftingNextColor = nextColor;
+        } else {
+            delete state.shiftingNextColor;
+        }
+    }
+
     getSugarChestStage(index: number): number | undefined {
         return this.getCellState(index).sugarChestStage;
     }
@@ -327,6 +420,8 @@ class Board {
         state.booster = BOOSTERS.NONE;
         state.hard = false;
         state.generator = false;
+        state.shifting = false;
+        delete state.shiftingNextColor;
         delete state.lineOrientation;
         const normalized = Math.max(1, Math.min(3, Math.floor(stage)));
         state.sugarChestStage = normalized;
@@ -392,7 +487,8 @@ class Board {
                 booster: BOOSTERS.NONE,
                 hard: false,
                 generator: false,
-                sugarChestStage: state.sugarChestStage
+                sugarChestStage: state.sugarChestStage,
+                shifting: false
             };
         }
         if (!state.color && state.booster === BOOSTERS.NONE && !state.hard && !state.generator) {
@@ -402,7 +498,9 @@ class Board {
             color: state.color,
             booster: state.booster,
             hard: state.hard,
-            generator: state.generator
+            generator: state.generator,
+            shifting: state.shifting,
+            ...(state.shiftingNextColor ? { shiftingNextColor: state.shiftingNextColor } : {})
         };
         if (state.lineOrientation) {
             entry.lineOrientation = state.lineOrientation;
@@ -427,6 +525,12 @@ class Board {
         const state = this.getCellState(index);
         state.color = entry.color;
         state.booster = entry.booster;
+        state.shifting = entry.shifting;
+        if (entry.shifting && entry.shiftingNextColor) {
+            state.shiftingNextColor = entry.shiftingNextColor;
+        } else {
+            delete state.shiftingNextColor;
+        }
         if (entry.booster === BOOSTERS.LINE) {
             state.lineOrientation = entry.lineOrientation ?? 'horizontal';
         } else {

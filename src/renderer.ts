@@ -587,6 +587,7 @@ class Renderer {
         cell.dataset.blocked = state.blocked ? 'true' : 'false';
         cell.dataset.hard = state.hard ? 'true' : 'false';
         cell.dataset.generator = state.generator ? 'true' : 'false';
+        cell.dataset.shifting = state.shifting ? 'true' : 'false';
         if (state.lineOrientation) {
             cell.dataset.lineOrientation = state.lineOrientation;
         } else {
@@ -597,6 +598,7 @@ class Renderer {
         cell.dataset.colorKey = colorKey ?? '';
         cell.textContent = '';
         cell.style.removeProperty('--cell-color');
+        cell.style.removeProperty('--shifting-next-color');
         cell.classList.remove('board__cell--sugar-chest');
         cell.classList.remove('board__cell--hard-2', 'board__cell--hard-3');
         cell.style.removeProperty('--sugar-chest-image');
@@ -617,6 +619,9 @@ class Renderer {
         if (state.color) {
             cell.style.setProperty('--cell-color', state.color);
         }
+        if (state.shiftingNextColor) {
+            cell.style.setProperty('--shifting-next-color', state.shiftingNextColor);
+        }
         if (!state.generator && this.cellShapesEnabled) {
             this.applyShapeForColor(cell, colorKey);
         }
@@ -624,6 +629,9 @@ class Renderer {
             cell.classList.add('board__cell--generator');
             cell.textContent = '⛓️';
             return;
+        }
+        if (state.shifting) {
+            cell.classList.add('board__cell--shifting');
         }
         if (state.hard) {
             cell.classList.add('board__cell--hard');
@@ -679,6 +687,8 @@ class Renderer {
             state.blocked ? '1' : '0',
             state.hard ? '1' : '0',
             state.generator ? '1' : '0',
+            state.shifting ? '1' : '0',
+            state.shiftingNextColor ?? '',
             stage,
             hardStage,
             orientation

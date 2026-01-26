@@ -837,6 +837,10 @@ function parseBoardLayout(layout: BoardLayoutInput, levelId: number): ParsedBoar
                 blockerGenerators.push(index);
                 return;
             }
+            if (parsed.type === 'Q') {
+                cellOverrides.push({ index, shifting: true });
+                return;
+            }
             const colorKey = BOARD_TOKEN_COLORS[parsed.type];
             if (colorKey) {
                 cellOverrides.push({ index, color: getColorHex(colorKey) });
@@ -910,6 +914,9 @@ function parseBoardToken(rawToken: string): ParsedBoardToken | null {
         return stage === '1' || stage === '2' || stage === '3' ? { type, stage } : null;
     }
     if (type === 'X' || type === 'T') {
+        return stage === '1' ? { type, stage } : null;
+    }
+    if (type === 'Q') {
         return stage === '1' ? { type, stage } : null;
     }
     if (BOARD_TOKEN_COLORS[type]) {

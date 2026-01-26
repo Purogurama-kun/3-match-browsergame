@@ -29,6 +29,7 @@ import { Bomb } from './bomb.js';
 import { Candie } from './candie.js';
 import { Generator } from './generator.js';
 import { HardCandy } from './hard-candy.js';
+import { ShiftingCandy } from './shifting-candy.js';
 import { getRequiredElement } from './dom.js';
 import { Match, type MatchContext } from './match.js';
 import type { MatchResult } from './match-scanner.js';
@@ -67,6 +68,8 @@ const RECORDING_COLOR_HEX: Record<SnapshotCell['color'], string> = {
     green: '#6ee7b7',
     none: '#14182f'
 };
+
+const SHIFTING_CANDY_DROP_CHANCE = 0.05;
 
 const RECORDING_BOMB_ICONS: Record<SnapshotCell['bomb'], { center: string; corner: string }> = {
     small: { center: '🧨', corner: '' },
@@ -139,6 +142,11 @@ class Match3Game implements ModeContext {
             renderer: this.renderer,
             getRowCol: (index) => this.getRowCol(index),
             getAdjacentIndices: (row, col) => this.getAdjacentIndices(row, col)
+        });
+        this.shiftingCandy = new ShiftingCandy({
+            board: this.board,
+            renderer: this.renderer,
+            spawnChance: SHIFTING_CANDY_DROP_CHANCE
         });
         this.candie = new Candie({
             board: this.board,
@@ -252,6 +260,7 @@ class Match3Game implements ModeContext {
     private multiplierTracker: MultiplierTracker;
     private candie: Candie;
     private hardCandy: HardCandy;
+    private shiftingCandy: ShiftingCandy;
     private bomb: Bomb;
     private generator: Generator;
     private matchFlow: Match;
@@ -786,6 +795,9 @@ class Match3Game implements ModeContext {
                     this.board.setCellColor(index, randomColor());
                     this.board.setBooster(index, BOOSTERS.NONE);
                     this.board.setHardCandy(index, spawnHardCandy);
+                    if (!spawnHardCandy) {
+                        this.shiftingCandy.trySpawn(index);
+                    }
                 }
             });
         }
@@ -1092,6 +1104,11 @@ class Match3Game implements ModeContext {
         this.updateHud();
         this.modeState.handleMoveResolved(this.state, this);
         this.modeState.checkForCompletion(this.state, this);
+        if (this.isModalVisible()) return;
+        const shifted = this.shiftingCandy.advanceTurn();
+        if (shifted) {
+            this.captureSnapshot(null);
+        }
     }
 
     private hardenRandomCells(amount: number): void {
