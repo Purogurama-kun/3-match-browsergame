@@ -145,18 +145,41 @@
     overflow-y: auto;
     flex: 1;
     position: relative;
+    --level-select-path-top: 3.1rem;
+    --level-select-progress-top: var(--level-select-path-top);
+    --level-select-progress-height: 0px;
 }
 
 .level-select__path::before {
     content: '';
     position: absolute;
     left: 50%;
-    top: 3.1rem;
+    top: var(--level-select-path-top);
     bottom: 1.5rem;
     width: 5px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.06));
     border-radius: 999px;
     box-shadow: 0 0 18px rgba(255, 255, 255, 0.06);
+}
+
+.level-select__path::after {
+    content: '';
+    position: absolute;
+    left: calc(50% + 2.3px);
+    top: var(--level-select-progress-top);
+    width: 5px;
+    height: var(--level-select-progress-height);
+    transform: translateX(-50%);
+    background: linear-gradient(
+        180deg,
+        rgba(125, 211, 252, 0.9),
+        rgba(56, 189, 248, 0.45),
+        rgba(14, 116, 144, 0.2)
+    );
+    border-radius: 999px;
+    box-shadow: none;
+    pointer-events: none;
+    transition: height 0.25s ease;
 }
 
 .level-select__path::-webkit-scrollbar {

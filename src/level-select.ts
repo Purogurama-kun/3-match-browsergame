@@ -196,6 +196,7 @@ class LevelSelectView {
         const targetNode = this.levelNodes[clampedLevel - 1];
         if (!targetNode) {
             this.miraMarker.hidden = true;
+            this.path.style.setProperty('--level-select-progress-height', '0px');
             return;
         }
         if (this.miraMarker.parentElement !== targetNode) {
@@ -203,6 +204,7 @@ class LevelSelectView {
             targetNode.appendChild(this.miraMarker);
         }
         this.miraMarker.hidden = false;
+        this.updateProgressPath(targetNode);
     }
 
     private renderSelected(): void {
@@ -394,6 +396,39 @@ class LevelSelectView {
 
     private resetScrollPosition(): void {
         this.path.scrollTop = 0;
+    }
+
+    private updateProgressPath(targetNode: HTMLLIElement): void {
+        const pathRect = this.path.getBoundingClientRect();
+        const targetRect = targetNode.getBoundingClientRect();
+        const startOffset = this.getProgressStartOffset(pathRect);
+        const targetCenter = targetRect.top - pathRect.top + targetRect.height / 2;
+        const progressHeight = Math.max(0, targetCenter - startOffset);
+        this.path.style.setProperty('--level-select-progress-top', `${Math.round(startOffset)}px`);
+        this.path.style.setProperty('--level-select-progress-height', `${Math.round(progressHeight)}px`);
+    }
+
+    private getProgressStartOffset(pathRect: DOMRect): number {
+        const firstNode = this.levelNodes[0];
+        if (firstNode) {
+            const firstRect = firstNode.getBoundingClientRect();
+            return firstRect.top - pathRect.top + firstRect.height / 2;
+        }
+        return this.getPathTopOffset();
+    }
+
+    private parseCssLength(value: string): number {
+        if (value.endsWith('rem')) {
+            const rootSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+            const remValue = parseFloat(value);
+            return Number.isFinite(rootSize) && Number.isFinite(remValue) ? rootSize * remValue : 0;
+        }
+        if (value.endsWith('px')) {
+            const pxValue = parseFloat(value);
+            return Number.isFinite(pxValue) ? pxValue : 0;
+        }
+        const fallbackValue = parseFloat(value);
+        return Number.isFinite(fallbackValue) ? fallbackValue : 0;
     }
 
     private formatDifficultyLabel(difficulty: Difficulty): string {
