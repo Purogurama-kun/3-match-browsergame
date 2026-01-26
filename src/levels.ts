@@ -833,6 +833,13 @@ function parseBoardLayout(layout: BoardLayoutInput, levelId: number): ParsedBoar
                 }
                 return;
             }
+            if (parsed.type === 'N') {
+                const stage = Number(parsed.stage);
+                if (stage >= 1 && stage <= 3) {
+                    cellOverrides.push({ index, hardeningStage: stage });
+                    return;
+                }
+            }
             if (parsed.type === 'T') {
                 blockerGenerators.push(index);
                 return;
@@ -911,6 +918,9 @@ function parseBoardToken(rawToken: string): ParsedBoardToken | null {
         return stage === '1' || stage === '2' || stage === '3' ? { type, stage } : null;
     }
     if (type === 'H') {
+        return stage === '1' || stage === '2' || stage === '3' ? { type, stage } : null;
+    }
+    if (type === 'N') {
         return stage === '1' || stage === '2' || stage === '3' ? { type, stage } : null;
     }
     if (type === 'X' || type === 'T') {

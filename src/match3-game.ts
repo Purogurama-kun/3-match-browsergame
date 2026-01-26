@@ -29,6 +29,7 @@ import { Bomb } from './bomb.js';
 import { Candie } from './candie.js';
 import { Generator } from './generator.js';
 import { HardCandy } from './hard-candy.js';
+import { HardeningCandy } from './hardening-candy.js';
 import { ShiftingCandy } from './shifting-candy.js';
 import { getRequiredElement } from './dom.js';
 import { Match, type MatchContext } from './match.js';
@@ -142,6 +143,10 @@ class Match3Game implements ModeContext {
             renderer: this.renderer,
             getRowCol: (index) => this.getRowCol(index),
             getAdjacentIndices: (row, col) => this.getAdjacentIndices(row, col)
+        });
+        this.hardeningCandy = new HardeningCandy({
+            board: this.board,
+            renderer: this.renderer
         });
         this.shiftingCandy = new ShiftingCandy({
             board: this.board,
@@ -260,6 +265,7 @@ class Match3Game implements ModeContext {
     private multiplierTracker: MultiplierTracker;
     private candie: Candie;
     private hardCandy: HardCandy;
+    private hardeningCandy: HardeningCandy;
     private shiftingCandy: ShiftingCandy;
     private bomb: Bomb;
     private generator: Generator;
@@ -291,6 +297,7 @@ class Match3Game implements ModeContext {
     private recordingAvailable = false;
     private pendingSnapshotMoves: SnapshotMove[] = [];
     private matchContext: MatchContext = { swap: null };
+    private lastMoveSwap: { cellA: number; cellB: number } | null = null;
     private autoLimitExceeded = false;
     private recordingEnabled = true;
     private optionsChangeListener: ((change: Partial<GameOptions>) => void) | null = null;
@@ -542,6 +549,7 @@ class Match3Game implements ModeContext {
         document.body.classList.add('match-app--playing');
         const boardConfig = this.modeState.getBoardConfig();
         this.board.create(boardConfig);
+        this.lastMoveSwap = null;
         if ('getBackground' in this.modeState && typeof this.modeState.getBackground === 'function') {
             this.renderer.setBackground(this.modeState.getBackground());
         }
@@ -866,6 +874,7 @@ class Match3Game implements ModeContext {
         this.snapshotRecorder.beginManualSequence();
         this.clearPendingSnapshotMoves();
         this.setMatchSwap({ cellA: firstIndex, cellB: secondIndex });
+        this.lastMoveSwap = { cellA: firstIndex, cellB: secondIndex };
         this.modeState.consumeMove(this.state);
         this.beginMove();
         this.updateHud();
@@ -880,6 +889,7 @@ class Match3Game implements ModeContext {
         }
         this.modeState.consumeMove(this.state);
         this.beginMove();
+        this.lastMoveSwap = { cellA: firstIndex, cellB: secondIndex };
         this.modeState.handleBoosterUsed(this.state, firstInfo.booster, this);
         this.modeState.handleBoosterUsed(this.state, secondInfo.booster, this);
         this.updateHud();
@@ -1105,8 +1115,10 @@ class Match3Game implements ModeContext {
         this.modeState.handleMoveResolved(this.state, this);
         this.modeState.checkForCompletion(this.state, this);
         if (this.isModalVisible()) return;
+        const hardeningChanged = this.hardeningCandy.advanceTurn(this.getHardeningTouchedIndices());
+        this.lastMoveSwap = null;
         const shifted = this.shiftingCandy.advanceTurn();
-        if (shifted) {
+        if (hardeningChanged || shifted) {
             this.captureSnapshot(null);
         }
     }
@@ -1537,6 +1549,15 @@ class Match3Game implements ModeContext {
             row: Math.floor(index / GRID_SIZE),
             col: index % GRID_SIZE
         };
+    }
+
+    private getHardeningTouchedIndices(): Set<number> {
+        const touched = new Set<number>();
+        if (this.lastMoveSwap) {
+            touched.add(this.lastMoveSwap.cellA);
+            touched.add(this.lastMoveSwap.cellB);
+        }
+        return touched;
     }
 
     private handleMatchesDetected(result: MatchResult, context: MatchContext): void {

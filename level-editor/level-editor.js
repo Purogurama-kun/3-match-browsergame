@@ -10,6 +10,9 @@ const BOARD_TOKENS = [
     { token: 'H1', label: 'Hard', className: 'hard', swatch: '#f5d27a' },
     { token: 'H2', label: 'Hard (2 hits)', className: 'hard hard-2', swatch: '#f5d27a' },
     { token: 'H3', label: 'Hard (3 hits)', className: 'hard hard-3', swatch: '#f5d27a' },
+    { token: 'N1', label: 'Hardening (1 turn)', className: 'hardening hardening-1', swatch: '#f8fafc' },
+    { token: 'N2', label: 'Hardening (2 turns)', className: 'hardening hardening-2', swatch: '#f8fafc' },
+    { token: 'N3', label: 'Hardening (3 turns)', className: 'hardening hardening-3', swatch: '#f8fafc' },
     { token: 'T1', label: 'Generator', className: 'generator', swatch: '#fca5a5' },
     { token: 'L1', label: 'Line bomb', className: 'bomb-line bomb-line-horizontal', swatch: '#fde68a' },
     { token: 'V1', label: 'Line bomb vertical', className: 'bomb-line bomb-line-vertical', swatch: '#fde68a' },
@@ -438,6 +441,11 @@ function createBoardRowsFromLevel(level) {
                 setToken(override.index, 'H1');
                 return;
             }
+            if (typeof override.hardeningStage === 'number') {
+                const stage = Math.max(1, Math.min(3, Math.floor(override.hardeningStage)));
+                setToken(override.index, `N${stage}`);
+                return;
+            }
             if (override.booster) {
                 if (override.booster === 'line') {
                     setToken(override.index, override.lineOrientation === 'vertical' ? 'V1' : 'L1');
@@ -510,6 +518,7 @@ function getTokenDisplay(token) {
     const type = token.charAt(0);
     if (type === 'X' || type === '.') return '';
     if (type === 'H') return '';
+    if (type === 'N') return '';
     if (type === 'T') return '⛓️';
     if (type === 'L' || type === 'V') return '💣';
     if (type === 'S') return '🧨';
@@ -629,6 +638,11 @@ function getTokenClassName(token) {
         if (stage === '2') tokenClass += ' hard-2';
         if (stage === '3') tokenClass += ' hard-3';
     }
+    if (type === 'N') {
+        tokenClass = 'hardening';
+        if (stage === '2') tokenClass += ' hardening-2';
+        if (stage === '3') tokenClass += ' hardening-3';
+    }
     if (type === 'T') tokenClass = 'generator';
     if (type === 'L') tokenClass = 'bomb-line bomb-line-horizontal';
     if (type === 'V') tokenClass = 'bomb-line bomb-line-vertical';
@@ -699,6 +713,9 @@ function normalizeBoardToken(raw) {
         }
         if (type === 'H') {
             return stage === '1' || stage === '2' || stage === '3' ? `H${stage}` : '.1';
+        }
+        if (type === 'N') {
+            return stage === '1' || stage === '2' || stage === '3' ? `N${stage}` : '.1';
         }
         if (type === '.' || type === 'X' || type === 'T' || type === 'L' || type === 'V' || type === 'S' || type === 'M' || type === 'U' || type === 'Q') {
             return stage === '1' ? `${type}1` : '.1';

@@ -226,6 +226,34 @@
         0 0 14px rgba(15, 23, 42, 0.35);
 }
 
+.board__cell--hardening {
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.board__cell--hardening::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: 10px;
+    pointer-events: none;
+    opacity: 0.85;
+    background:
+        linear-gradient(#f8fafc, #f8fafc) top / 100% 2px no-repeat;
+}
+
+.board__cell--hardening-2::before {
+    background:
+        linear-gradient(#f8fafc, #f8fafc) top / 100% 2px no-repeat,
+        linear-gradient(#f8fafc, #f8fafc) right / 2px 100% no-repeat;
+}
+
+.board__cell--hardening-3::before {
+    background:
+        linear-gradient(#f8fafc, #f8fafc) top / 100% 2px no-repeat,
+        linear-gradient(#f8fafc, #f8fafc) right / 2px 100% no-repeat,
+        linear-gradient(#f8fafc, #f8fafc) bottom / 100% 2px no-repeat;
+}
+
 .board__cell--hard {
     background:
         linear-gradient(140deg, rgba(255, 255, 255, 0.16), rgba(0, 0, 0, 0.55)),

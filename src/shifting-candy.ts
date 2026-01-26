@@ -50,6 +50,7 @@ class ShiftingCandy {
         if (this.board.isBlockedIndex(index)) return false;
         if (this.board.isBlockerGenerator(index)) return false;
         if (this.board.isHardCandy(index)) return false;
+        if (this.board.isHardeningCandy(index)) return false;
         if (this.board.isSugarChest(index)) return false;
         if (this.board.getCellBooster(index) !== BOOSTERS.NONE) return false;
         if (!this.board.getCellColor(index)) return false;

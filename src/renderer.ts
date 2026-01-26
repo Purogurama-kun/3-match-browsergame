@@ -601,6 +601,11 @@ class Renderer {
         cell.style.removeProperty('--shifting-next-color');
         cell.classList.remove('board__cell--sugar-chest');
         cell.classList.remove('board__cell--hard-2', 'board__cell--hard-3');
+        cell.classList.remove(
+            'board__cell--hardening',
+            'board__cell--hardening-2',
+            'board__cell--hardening-3'
+        );
         cell.style.removeProperty('--sugar-chest-image');
         if (state.blocked) {
             cell.classList.add('board__cell--void');
@@ -632,6 +637,15 @@ class Renderer {
         }
         if (state.shifting) {
             cell.classList.add('board__cell--shifting');
+        }
+        if (!state.hard && typeof state.hardeningStage === 'number') {
+            cell.classList.add('board__cell--hardening');
+            if (state.hardeningStage >= 2) {
+                cell.classList.add('board__cell--hardening-2');
+            }
+            if (state.hardeningStage >= 3) {
+                cell.classList.add('board__cell--hardening-3');
+            }
         }
         if (state.hard) {
             cell.classList.add('board__cell--hard');
@@ -678,6 +692,7 @@ class Renderer {
     private getRenderedKey(state: CellState): string {
         const stage = typeof state.sugarChestStage === 'number' ? state.sugarChestStage : '';
         const hardStage = typeof state.hardStage === 'number' ? state.hardStage : '';
+        const hardeningStage = typeof state.hardeningStage === 'number' ? state.hardeningStage : '';
         const orientation = state.lineOrientation ?? '';
         const color = state.color ?? '';
         return [
@@ -691,6 +706,7 @@ class Renderer {
             state.shiftingNextColor ?? '',
             stage,
             hardStage,
+            hardeningStage,
             orientation
         ].join('|');
     }

@@ -9,6 +9,7 @@ type CellState = {
     lineOrientation?: LineOrientation;
     hard: boolean;
     hardStage?: number;
+    hardeningStage?: number;
     blocked: boolean;
     generator: boolean;
     sugarChestStage?: number;
@@ -22,6 +23,7 @@ type ColumnEntry = {
     lineOrientation?: LineOrientation | undefined;
     hard: boolean;
     hardStage?: number;
+    hardeningStage?: number;
     generator: boolean;
     sugarChestStage?: number;
     shifting: boolean;
@@ -51,6 +53,7 @@ class Board {
             color?: string;
             hard?: boolean;
             hardStage?: number;
+            hardeningStage?: number;
             blocked?: boolean;
             generator?: boolean;
             booster?: BoosterType;
@@ -65,6 +68,7 @@ class Board {
                 color?: string;
                 hard?: boolean;
                 hardStage?: number;
+                hardeningStage?: number;
                 blocked?: boolean;
                 generator?: boolean;
                 booster?: BoosterType;
@@ -93,8 +97,10 @@ class Board {
             const isGenerator = override?.generator ?? blockerGenerators.has(i);
             const overrideHard = override?.hard;
             const hardStage = this.normalizeHardStage(override?.hardStage);
+            const hardeningStage = this.normalizeHardeningStage(override?.hardeningStage);
             const baseHard = overrideHard ?? hardCandies.has(i);
             const hard = isGenerator ? true : (baseHard || hardStage !== null);
+            const hasHardening = !hard && !blocked && !isGenerator && hardeningStage !== null;
             const state: CellState = {
                 color: '',
                 booster: BOOSTERS.NONE,
@@ -106,10 +112,14 @@ class Board {
             if (hard) {
                 state.hardStage = hardStage ?? 1;
             }
+            if (hasHardening) {
+                state.hardeningStage = hardeningStage ?? 1;
+            }
             const hasOverrideChest = typeof override?.sugarChestStage === 'number';
             const shouldSpawnChest =
                 !blocked &&
                 !state.hard &&
+                !state.hardeningStage &&
                 !state.generator &&
                 !override?.color &&
                 !hasOverrideChest &&
@@ -123,7 +133,7 @@ class Board {
             } else {
                 state.color = this.pickColorForIndex(i);
             }
-            if (!blocked && !state.generator && !hasOverrideChest && override?.booster) {
+            if (!blocked && !state.generator && !state.hardeningStage && !hasOverrideChest && override?.booster) {
                 state.booster = override.booster;
                 if (override.booster === BOOSTERS.LINE && override.lineOrientation) {
                     state.lineOrientation = override.lineOrientation;
@@ -135,6 +145,7 @@ class Board {
                 !blocked &&
                 !state.generator &&
                 !state.hard &&
+                !state.hardeningStage &&
                 !hasOverrideChest &&
                 !override?.booster &&
                 Boolean(state.color);
@@ -187,6 +198,7 @@ class Board {
         if (type !== BOOSTERS.NONE) {
             state.shifting = false;
             delete state.shiftingNextColor;
+            delete state.hardeningStage;
         }
         if (type !== BOOSTERS.LINE) {
             delete state.lineOrientation;
@@ -220,9 +232,18 @@ class Board {
         return this.getCellState(index).hard;
     }
 
+    isHardeningCandy(index: number): boolean {
+        return typeof this.getCellState(index).hardeningStage === 'number';
+    }
+
+    getHardeningStage(index: number): number | undefined {
+        return this.getCellState(index).hardeningStage;
+    }
+
     setHardCandy(index: number, isHard: boolean, stage: number = 1): void {
         const state = this.getCellState(index);
         state.hard = isHard;
+        delete state.hardeningStage;
         if (isHard) {
             state.shifting = false;
             delete state.shiftingNextColor;
@@ -234,6 +255,27 @@ class Board {
         }
     }
 
+    setHardeningCandy(index: number, stage: number = 1): void {
+        const state = this.getCellState(index);
+        if (state.blocked || state.generator || state.hard) return;
+        if (state.sugarChestStage !== undefined) return;
+        state.booster = BOOSTERS.NONE;
+        state.shifting = false;
+        delete state.shiftingNextColor;
+        delete state.lineOrientation;
+        state.hardeningStage = this.normalizeHardeningStage(stage) ?? 1;
+    }
+
+    setHardeningStage(index: number, stage: number): void {
+        const state = this.getCellState(index);
+        if (state.hardeningStage === undefined) return;
+        state.hardeningStage = this.normalizeHardeningStage(stage) ?? 1;
+    }
+
+    clearHardeningCandy(index: number): void {
+        delete this.getCellState(index).hardeningStage;
+    }
+
     isBlockerGenerator(index: number): boolean {
         return this.getCellState(index).generator;
     }
@@ -242,6 +284,7 @@ class Board {
         const state = this.getCellState(index);
         state.generator = isGenerator;
         state.hard = isHard;
+        delete state.hardeningStage;
         if (isHard) {
             state.hardStage = 1;
         } else {
@@ -272,6 +315,7 @@ class Board {
         state.booster = BOOSTERS.NONE;
         state.hard = false;
         delete state.hardStage;
+        delete state.hardeningStage;
         state.generator = false;
         state.shifting = false;
         delete state.shiftingNextColor;
@@ -380,6 +424,7 @@ class Board {
             !state.blocked &&
             !state.generator &&
             !state.hard &&
+            state.hardeningStage === undefined &&
             state.sugarChestStage === undefined &&
             state.booster === BOOSTERS.NONE &&
             Boolean(state.color);
@@ -420,6 +465,7 @@ class Board {
         state.booster = BOOSTERS.NONE;
         state.hard = false;
         state.generator = false;
+        delete state.hardeningStage;
         state.shifting = false;
         delete state.shiftingNextColor;
         delete state.lineOrientation;
@@ -508,6 +554,9 @@ class Board {
         if (typeof state.hardStage === 'number') {
             entry.hardStage = state.hardStage;
         }
+        if (typeof state.hardeningStage === 'number') {
+            entry.hardeningStage = state.hardeningStage;
+        }
         return entry;
     }
 
@@ -539,12 +588,25 @@ class Board {
         state.hard = entry.hard;
         if (entry.hard) {
             state.hardStage = this.normalizeHardStage(entry.hardStage) ?? 1;
+            delete state.hardeningStage;
         } else {
             delete state.hardStage;
+        }
+        if (!entry.hard && typeof entry.hardeningStage === 'number') {
+            state.hardeningStage = this.normalizeHardeningStage(entry.hardeningStage) ?? 1;
+        } else if (!entry.hard) {
+            delete state.hardeningStage;
         }
     }
 
     private normalizeHardStage(stage?: number): number | null {
+        if (typeof stage !== 'number' || !Number.isFinite(stage)) return null;
+        const normalized = Math.floor(stage);
+        if (normalized < 1 || normalized > 3) return null;
+        return normalized;
+    }
+
+    private normalizeHardeningStage(stage?: number): number | null {
         if (typeof stage !== 'number' || !Number.isFinite(stage)) return null;
         const normalized = Math.floor(stage);
         if (normalized < 1 || normalized > 3) return null;
