@@ -80,6 +80,7 @@ type GameState = {
     goals: GoalProgress[];
     difficulty: Difficulty;
     comboMultiplier: number;
+    comboChainBonus: number;
     timeRemaining?: number;
     survivalTime?: number;
     timeCapacity?: number;

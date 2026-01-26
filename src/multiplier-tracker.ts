@@ -54,6 +54,9 @@ class MultiplierTracker {
 
     resetChain(): void {
         this.goodMoveChain = 0;
+        if (this.state) {
+            this.state.comboChainBonus = 0;
+        }
     }
 
     isMoveActive(): boolean {
@@ -112,12 +115,15 @@ class MultiplierTracker {
         } else {
             this.goodMoveChain = 0;
         }
-        return this.getChainBonusForCount(this.goodMoveChain);
+        const bonus = this.getChainBonusForCount(this.goodMoveChain);
+        if (this.state) {
+            this.state.comboChainBonus = bonus;
+        }
+        return bonus;
     }
 
     private isGoodMove(baseMoveScore: number): boolean {
-        const tier = this.getMiraTier(baseMoveScore);
-        return tier === 'good' || tier === 'great' || tier === 'epic' || tier === 'legendary';
+        return baseMoveScore > 0;
     }
 
     private getChainBonusForCount(chainCount: number): number {

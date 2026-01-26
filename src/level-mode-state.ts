@@ -31,6 +31,7 @@ class LevelModeState implements GameModeState {
             goals: this.createGoals(this.levelDefinition.goals),
             difficulty: this.levelDefinition.difficulty,
             comboMultiplier: 1,
+            comboChainBonus: 0,
             powerups: createFreshPowerupInventory()
             ,
             cellShapeMode: 'square'

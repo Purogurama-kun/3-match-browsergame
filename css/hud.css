@@ -478,6 +478,7 @@
     bottom: 0;
     display: flex;
     align-items: center;
+    gap: 0.35rem;
     pointer-events: none;
     z-index: 2;
 }
@@ -491,6 +492,13 @@
 .hud__progress-multiplier-slot .hud__multiplier {
     font-size: 0.7rem;
     color: #e5ebff;
+}
+
+.hud__chain-modifier {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #f8e08a;
+    text-shadow: 0 0 6px rgba(7, 10, 18, 0.8);
 }
 
 .hud__goals-list {

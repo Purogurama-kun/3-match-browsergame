@@ -39,6 +39,7 @@ class Hud {
         this.speechIcon = getRequiredElement('hud-speech-icon');
         this.speechText = getRequiredElement('hud-speech-text');
         this.multiplierValue = getRequiredElement('hud-multiplier');
+        this.chainModifierValue = getRequiredElement('hud-chain-modifier');
         this.scoreMultiplierSlot = getRequiredElement('hud-score-multiplier-slot');
         this.scoreMultiplierValue = getRequiredElement('hud-score-multiplier');
         this.multiplierProgressSlot = getRequiredElement('hud-multiplier-progress-slot');
@@ -68,6 +69,7 @@ class Hud {
     private speechIcon: HTMLElement;
     private speechText: HTMLElement;
     private multiplierValue: HTMLElement;
+    private chainModifierValue: HTMLElement;
     private scoreMultiplierSlot: HTMLElement;
     private scoreMultiplierValue: HTMLElement;
     private multiplierProgressSlot: HTMLElement;
@@ -237,6 +239,7 @@ class Hud {
     }
 
     private updateMultiplierDisplay(state: GameState): void {
+        this.chainModifierValue.textContent = '🗲 ' + state.comboChainBonus.toFixed(2);
         if (state.mode === 'time') {
             const timeMultiplier = state.timeDrainMultiplier ?? 1;
             this.multiplierValue.textContent = 'x' + timeMultiplier.toFixed(2);
