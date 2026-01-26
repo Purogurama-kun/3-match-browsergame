@@ -181,14 +181,34 @@
 }
 
 .tutorial__item-icon--shifting {
-    border-color: rgba(255, 255, 255, 0.3);
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.tutorial__item-icon-core--shifting {
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 0.5rem;
     background:
-        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.06) 60%),
-        linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.55));
+        linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.25)),
+        var(--shifting-candy-color, #4fb6ff);
+    border: 3px solid #05070c;
     box-shadow:
-        inset 0 0 0 2px rgba(15, 23, 42, 0.35),
-        inset 0 0 0 6px rgba(125, 211, 252, 0.25);
-    color: #7dd3fc;
+        inset 0 0 0 3px var(--shifting-next-color, #f97316),
+        inset 0 0 0 6px rgba(255, 255, 255, 0.22),
+        inset 0 3px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -3px 8px rgba(0, 0, 0, 0.35);
+    position: relative;
+}
+
+.tutorial__item-icon-core--shifting::before {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border-radius: 0.4rem;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.1) 45%, rgba(255, 255, 255, 0) 70%);
+    pointer-events: none;
 }
 
 .tutorial__item-icon--hard {
