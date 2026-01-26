@@ -1080,6 +1080,7 @@ class Match3Game implements ModeContext {
 
     private resetMoveTracking(): void {
         this.multiplierTracker.resetMove();
+        this.multiplierTracker.resetChain();
         this.syncPowerupToolbarLock();
     }
 

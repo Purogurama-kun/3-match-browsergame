@@ -24,6 +24,7 @@ class MultiplierTracker {
     private moveActive = false;
     private currentMoveScore = 0;
     private currentMoveBaseScore = 0;
+    private goodMoveChain = 0;
 
     constructor(options: MultiplierTrackerOptions) {
         this.renderer = options.renderer;
@@ -36,6 +37,7 @@ class MultiplierTracker {
 
     setState(state: GameState): void {
         this.state = state;
+        this.resetChain();
     }
 
     beginMove(): void {
@@ -48,6 +50,10 @@ class MultiplierTracker {
         this.moveActive = false;
         this.currentMoveScore = 0;
         this.currentMoveBaseScore = 0;
+    }
+
+    resetChain(): void {
+        this.goodMoveChain = 0;
     }
 
     isMoveActive(): boolean {
@@ -66,7 +72,9 @@ class MultiplierTracker {
     finalizeMoveScore(): boolean {
         if (!this.moveActive) return false;
         const state = this.getState();
-        const delta = this.calculateMultiplierDelta(this.currentMoveBaseScore);
+        const baseDelta = this.calculateMultiplierDelta(this.currentMoveBaseScore);
+        const chainBonus = this.resolveChainBonus(this.currentMoveBaseScore);
+        const delta = baseDelta + chainBonus;
         state.comboMultiplier = this.clampMultiplier(state.comboMultiplier + delta);
         this.renderer.renderMultiplierStatus(state.comboMultiplier, delta, this.currentMoveScore);
         this.showMoveEvaluation(this.currentMoveBaseScore);
@@ -96,6 +104,28 @@ class MultiplierTracker {
         const index = Math.floor(Math.random() * 3);
         const key = `mira.evaluation.${tier}.${index}` as TranslationKey;
         this.renderer.showMiraSpeech(t(key), '💬');
+    }
+
+    private resolveChainBonus(baseMoveScore: number): number {
+        if (this.isGoodMove(baseMoveScore)) {
+            this.goodMoveChain += 1;
+        } else {
+            this.goodMoveChain = 0;
+        }
+        return this.getChainBonusForCount(this.goodMoveChain);
+    }
+
+    private isGoodMove(baseMoveScore: number): boolean {
+        const tier = this.getMiraTier(baseMoveScore);
+        return tier === 'good' || tier === 'great' || tier === 'epic' || tier === 'legendary';
+    }
+
+    private getChainBonusForCount(chainCount: number): number {
+        if (chainCount >= 6) return 0.3;
+        if (chainCount === 5) return 0.25;
+        if (chainCount === 4) return 0.2;
+        if (chainCount === 3) return 0.15;
+        return 0;
     }
 
     private getMiraTier(baseMoveScore: number): 'legendary' | 'epic' | 'great' | 'good' | 'decent' | null {
