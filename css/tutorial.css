@@ -176,6 +176,10 @@
     color: #ffd68f;
 }
 
+.tutorial__item-icon--chain {
+    color: #facc15;
+}
+
 .tutorial__item-icon--hard {
     border-color: rgba(255, 255, 255, 0.3);
     background:

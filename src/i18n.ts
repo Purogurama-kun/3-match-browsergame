@@ -256,7 +256,9 @@ const TRANSLATIONS = {
         'tutorial.bombMatches.mediumLargeTitle': 'Medium blast bomb + Large blast bomb',
         'tutorial.bombMatches.largeLargeTitle': 'Large blast bomb + Large blast bomb',
         'tutorial.mechanics.multiplierText':
-            'The score multiplier rises after strong moves, drops after weak or empty moves, and applies to every point you earn.',
+            'The score multiplier rises after strong moves, drops after weak or empty moves, and applies to every point you earn. Consecutive good moves add a chain bonus that boosts the multiplier further.',
+        'tutorial.mechanics.chainTitle': 'Chain bonus',
+        'tutorial.mechanics.chainText': 'Keep landing good moves in a row to grow the chain bonus.',
         'tutorial.obstacles.hardTitle': 'Hard candies',
         'tutorial.obstacles.hardText': 'Adjacent matches crack them before they can be cleared.',
         'tutorial.obstacles.hard2Title': 'Hard candy 2',
@@ -548,7 +550,9 @@ const TRANSLATIONS = {
         'tutorial.bombMatches.mediumLargeTitle': 'Mittlere Explosionsbombe + Große Explosionsbombe',
         'tutorial.bombMatches.largeLargeTitle': 'Große Explosionsbombe + Große Explosionsbombe',
         'tutorial.mechanics.multiplierText':
-            'Der Punkte-Multiplikator steigt nach starken Zügen, fällt nach schwachen oder leeren Zügen und gilt für jeden Punkt.',
+            'Der Punkte-Multiplikator steigt nach starken Zügen, fällt nach schwachen oder leeren Zügen und gilt für jeden Punkt. Aufeinanderfolgende gute Züge geben einen Kettenbonus, der den Multiplikator weiter erhöht.',
+        'tutorial.mechanics.chainTitle': 'Kettenbonus',
+        'tutorial.mechanics.chainText': 'Lande mehrere gute Züge nacheinander, um den Kettenbonus zu erhöhen.',
         'tutorial.obstacles.hardTitle': 'Harte Bonbons',
         'tutorial.obstacles.hardText': 'Benachbarte Matches knacken sie, bevor sie entfernt werden.',
         'tutorial.obstacles.hard2Title': 'Hartes Bonbon 2',

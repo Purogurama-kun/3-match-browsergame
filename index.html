@@ -610,8 +610,19 @@
                         <h2 class="tutorial__section-title" data-i18n-key="tutorial.section.mechanics">Game Mechanics</h2>
                         <div class="tutorial__card">
                             <p class="tutorial__section-lead" data-i18n-key="tutorial.mechanics.multiplierText">
-                                The score multiplier rises after strong moves, drops after weak or empty moves, and applies to every point you earn.
+                                The score multiplier rises after strong moves, drops after weak or empty moves, and applies to every point you earn. Consecutive good moves add a chain bonus that boosts the multiplier further.
                             </p>
+                            <ul class="tutorial__list" role="list">
+                                <li class="tutorial__item">
+                                    <span class="tutorial__item-icon tutorial__item-icon--chain" aria-hidden="true">⚡</span>
+                                    <div class="tutorial__item-body">
+                                        <span class="tutorial__item-title" data-i18n-key="tutorial.mechanics.chainTitle">Chain bonus</span>
+                                        <span class="tutorial__item-text" data-i18n-key="tutorial.mechanics.chainText">
+                                            Keep landing good moves in a row to grow the chain bonus.
+                                        </span>
+                                    </div>
+                                </li>
+                            </ul>
                         </div>
                     </section>
                     <section class="tutorial__section">
