@@ -66,13 +66,11 @@ class Bomb {
         this.destroyCircularArea(row, col, radius, sourceIndex);
     }
 
-    createBooster(index: number, type: BoosterType, orientation?: LineOrientation): void {
+    createBooster(index: number, type: BoosterType, orientation?: LineOrientation, color?: string): void {
         if (this.board.isBlockerGenerator(index)) return;
-        if (type === BOOSTERS.BURST_LARGE) {
-            this.board.setCellColor(index, BLACK_BOMB_COLOR);
-        } else {
-            this.board.setCellColor(index, randomColor());
-        }
+        const boosterColor =
+            color ?? (type === BOOSTERS.BURST_LARGE ? BLACK_BOMB_COLOR : randomColor());
+        this.board.setCellColor(index, boosterColor);
         this.board.setBooster(index, type);
         if (type === BOOSTERS.LINE) {
             this.board.setLineOrientation(index, orientation ?? 'horizontal');

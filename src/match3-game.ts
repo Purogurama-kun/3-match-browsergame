@@ -195,7 +195,7 @@ class Match3Game implements ModeContext {
             isPerformanceMode: () => this.performanceMode,
             defer: (callback, delay) => this.defer(callback, delay),
             getAnimationDelay: (duration) => this.getAnimationDelay(duration),
-            createBooster: (index, type, orientation) => this.bomb.createBooster(index, type, orientation),
+            createBooster: (index, type, orientation, color) => this.bomb.createBooster(index, type, orientation, color),
             activateBooster: (index) => this.activateBooster(index, false),
             getCellBooster: (index) => this.board.getCellBooster(index),
             getCellColor: (index) => this.board.getCellColor(index),

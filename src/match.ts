@@ -22,7 +22,7 @@ type MatchOptions = {
     isPerformanceMode: () => boolean;
     defer: (callback: () => void, delay: number) => void;
     getAnimationDelay: (duration: number) => number;
-    createBooster: (index: number, type: BoosterType, orientation?: LineOrientation) => void;
+    createBooster: (index: number, type: BoosterType, orientation?: LineOrientation, color?: string) => void;
     activateBooster: (index: number) => void;
     getCellBooster: (index: number) => BoosterType;
     getCellColor: (index: number) => string;
@@ -47,7 +47,7 @@ class Match {
     private isPerformanceMode: () => boolean;
     private defer: (callback: () => void, delay: number) => void;
     private getAnimationDelay: (duration: number) => number;
-    private createBooster: (index: number, type: BoosterType, orientation?: LineOrientation) => void;
+    private createBooster: (index: number, type: BoosterType, orientation?: LineOrientation, color?: string) => void;
     private activateBooster: (index: number) => void;
     private getCellBooster: (index: number) => BoosterType;
     private getCellColor: (index: number) => string;
@@ -113,7 +113,7 @@ class Match {
                 this.candie.destroyCell(idx);
             });
             this.defer(() => {
-                boostersToCreate.forEach((b) => this.createBooster(b.index, b.type, b.orientation));
+                boostersToCreate.forEach((b) => this.createBooster(b.index, b.type, b.orientation, b.color));
                 this.dropCells();
             }, this.getAnimationDelay(350));
             return;

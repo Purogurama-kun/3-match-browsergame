@@ -6,6 +6,7 @@ type BoosterCreation = {
     index: number;
     type: BoosterType;
     orientation?: LineOrientation;
+    color?: string;
 };
 
 type MatchResult = {
@@ -157,14 +158,14 @@ class MatchScanner {
                     if (lineIndex === undefined) {
                         throw new Error('Missing line booster index');
                     }
-                    this.addBoosterSlot(lineIndex, BOOSTERS.LINE, accumulator, orientation);
+                    this.addBoosterSlot(lineIndex, BOOSTERS.LINE, accumulator, orientation, streakColor);
                 }
                 if (streakLength >= 5) {
                     const centerIndex = streakCells[Math.floor(streakCells.length / 2)];
                     if (centerIndex === undefined) {
                         throw new Error('Missing large blast index');
                     }
-                    this.addBoosterSlot(centerIndex, BOOSTERS.BURST_LARGE, accumulator);
+                    this.addBoosterSlot(centerIndex, BOOSTERS.BURST_LARGE, accumulator, undefined, streakColor);
                 }
                 accumulator.largestMatch = Math.max(accumulator.largestMatch, streakLength);
             }
@@ -246,7 +247,7 @@ class MatchScanner {
         indices.forEach((idx) => accumulator.matched.add(idx));
         if (boosterOffset && boosterType) {
             const boosterIndex = this.indexAt(originRow + boosterOffset.row, originCol + boosterOffset.col);
-            this.addBoosterSlot(boosterIndex, boosterType, accumulator);
+            this.addBoosterSlot(boosterIndex, boosterType, accumulator, undefined, color);
         }
         accumulator.largestMatch = Math.max(accumulator.largestMatch, offsets.length);
     }
@@ -255,7 +256,8 @@ class MatchScanner {
         index: number,
         type: BoosterType,
         accumulator: MatchAccumulator,
-        orientation?: LineOrientation
+        orientation?: LineOrientation,
+        color?: string
     ): void {
         if (this.board.isBlockerGenerator(index)) return;
         if (accumulator.boosterSlots.has(index)) return;
@@ -263,6 +265,9 @@ class MatchScanner {
         const creation: BoosterCreation = { index, type };
         if (type === BOOSTERS.LINE) {
             creation.orientation = orientation ?? 'horizontal';
+        }
+        if (color) {
+            creation.color = color;
         }
         accumulator.boostersToCreate.push(creation);
         accumulator.createdBoosterTypes.add(type);
