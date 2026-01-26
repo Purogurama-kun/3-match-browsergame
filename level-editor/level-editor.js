@@ -19,7 +19,7 @@ const BOARD_TOKENS = [
     { token: 'C1', label: 'Sugar chest I', className: 'sugar-chest sugar-chest-1', swatch: '#ffffff' },
     { token: 'C2', label: 'Sugar chest II', className: 'sugar-chest sugar-chest-2', swatch: '#ffffff' },
     { token: 'C3', label: 'Sugar chest III', className: 'sugar-chest sugar-chest-3', swatch: '#ffffff' },
-    { token: 'Q1', label: 'Shifting candy', className: 'shifting', swatch: '#cffafe' },
+    { token: 'Q1', label: 'Shifting candy', className: 'shifting', swatch: '#111827' },
     { token: 'R1', label: 'Red', className: 'red', swatch: '#ff7b7b' },
     { token: 'A1', label: 'Amber', className: 'amber', swatch: '#ffd166' },
     { token: 'B1', label: 'Blue', className: 'blue', swatch: '#7dd3fc' },
@@ -516,7 +516,7 @@ function getTokenDisplay(token) {
     if (type === 'M') return '💥';
     if (type === 'U') return '☢️';
     if (type === 'C') return '';
-    if (type === 'Q') return '✺';
+    if (type === 'Q') return '';
     return '';
 }
 
@@ -525,8 +525,12 @@ function getTokenColor(token, index) {
     const color = TOKEN_TO_COLOR[type];
     if (color) return color;
     if (type === 'X' || type === 'C') return '';
-    if (type === 'Q') return '#cffafe';
+    if (type === 'Q') return NATURAL_COLORS[(index * 7 + 3) % NATURAL_COLORS.length];
     return NATURAL_COLORS[(index * 7 + 3) % NATURAL_COLORS.length];
+}
+
+function getShiftingPreviewColor(index) {
+    return NATURAL_COLORS[(index * 5 + 1) % NATURAL_COLORS.length];
 }
 
 function getBackgroundForLevelId(levelId) {
@@ -571,6 +575,11 @@ function renderBoardGrid(rows) {
             } else {
                 cell.style.removeProperty('--cell-color');
             }
+            if (token.charAt(0) === 'Q') {
+                cell.style.setProperty('--shifting-next-color', getShiftingPreviewColor(rowIndex * GRID_SIZE + colIndex));
+            } else {
+                cell.style.removeProperty('--shifting-next-color');
+            }
             cell.addEventListener('click', () => {
                 applyTokenToCell(Number(cell.dataset.row), Number(cell.dataset.col), state.boardToken);
             });
@@ -598,6 +607,11 @@ function applyTokenToCell(row, col, token) {
             cell.style.setProperty('--cell-color', color);
         } else {
             cell.style.removeProperty('--cell-color');
+        }
+        if (token.charAt(0) === 'Q') {
+            cell.style.setProperty('--shifting-next-color', getShiftingPreviewColor(cellIndex));
+        } else {
+            cell.style.removeProperty('--shifting-next-color');
         }
     }
     syncBoardTextarea(rows);

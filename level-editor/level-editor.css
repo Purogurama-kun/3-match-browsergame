@@ -479,12 +479,13 @@ body {
 }
 
 .editor__cell--shifting {
+    border: 4px solid #05070c;
     box-shadow:
+        inset 0 0 0 4px var(--shifting-next-color, #ffffff),
+        inset 0 0 0 7px rgba(255, 255, 255, 0.18),
         inset 0 2px 0 rgba(255, 255, 255, 0.2),
         inset 0 -2px 6px rgba(0, 0, 0, 0.35),
-        0 6px 12px rgba(0, 0, 0, 0.25),
-        0 0 10px rgba(34, 211, 238, 0.6);
-    animation: shifting-glow 1.9s ease-in-out infinite;
+        0 6px 12px rgba(0, 0, 0, 0.25);
 }
 
 .editor__cell--red {
@@ -588,11 +589,6 @@ body {
     }
 }
 
-@keyframes shifting-glow {
-    0% { filter: saturate(1.05); }
-    50% { filter: saturate(1.3) brightness(1.08); }
-    100% { filter: saturate(1.05); }
-}
 
 @media (max-width: 980px) {
     .editor__layout {
