@@ -409,12 +409,27 @@ class LevelSelectView {
     }
 
     private getProgressStartOffset(pathRect: DOMRect): number {
+        const pathTopOffset = this.getPathTopOffset();
+        if (pathTopOffset > 0) {
+            return pathTopOffset;
+        }
         const firstNode = this.levelNodes[0];
         if (firstNode) {
             const firstRect = firstNode.getBoundingClientRect();
             return firstRect.top - pathRect.top + firstRect.height / 2;
         }
-        return this.getPathTopOffset();
+        return 0;
+    }
+
+    private getPathTopOffset(): number {
+        const styles = getComputedStyle(this.path);
+        const topValue = styles.getPropertyValue('--level-select-path-top').trim();
+        const offset = this.parseCssLength(topValue);
+        if (offset > 0) {
+            return offset;
+        }
+        const paddingTop = this.parseCssLength(styles.paddingTop);
+        return Math.max(0, paddingTop);
     }
 
     private parseCssLength(value: string): number {
