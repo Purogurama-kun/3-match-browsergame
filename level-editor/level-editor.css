@@ -597,6 +597,7 @@ body {
 
 .editor__cell--bomb-line {
     --cell-color: #4b5563;
+    font-size: 21px;
 }
 
 .editor__cell--bomb-line-horizontal::after,
@@ -604,10 +605,12 @@ body {
     position: absolute;
     inset: 0;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 2px 4px;
     color: #fff;
-    font-size: 16px;
+    font-size: 12px;
+    line-height: 1;
     font-weight: bold;
     text-shadow:
         -1px 0 #000,
@@ -626,15 +629,18 @@ body {
 
 .editor__cell--bomb-small {
     --cell-color: #4b5563;
+    font-size: 19px;
 }
 
 .editor__cell--bomb-medium {
     --cell-color: #4b5563;
+    font-size: 19px;
 }
 
 .editor__cell--bomb-large {
-    --cell-color: #4b5563;
+    --cell-color: #0f172a;
     color: #f8fafc;
+    font-size: 19px;
 }
 
 .editor__cell--sugar-chest {

@@ -37,7 +37,7 @@ const BOARD_PALETTE_GROUPS = [
             { token: 'V1', label: 'Line bomb vertical', className: 'bomb-line bomb-line-vertical', swatch: '#fde68a' },
             { token: 'S1', label: 'Burst small', className: 'bomb-small', swatch: '#86efac' },
             { token: 'M1', label: 'Burst medium', className: 'bomb-medium', swatch: '#fdba74' },
-            { token: 'U1', label: 'Burst large', className: 'bomb-large', swatch: '#67e8f9' }
+            { token: 'U1', label: 'Burst large', className: 'bomb-large', swatch: '#0f172a' }
         ]
     },
     {
@@ -565,6 +565,7 @@ function getTokenDisplay(token) {
 
 function getTokenColor(token, index) {
     const type = token.charAt(0);
+    if (type === 'U') return '';
     const color = TOKEN_TO_COLOR[type];
     if (color) return color;
     if (type === 'X' || type === 'C') return '';
