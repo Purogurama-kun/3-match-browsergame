@@ -1441,10 +1441,17 @@ class Match3Game implements ModeContext {
             cell.classList.remove(
                 'recording-state__cell--sugar-chest',
                 'recording-state__cell--hard',
+                'recording-state__cell--hard-2',
+                'recording-state__cell--hard-3',
+                'recording-state__cell--hardening',
+                'recording-state__cell--hardening-2',
+                'recording-state__cell--hardening-3',
+                'recording-state__cell--shifting',
                 'recording-state__cell--swap'
             );
             cell.style.removeProperty('--recording-sugar-chest-image');
             cell.style.removeProperty('--recording-cell-color');
+            cell.style.removeProperty('--recording-shifting-next-color');
 
             if (!state) {
                 cell.style.backgroundColor = RECORDING_COLOR_HEX.none;
@@ -1466,12 +1473,35 @@ class Match3Game implements ModeContext {
                 const isHardCandy = state.hard && state.bomb === 'none' && !state.generator;
                 if (isHardCandy) {
                     cell.classList.add('recording-state__cell--hard');
+                    if (state.hardStage === 2) {
+                        cell.classList.add('recording-state__cell--hard-2');
+                    } else if (state.hardStage === 3) {
+                        cell.classList.add('recording-state__cell--hard-3');
+                    }
                     cell.style.setProperty('--recording-cell-color', color);
                     cell.style.removeProperty('background-color');
                     cell.textContent = '';
                 } else {
                     cell.style.backgroundColor = color;
                     this.renderCellIcon(cell, state);
+                    if (state.hardeningStage !== 'none') {
+                        cell.classList.add('recording-state__cell--hardening');
+                        if (state.hardeningStage === 2) {
+                            cell.classList.add('recording-state__cell--hardening-2');
+                        } else if (state.hardeningStage === 3) {
+                            cell.classList.add('recording-state__cell--hardening-3');
+                        }
+                    }
+                    if (state.shifting) {
+                        cell.classList.add('recording-state__cell--shifting');
+                        const nextColor =
+                            state.shiftingNextColor !== 'none'
+                                ? RECORDING_COLOR_HEX[state.shiftingNextColor] ?? ''
+                                : '';
+                        if (nextColor) {
+                            cell.style.setProperty('--recording-shifting-next-color', nextColor);
+                        }
+                    }
                 }
             }
             cell.classList.toggle('recording-state__cell--highlight', highlightIndices.has(idx));

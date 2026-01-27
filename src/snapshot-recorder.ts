@@ -27,7 +27,11 @@ type SnapshotCell = {
     sugarChest: 0 | 1 | 2 | 'none';
     bomb: 'small' | 'medium' | 'large' | 'line_horizontal' | 'line_vertical' | 'line_both' | 'none';
     hard: boolean;
+    hardStage: 1 | 2 | 3 | 'none';
+    hardeningStage: 1 | 2 | 3 | 'none';
     generator: boolean;
+    shifting: boolean;
+    shiftingNextColor: SnapshotCell['color'];
     position: Position;
 };
 
@@ -111,7 +115,11 @@ class SnapshotRecorder {
                 cellA.sugarChest !== cellB.sugarChest ||
                 cellA.bomb !== cellB.bomb ||
                 cellA.hard !== cellB.hard ||
-                cellA.generator !== cellB.generator
+                cellA.hardStage !== cellB.hardStage ||
+                cellA.hardeningStage !== cellB.hardeningStage ||
+                cellA.generator !== cellB.generator ||
+                cellA.shifting !== cellB.shifting ||
+                cellA.shiftingNextColor !== cellB.shiftingNextColor
             ) {
                 return false;
             }
@@ -125,12 +133,19 @@ class SnapshotRecorder {
 
     private buildCellSnapshot(state: CellState, index: number): SnapshotCell {
         const position = { x: index % GRID_SIZE, y: Math.floor(index / GRID_SIZE) };
+        const hardStage = this.normalizeStage(state.hardStage);
+        const hardeningStage = this.normalizeStage(state.hardeningStage);
+        const shiftingNextColor = state.shifting ? this.getColorName(state.shiftingNextColor ?? '') : 'none';
         return {
             color: this.getColorName(state.color),
             sugarChest: this.normalizeSugarChest(state.sugarChestStage),
             bomb: this.getBombLabel(state.booster, state.lineOrientation),
             hard: state.hard,
+            hardStage: state.hard ? hardStage ?? 1 : 'none',
+            hardeningStage: !state.hard && hardeningStage ? hardeningStage : 'none',
             generator: state.generator,
+            shifting: state.shifting,
+            shiftingNextColor,
             position
         };
     }
@@ -146,6 +161,12 @@ class SnapshotRecorder {
         if (typeof stage !== 'number') return 'none';
         const normalized = Math.max(0, Math.min(2, Math.floor(stage) - 1));
         return normalized as SnapshotCell['sugarChest'];
+    }
+
+    private normalizeStage(stage?: number): 1 | 2 | 3 | null {
+        if (typeof stage !== 'number') return null;
+        const normalized = Math.max(1, Math.min(3, Math.floor(stage)));
+        return normalized as 1 | 2 | 3;
     }
 
     private getBombLabel(booster: BoosterType, orientation?: LineOrientation): SnapshotCell['bomb'] {
