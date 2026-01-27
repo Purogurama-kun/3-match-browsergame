@@ -530,6 +530,7 @@ body {
 
 .editor__cell--hardening {
     border-color: rgba(255, 255, 255, 0.18);
+    --cell-color: #64748b;
 }
 
 .editor__cell--hardening::before {
