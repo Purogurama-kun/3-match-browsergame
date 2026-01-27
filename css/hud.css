@@ -495,10 +495,24 @@
 }
 
 .hud__chain-modifier {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
     font-size: 0.7rem;
     font-weight: 600;
     color: #f8e08a;
     text-shadow: 0 0 6px rgba(7, 10, 18, 0.8);
+}
+
+.hud__chain-modifier-icon {
+    width: 0.75rem;
+    height: 0.75rem;
+    display: block;
+}
+
+.hud__chain-modifier-value {
+    display: inline-flex;
+    align-items: center;
 }
 
 .hud__goals-list {
