@@ -24,7 +24,8 @@ type LevelSelectOpenOptions = {
     showDetails?: boolean;
 };
 
-const MIRA_MOVE_DURATION = 1050;
+const MIRA_MOVE_DURATION = 1600;
+const MIRA_SCROLL_DELAY = 350;
 const MIRA_DETAILS_DELAY = 220;
 
 type LevelSelectGoalIcon =
@@ -110,6 +111,7 @@ class LevelSelectView {
     private miraAnimationTimer: number | null = null;
     private miraTransitionHandler: ((event: TransitionEvent) => void) | null = null;
     private miraDetailsTimer: number | null = null;
+    private miraMoveDelayTimer: number | null = null;
     private miraScrollFrame: number | null = null;
     private miraScrollTimer: number | null = null;
     private miraScrollToken = 0;
@@ -197,15 +199,19 @@ class LevelSelectView {
         if (options.animateMira && typeof options.fromLevel === 'number') {
             const fromLevel = options.fromLevel;
             const targetLevel = this.clampLevel(options.focusLevel ?? this.getUnlockedLevel());
+            this.updateMiraMarker(fromLevel);
             this.scrollPathToMiraRange(fromLevel, targetLevel, () => {
-                this.animateMiraMarker(fromLevel, targetLevel, () => {
-                    if (options.showDetails) {
-                        this.miraDetailsTimer = window.setTimeout(() => {
-                            this.miraDetailsTimer = null;
-                            this.showDetails();
-                        }, MIRA_DETAILS_DELAY);
-                    }
-                });
+                this.miraMoveDelayTimer = window.setTimeout(() => {
+                    this.miraMoveDelayTimer = null;
+                    this.animateMiraMarker(fromLevel, targetLevel, () => {
+                        if (options.showDetails) {
+                            this.miraDetailsTimer = window.setTimeout(() => {
+                                this.miraDetailsTimer = null;
+                                this.showDetails();
+                            }, MIRA_DETAILS_DELAY);
+                        }
+                    });
+                }, MIRA_SCROLL_DELAY);
             });
             return;
         }
@@ -297,6 +303,10 @@ class LevelSelectView {
         if (this.miraScrollTimer !== null) {
             window.clearTimeout(this.miraScrollTimer);
             this.miraScrollTimer = null;
+        }
+        if (this.miraMoveDelayTimer !== null) {
+            window.clearTimeout(this.miraMoveDelayTimer);
+            this.miraMoveDelayTimer = null;
         }
         if (this.miraAnimationTimer !== null) {
             window.clearTimeout(this.miraAnimationTimer);

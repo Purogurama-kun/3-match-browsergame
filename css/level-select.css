@@ -339,7 +339,7 @@
 }
 
 .level-select__mira--moving {
-    transition: transform 1.05s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform 1.6s cubic-bezier(0.2, 0.8, 0.2, 1);
     will-change: transform;
 }
 
