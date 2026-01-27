@@ -686,7 +686,7 @@ body {
     }
 
     .editor__level-list {
-        max-height: none;
+        max-height: 40vh;
     }
 
     .editor__board-grid {
@@ -732,5 +732,9 @@ body {
     .editor__palette-swatch {
         width: 28px;
         height: 28px;
+    }
+
+    .editor__level-list {
+        max-height: 32vh;
     }
 }
