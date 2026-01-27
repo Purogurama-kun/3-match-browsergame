@@ -790,9 +790,13 @@ function setupPalette() {
                 swatch.classList.add(`editor__cell--${name}`);
             });
             swatch.textContent = getTokenDisplay(entry.token);
-            const color = getTokenColor(entry.token, 0);
-            if (color) {
-                swatch.style.setProperty('--cell-color', color);
+            const type = entry.token.charAt(0);
+            const shouldSetColor = type === 'R' || type === 'A' || type === 'B' || type === 'P' || type === 'G' || type === 'Q';
+            if (shouldSetColor) {
+                const color = getTokenColor(entry.token, 0);
+                if (color) {
+                    swatch.style.setProperty('--cell-color', color);
+                }
             }
             if (entry.token.charAt(0) === 'Q') {
                 swatch.style.setProperty('--shifting-next-color', getShiftingPreviewColor(0));
