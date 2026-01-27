@@ -110,6 +110,9 @@ class LevelSelectView {
     private miraAnimationTimer: number | null = null;
     private miraTransitionHandler: ((event: TransitionEvent) => void) | null = null;
     private miraDetailsTimer: number | null = null;
+    private miraScrollFrame: number | null = null;
+    private miraScrollTimer: number | null = null;
+    private miraScrollToken = 0;
 
     open(highestLevel: number, options?: LevelSelectOpenOptions): void {
         this.highestLevel = this.clampLevel(highestLevel);
@@ -192,14 +195,17 @@ class LevelSelectView {
             return;
         }
         if (options.animateMira && typeof options.fromLevel === 'number') {
+            const fromLevel = options.fromLevel;
             const targetLevel = this.clampLevel(options.focusLevel ?? this.getUnlockedLevel());
-            this.animateMiraMarker(options.fromLevel, targetLevel, () => {
-                if (options.showDetails) {
-                    this.miraDetailsTimer = window.setTimeout(() => {
-                        this.miraDetailsTimer = null;
-                        this.showDetails();
-                    }, MIRA_DETAILS_DELAY);
-                }
+            this.scrollPathToMiraRange(fromLevel, targetLevel, () => {
+                this.animateMiraMarker(fromLevel, targetLevel, () => {
+                    if (options.showDetails) {
+                        this.miraDetailsTimer = window.setTimeout(() => {
+                            this.miraDetailsTimer = null;
+                            this.showDetails();
+                        }, MIRA_DETAILS_DELAY);
+                    }
+                });
             });
             return;
         }
@@ -283,6 +289,15 @@ class LevelSelectView {
     }
 
     private cleanupMiraAnimation(): void {
+        this.miraScrollToken += 1;
+        if (this.miraScrollFrame !== null) {
+            window.cancelAnimationFrame(this.miraScrollFrame);
+            this.miraScrollFrame = null;
+        }
+        if (this.miraScrollTimer !== null) {
+            window.clearTimeout(this.miraScrollTimer);
+            this.miraScrollTimer = null;
+        }
         if (this.miraAnimationTimer !== null) {
             window.clearTimeout(this.miraAnimationTimer);
             this.miraAnimationTimer = null;
@@ -298,6 +313,129 @@ class LevelSelectView {
         this.miraMarker.classList.remove('level-select__mira--moving');
         this.miraMarker.style.removeProperty('transform');
         this.path.classList.remove('level-select__path--animating');
+    }
+
+    private scrollPathToMiraRange(fromLevel: number, toLevel: number, onComplete: () => void): void {
+        const startLevel = this.clampLevel(fromLevel);
+        const endLevel = this.clampLevel(toLevel);
+        const startNode = this.levelNodes[startLevel - 1];
+        const endNode = this.levelNodes[endLevel - 1];
+        if (!startNode || !endNode) {
+            onComplete();
+            return;
+        }
+        const midpoint = (this.getNodeCenter(startNode) + this.getNodeCenter(endNode)) / 2;
+        if (this.path.scrollHeight > this.path.clientHeight + 1) {
+            const targetScrollTop = midpoint - this.path.clientHeight / 2;
+            this.scrollPathTo(targetScrollTop, onComplete);
+            return;
+        }
+        const viewportMidpoint =
+            (this.getNodeViewportCenter(startNode) + this.getNodeViewportCenter(endNode)) / 2;
+        const targetScrollTop = window.scrollY + viewportMidpoint - window.innerHeight / 2;
+        this.scrollWindowTo(targetScrollTop, onComplete);
+    }
+
+    private scrollPathTo(targetScrollTop: number, onComplete: () => void): void {
+        const maxScroll = Math.max(0, this.path.scrollHeight - this.path.clientHeight);
+        const clampedTarget = Math.max(0, Math.min(maxScroll, Math.round(targetScrollTop)));
+        const token = this.miraScrollToken + 1;
+        this.miraScrollToken = token;
+        const finish = (): void => {
+            if (this.miraScrollToken !== token) {
+                return;
+            }
+            if (this.miraScrollFrame !== null) {
+                window.cancelAnimationFrame(this.miraScrollFrame);
+                this.miraScrollFrame = null;
+            }
+            if (this.miraScrollTimer !== null) {
+                window.clearTimeout(this.miraScrollTimer);
+                this.miraScrollTimer = null;
+            }
+            onComplete();
+        };
+        if (Math.abs(this.path.scrollTop - clampedTarget) < 2) {
+            this.path.scrollTop = clampedTarget;
+            finish();
+            return;
+        }
+        let settledFrames = 0;
+        const check = (): void => {
+            if (this.miraScrollToken !== token) {
+                return;
+            }
+            if (Math.abs(this.path.scrollTop - clampedTarget) < 2) {
+                settledFrames += 1;
+                if (settledFrames >= 2) {
+                    finish();
+                    return;
+                }
+            } else {
+                settledFrames = 0;
+            }
+            this.miraScrollFrame = window.requestAnimationFrame(check);
+        };
+        this.path.scrollTo({ top: clampedTarget, behavior: 'smooth' });
+        this.miraScrollFrame = window.requestAnimationFrame(check);
+        this.miraScrollTimer = window.setTimeout(finish, 1200);
+    }
+
+    private scrollWindowTo(targetScrollTop: number, onComplete: () => void): void {
+        const maxScroll = Math.max(
+            0,
+            document.documentElement.scrollHeight - window.innerHeight
+        );
+        const clampedTarget = Math.max(0, Math.min(maxScroll, Math.round(targetScrollTop)));
+        const token = this.miraScrollToken + 1;
+        this.miraScrollToken = token;
+        const finish = (): void => {
+            if (this.miraScrollToken !== token) {
+                return;
+            }
+            if (this.miraScrollFrame !== null) {
+                window.cancelAnimationFrame(this.miraScrollFrame);
+                this.miraScrollFrame = null;
+            }
+            if (this.miraScrollTimer !== null) {
+                window.clearTimeout(this.miraScrollTimer);
+                this.miraScrollTimer = null;
+            }
+            onComplete();
+        };
+        if (Math.abs(window.scrollY - clampedTarget) < 2) {
+            window.scrollTo({ top: clampedTarget });
+            finish();
+            return;
+        }
+        let settledFrames = 0;
+        const check = (): void => {
+            if (this.miraScrollToken !== token) {
+                return;
+            }
+            if (Math.abs(window.scrollY - clampedTarget) < 2) {
+                settledFrames += 1;
+                if (settledFrames >= 2) {
+                    finish();
+                    return;
+                }
+            } else {
+                settledFrames = 0;
+            }
+            this.miraScrollFrame = window.requestAnimationFrame(check);
+        };
+        window.scrollTo({ top: clampedTarget, behavior: 'smooth' });
+        this.miraScrollFrame = window.requestAnimationFrame(check);
+        this.miraScrollTimer = window.setTimeout(finish, 1200);
+    }
+
+    private getNodeCenter(node: HTMLElement): number {
+        return node.offsetTop + node.offsetHeight / 2;
+    }
+
+    private getNodeViewportCenter(node: HTMLElement): number {
+        const rect = node.getBoundingClientRect();
+        return rect.top + rect.height / 2;
     }
 
     private updateMiraMarker(unlockedLevel: number): void {
