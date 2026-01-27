@@ -9,7 +9,6 @@ import type { PowerupInventory } from './types.js';
 
 class LocalProgressStore {
     private readonly progressKey = 'match3-progress';
-    private readonly legacyLevelKey = 'match3-highest-level';
     private readonly maxLevel = 50;
     private readonly maxBlockerScore = 1000000000;
     private readonly maxTimeSeconds = 86400;
@@ -40,7 +39,6 @@ class LocalProgressStore {
 
         try {
             storage.removeItem(this.progressKey);
-            storage.removeItem(this.legacyLevelKey);
         } catch (error) {
             console.warn('Could not clear local progress', error);
         }
@@ -60,12 +58,6 @@ class LocalProgressStore {
             }
         }
 
-        const legacyLevel = storage.getItem(this.legacyLevelKey);
-        const parsedLevel = legacyLevel ? Number.parseInt(legacyLevel, 10) : null;
-        if (parsedLevel !== null && Number.isFinite(parsedLevel)) {
-            return { highestLevel: parsedLevel };
-        }
-
         return this.defaultProgress;
     }
 
@@ -75,7 +67,6 @@ class LocalProgressStore {
 
         try {
             storage.setItem(this.progressKey, JSON.stringify(progress));
-            storage.setItem(this.legacyLevelKey, String(progress.highestLevel));
         } catch (error) {
             console.warn('Could not persist local progress', error);
         }
