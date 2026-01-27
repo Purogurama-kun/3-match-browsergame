@@ -4,31 +4,63 @@ const BOOSTERS = ['line', 'burstSmall', 'burstMedium', 'burstLarge'];
 const DIFFICULTIES = ['easy', 'normal', 'hard', 'expert', 'nightmare'];
 const GOAL_TYPES = ['destroy-color', 'activate-booster', 'destroy-hard-candies'];
 
-const BOARD_TOKENS = [
-    { token: '.1', label: 'Any', className: 'any', swatch: '#ffffff' },
-    { token: 'X1', label: 'Missing', className: 'void', swatch: '#3f3f46' },
-    { token: 'H1', label: 'Hard', className: 'hard', swatch: '#f5d27a' },
-    { token: 'H2', label: 'Hard (2 hits)', className: 'hard hard-2', swatch: '#f5d27a' },
-    { token: 'H3', label: 'Hard (3 hits)', className: 'hard hard-3', swatch: '#f5d27a' },
-    { token: 'N1', label: 'Hardening (1 turn)', className: 'hardening hardening-1', swatch: '#f8fafc' },
-    { token: 'N2', label: 'Hardening (2 turns)', className: 'hardening hardening-2', swatch: '#f8fafc' },
-    { token: 'N3', label: 'Hardening (3 turns)', className: 'hardening hardening-3', swatch: '#f8fafc' },
-    { token: 'T1', label: 'Generator', className: 'generator', swatch: '#fca5a5' },
-    { token: 'L1', label: 'Line bomb', className: 'bomb-line bomb-line-horizontal', swatch: '#fde68a' },
-    { token: 'V1', label: 'Line bomb vertical', className: 'bomb-line bomb-line-vertical', swatch: '#fde68a' },
-    { token: 'S1', label: 'Burst small', className: 'bomb-small', swatch: '#86efac' },
-    { token: 'M1', label: 'Burst medium', className: 'bomb-medium', swatch: '#fdba74' },
-    { token: 'U1', label: 'Burst large', className: 'bomb-large', swatch: '#67e8f9' },
-    { token: 'C1', label: 'Sugar chest I', className: 'sugar-chest sugar-chest-1', swatch: '#ffffff' },
-    { token: 'C2', label: 'Sugar chest II', className: 'sugar-chest sugar-chest-2', swatch: '#ffffff' },
-    { token: 'C3', label: 'Sugar chest III', className: 'sugar-chest sugar-chest-3', swatch: '#ffffff' },
-    { token: 'Q1', label: 'Shifting candy', className: 'shifting', swatch: '#111827' },
-    { token: 'R1', label: 'Red', className: 'red', swatch: '#ff7b7b' },
-    { token: 'A1', label: 'Amber', className: 'amber', swatch: '#ffd166' },
-    { token: 'B1', label: 'Blue', className: 'blue', swatch: '#7dd3fc' },
-    { token: 'P1', label: 'Purple', className: 'purple', swatch: '#a78bfa' },
-    { token: 'G1', label: 'Green', className: 'green', swatch: '#6ee7b7' }
+const BOARD_PALETTE_GROUPS = [
+    {
+        title: 'Basics',
+        entries: [
+            { token: '.1', label: 'Any', className: 'any', swatch: '#ffffff' },
+            { token: 'X1', label: 'Missing', className: 'void', swatch: '#3f3f46' },
+            { token: 'T1', label: 'Generator', className: 'generator', swatch: '#fca5a5' },
+            { token: 'Q1', label: 'Shifting candy', className: 'shifting', swatch: '#111827' }
+        ]
+    },
+    {
+        title: 'Hard layers',
+        entries: [
+            { token: 'H1', label: '1 hit', className: 'hard', swatch: '#f5d27a' },
+            { token: 'H2', label: '2 hits', className: 'hard hard-2', swatch: '#f5d27a' },
+            { token: 'H3', label: '3 hits', className: 'hard hard-3', swatch: '#f5d27a' }
+        ]
+    },
+    {
+        title: 'Hardening',
+        entries: [
+            { token: 'N1', label: '1 turn', className: 'hardening hardening-1', swatch: '#f8fafc' },
+            { token: 'N2', label: '2 turns', className: 'hardening hardening-2', swatch: '#f8fafc' },
+            { token: 'N3', label: '3 turns', className: 'hardening hardening-3', swatch: '#f8fafc' }
+        ]
+    },
+    {
+        title: 'Boosters',
+        entries: [
+            { token: 'L1', label: 'Line bomb', className: 'bomb-line bomb-line-horizontal', swatch: '#fde68a' },
+            { token: 'V1', label: 'Line bomb vertical', className: 'bomb-line bomb-line-vertical', swatch: '#fde68a' },
+            { token: 'S1', label: 'Burst small', className: 'bomb-small', swatch: '#86efac' },
+            { token: 'M1', label: 'Burst medium', className: 'bomb-medium', swatch: '#fdba74' },
+            { token: 'U1', label: 'Burst large', className: 'bomb-large', swatch: '#67e8f9' }
+        ]
+    },
+    {
+        title: 'Sugar chests',
+        entries: [
+            { token: 'C1', label: 'I', className: 'sugar-chest sugar-chest-1', swatch: '#ffffff' },
+            { token: 'C2', label: 'II', className: 'sugar-chest sugar-chest-2', swatch: '#ffffff' },
+            { token: 'C3', label: 'III', className: 'sugar-chest sugar-chest-3', swatch: '#ffffff' }
+        ]
+    },
+    {
+        title: 'Colors',
+        entries: [
+            { token: 'R1', label: 'Red', className: 'red', swatch: '#ff7b7b' },
+            { token: 'A1', label: 'Amber', className: 'amber', swatch: '#ffd166' },
+            { token: 'B1', label: 'Blue', className: 'blue', swatch: '#7dd3fc' },
+            { token: 'P1', label: 'Purple', className: 'purple', swatch: '#a78bfa' },
+            { token: 'G1', label: 'Green', className: 'green', swatch: '#6ee7b7' }
+        ]
+    }
 ];
+
+const BOARD_TOKENS = BOARD_PALETTE_GROUPS.flatMap((group) => group.entries);
 
 const BOARD_TOKEN_SET = new Set(BOARD_TOKENS.map((entry) => entry.token));
 const COLOR_HEX_TO_TOKEN = {
@@ -732,40 +764,51 @@ function normalizeBoardToken(raw) {
 
 function setupPalette() {
     ui.boardPalette.innerHTML = '';
-    BOARD_TOKENS.forEach((entry) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'editor__palette-button' + (entry.token === state.boardToken ? ' editor__palette-button--active' : '');
-        button.dataset.token = entry.token;
+    BOARD_PALETTE_GROUPS.forEach((group) => {
+        const groupEl = document.createElement('div');
+        groupEl.className = 'editor__palette-group';
 
-        const swatch = document.createElement('span');
-        swatch.className = 'editor__palette-swatch';
-        swatch.style.background = entry.swatch;
-        if (entry.token === 'C1') {
-            swatch.style.backgroundImage = 'url(/assets/images/sugar-chest-01.webp)';
-        }
-        if (entry.token === 'C2') {
-            swatch.style.backgroundImage = 'url(/assets/images/sugar-chest-02.webp)';
-        }
-        if (entry.token === 'C3') {
-            swatch.style.backgroundImage = 'url(/assets/images/sugar-chest-03.webp)';
-        }
-        if (entry.token === 'C1' || entry.token === 'C2' || entry.token === 'C3') {
-            swatch.style.backgroundSize = 'contain';
-            swatch.style.backgroundPosition = 'center';
-            swatch.style.backgroundRepeat = 'no-repeat';
-        }
+        const title = document.createElement('div');
+        title.className = 'editor__palette-group-title';
+        title.textContent = group.title;
 
-        const label = document.createElement('span');
-        label.textContent = `${entry.label} (${entry.token})`;
+        const items = document.createElement('div');
+        items.className = 'editor__palette-group-items';
 
-        button.append(swatch, label);
-        button.addEventListener('click', () => {
-            state.boardToken = entry.token;
-            setupPalette();
+        group.entries.forEach((entry) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'editor__palette-button' + (entry.token === state.boardToken ? ' editor__palette-button--active' : '');
+            button.dataset.token = entry.token;
+            button.title = `${group.title}: ${entry.label} (${entry.token})`;
+            button.setAttribute('aria-label', button.title);
+
+            const swatch = document.createElement('span');
+            swatch.className = 'editor__palette-swatch editor__palette-swatch--cell editor__cell';
+            entry.className.split(' ').forEach((name) => {
+                if (!name) return;
+                swatch.classList.add(`editor__cell--${name}`);
+            });
+            swatch.textContent = getTokenDisplay(entry.token);
+            const color = getTokenColor(entry.token, 0);
+            if (color) {
+                swatch.style.setProperty('--cell-color', color);
+            }
+            if (entry.token.charAt(0) === 'Q') {
+                swatch.style.setProperty('--shifting-next-color', getShiftingPreviewColor(0));
+            }
+
+            button.append(swatch);
+            button.addEventListener('click', () => {
+                state.boardToken = entry.token;
+                setupPalette();
+            });
+
+            items.appendChild(button);
         });
 
-        ui.boardPalette.appendChild(button);
+        groupEl.append(title, items);
+        ui.boardPalette.appendChild(groupEl);
     });
 }
 

@@ -355,21 +355,42 @@ body {
 }
 
 .editor__palette {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px 16px;
+}
+
+.editor__palette-group {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.editor__palette-group-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.editor__palette-group-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 36px);
+    gap: 6px;
+    justify-content: start;
 }
 
 .editor__palette-button {
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: #fff;
+    padding: 0;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background: transparent;
     cursor: pointer;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
 }
 
 .editor__palette-button--active {
@@ -378,10 +399,15 @@ body {
 }
 
 .editor__palette-swatch {
-    width: 12px;
-    height: 12px;
-    border-radius: 4px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    display: block;
+}
+
+.editor__palette-swatch--cell {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
 }
 
 .editor__board-grid {
@@ -442,6 +468,12 @@ body {
     box-shadow: none;
     color: transparent;
     cursor: default;
+}
+
+.editor__palette-button[data-token="X1"] .editor__palette-swatch--cell {
+    border: 2px dotted rgba(148, 163, 184, 0.9);
+    background: transparent;
+    box-shadow: none;
 }
 
 .editor__cell--hard {
@@ -671,5 +703,29 @@ body {
     .editor__header-actions {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .editor__palette {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .editor__palette-group {
+        gap: 4px;
+    }
+
+    .editor__palette-group-items {
+        grid-template-columns: repeat(auto-fill, 32px);
+        gap: 6px;
+    }
+
+    .editor__palette-button {
+        width: 32px;
+        height: 32px;
+    }
+
+    .editor__palette-swatch {
+        width: 28px;
+        height: 28px;
     }
 }
