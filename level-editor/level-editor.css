@@ -412,7 +412,7 @@ body {
 
 .editor__board-grid {
     display: grid;
-    grid-template-columns: repeat(8, 32px);
+    grid-template-columns: repeat(9, 32px);
     row-gap: 4px;
     column-gap: 0.25rem;
     padding: 10px;
@@ -690,7 +690,7 @@ body {
     }
 
     .editor__board-grid {
-        grid-template-columns: repeat(8, 28px);
+        grid-template-columns: repeat(9, 28px);
     }
 
     .editor__cell {

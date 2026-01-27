@@ -1,4 +1,4 @@
-const GRID_SIZE = 8;
+const GRID_SIZE = 9;
 const COLOR_DEFINITIONS = {
     red: '#ff7b7b',
     amber: '#ffd166',

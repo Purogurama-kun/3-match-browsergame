@@ -1,4 +1,4 @@
-const GRID_SIZE = 8;
+const GRID_SIZE = 9;
 const COLORS = ['red', 'amber', 'blue', 'purple', 'green'];
 const BOOSTERS = ['line', 'burstSmall', 'burstMedium', 'burstLarge'];
 const DIFFICULTIES = ['easy', 'normal', 'hard', 'expert', 'nightmare'];

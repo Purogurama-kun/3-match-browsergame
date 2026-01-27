@@ -30,7 +30,7 @@ body {
     align-items: center;
     gap: 0.75rem;
     margin: 0;
-    padding: var(--match-app-top-padding) 0.5rem 0.5rem;
+    padding: var(--match-app-top-padding) 1rem 1rem;
     min-height: 100vh;
     min-height: 100dvh;
     box-sizing: border-box;
@@ -38,7 +38,7 @@ body {
     width: 100%;
     overscroll-behavior-y: auto;
 
-    --cell-size: 3.75rem;
+    --cell-size: min(3.75rem, calc((100vw - 3.5rem) / 9));
 }
 
 .match-app--cutscene-active .board,
@@ -163,19 +163,19 @@ body {
 
 @media (max-width: 780px) {
     .match-app {
-        --cell-size: 2.7rem;
+        --cell-size: min(2.7rem, calc((100vw - 3.5rem) / 9));
     }
 }
 
 @media (max-width: 400px) {
     .match-app {
-        --cell-size: 2.5rem;
+        --cell-size: min(2.5rem, calc((100vw - 3.5rem) / 9));
     }
 }
 
 @media (max-width: 360px) {
     .match-app {
-        --cell-size: 2.3rem;
+        --cell-size: min(2.3rem, calc((100vw - 3.5rem) / 9));
     }
 }
 
