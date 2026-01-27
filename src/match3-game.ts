@@ -1446,6 +1446,7 @@ class Match3Game implements ModeContext {
                 'recording-state__cell--hardening',
                 'recording-state__cell--hardening-2',
                 'recording-state__cell--hardening-3',
+                'recording-state__cell--generator',
                 'recording-state__cell--shifting',
                 'recording-state__cell--swap'
             );
@@ -1576,7 +1577,8 @@ class Match3Game implements ModeContext {
             return;
         }
         if (state.generator) {
-            cell.textContent = '⚙️';
+            cell.classList.add('recording-state__cell--generator');
+            cell.textContent = '⛓️';
         }
     }
 

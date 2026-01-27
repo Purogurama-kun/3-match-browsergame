@@ -244,6 +244,19 @@
         0 0 10px rgba(15, 23, 42, 0.4);
 }
 
+.recording-state__cell--generator {
+    background:
+        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 45%),
+        linear-gradient(145deg, #38bdf8, #1e3a8a);
+    border: 2px solid #7dd3fc;
+    box-shadow:
+        inset 0 0 0 2px rgba(15, 23, 42, 0.65),
+        0 0 12px rgba(56, 189, 248, 0.45);
+    color: #e2e8f0;
+    font-size: 0.95rem;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
 .recording-state__cell--highlight {
     transform: scale(0.8);
     outline: 3px solid #fff;
