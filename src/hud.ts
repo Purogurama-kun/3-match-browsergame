@@ -523,7 +523,11 @@ class Hud {
         if (goal.type === 'collect-items') {
             const chip = document.createElement('span');
             chip.className = 'hud__goal-chip hud__goal-chip--collect';
-            chip.textContent = '📦';
+            const icon = document.createElement('img');
+            icon.className = 'hud__goal-chip-icon';
+            icon.src = '/assets/images/candy-collector-4.svg';
+            icon.alt = '';
+            chip.appendChild(icon);
             chip.setAttribute('aria-hidden', 'true');
             return chip;
         }

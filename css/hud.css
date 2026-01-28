@@ -571,6 +571,12 @@
     color: #fff7ed;
 }
 
+.hud__goal-chip-icon {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+}
+
 .hud__goal-count {
     font-weight: 700;
     color: #f5f5ff;

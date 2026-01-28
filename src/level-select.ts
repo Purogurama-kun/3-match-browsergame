@@ -33,7 +33,7 @@ type LevelSelectGoalIcon =
     | { variant: 'color'; color: string }
     | { variant: 'booster'; symbol: string }
     | { variant: 'hard'; symbol: string }
-    | { variant: 'collect'; symbol: string }
+    | { variant: 'collect'; src: string }
     | { variant: 'score'; symbol: string };
 
 type MetaChipVariant = 'moves' | 'difficulty';
@@ -539,7 +539,7 @@ class LevelSelectView {
         iconNode.className = `level-select__goal-icon level-select__goal-icon--${icon.variant}`;
         iconNode.setAttribute('aria-hidden', 'true');
 
-        if (icon.variant === 'time') {
+        if (icon.variant === 'time' || icon.variant === 'collect') {
             const img = document.createElement('img');
             img.src = icon.src;
             img.alt = '';
@@ -567,7 +567,7 @@ class LevelSelectView {
             case 'activate-booster':
                 return { variant: 'booster', symbol: getBoosterIcon(goal.booster) };
             case 'collect-items':
-                return { variant: 'collect', symbol: '📦' };
+                return { variant: 'collect', src: 'assets/images/candy-collector-4.svg' };
             default:
                 return { variant: 'score', symbol: SCORE_GOAL_ICON_SYMBOL };
         }

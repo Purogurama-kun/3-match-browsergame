@@ -672,6 +672,11 @@
     border-color: rgba(232, 149, 78, 0.45);
 }
 
+.level-select__goal-icon--collect {
+    background: linear-gradient(135deg, rgba(255, 210, 170, 0.55), rgba(255, 180, 120, 0.45));
+    border-color: rgba(232, 149, 78, 0.35);
+}
+
 .level-select__goal-value {
     display: block;
     color: inherit;
