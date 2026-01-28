@@ -280,6 +280,7 @@ class Match3Game implements ModeContext {
     private snapshotRecorder: SnapshotRecorder;
     private recordingOverlay!: HTMLElement;
     private recordingBoard!: HTMLElement;
+    private recordingCollectorRow!: HTMLElement;
     private recordingCells: HTMLDivElement[] = [];
     private recordingProgress!: HTMLElement;
     private recordingModeRow!: HTMLElement;
@@ -1245,6 +1246,7 @@ class Match3Game implements ModeContext {
     private initRecordingView(): void {
         this.recordingOverlay = getRequiredElement('recording-state');
         this.recordingBoard = getRequiredElement('recording-board');
+        this.recordingCollectorRow = getRequiredElement('recording-collector-row');
         this.recordingProgress = getRequiredElement('recording-progress');
         this.recordingModeRow = getRequiredElement('recording-mode-row');
         this.recordingModeTag = getRequiredElement('recording-mode-tag');
@@ -1283,6 +1285,7 @@ class Match3Game implements ModeContext {
             this.recordingBoard.appendChild(cell);
             this.recordingCells.push(cell);
         }
+        this.renderRecordingCollectorRow();
         this.applyRecordingLocale();
     }
 
@@ -1299,6 +1302,7 @@ class Match3Game implements ModeContext {
         this.stopRecordingAutoPlay();
         this.recordingOverlay.removeAttribute('hidden');
         this.recordingCloseButton.focus();
+        this.renderRecordingCollectorRow();
         this.renderRecordingSnapshot();
     }
 
@@ -1544,6 +1548,28 @@ class Match3Game implements ModeContext {
         this.recordingPrevButton.disabled = this.recordingIndex === 0;
         this.recordingNextButton.disabled = this.recordingIndex >= this.recordingHistory.length - 1;
         this.updateRecordingModeTag(snapshot);
+    }
+
+    private renderRecordingCollectorRow(): void {
+        const collectorColumns = new Set(this.board.getCollectorColumns());
+        this.recordingCollectorRow.innerHTML = '';
+        if (collectorColumns.size === 0) {
+            this.recordingCollectorRow.setAttribute('hidden', 'true');
+            return;
+        }
+        this.recordingCollectorRow.removeAttribute('hidden');
+        for (let col = 0; col < GRID_SIZE; col += 1) {
+            const slot = document.createElement('div');
+            slot.className = 'recording-state__collector-slot';
+            if (collectorColumns.has(col)) {
+                const icon = document.createElement('img');
+                icon.className = 'recording-state__collector-icon';
+                icon.src = '/assets/images/arrow_drop_down.svg';
+                icon.alt = '';
+                slot.appendChild(icon);
+            }
+            this.recordingCollectorRow.appendChild(slot);
+        }
     }
 
     private describePosition(position: Position): string {
