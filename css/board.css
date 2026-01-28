@@ -255,6 +255,13 @@
     cursor: grab;
 }
 
+.board__delivery-icon {
+    width: 95%;
+    height: 95%;
+    object-fit: contain;
+    pointer-events: none;
+}
+
 .board__cell--shifting {
     border: 4px solid #05070c;
     box-shadow:

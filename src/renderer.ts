@@ -661,7 +661,11 @@ class Renderer {
         }
         if (state.collectionItem) {
             cell.classList.add('board__cell--delivery');
-            cell.textContent = '📦';
+            const icon = document.createElement('img');
+            icon.className = 'board__delivery-icon';
+            icon.src = '/assets/images/collectable-rainbow_star.png';
+            icon.alt = '';
+            cell.appendChild(icon);
             return;
         }
         if (state.color) {
