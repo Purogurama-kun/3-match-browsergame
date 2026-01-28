@@ -3,6 +3,8 @@ const COLORS = ['red', 'amber', 'blue', 'purple', 'green'];
 const BOOSTERS = ['line', 'burstSmall', 'burstMedium', 'burstLarge'];
 const DIFFICULTIES = ['easy', 'normal', 'hard', 'expert', 'nightmare'];
 const GOAL_TYPES = ['destroy-color', 'activate-booster', 'destroy-hard-candies', 'collect-items'];
+const COLLECT_ICON_SRC = '/assets/images/collectable-rainbow_star.png';
+const COLLECTOR_ARROW_SRC = '/assets/images/arrow_drop_down.svg';
 
 const BOARD_PALETTE_GROUPS = [
     {
@@ -570,7 +572,12 @@ function renderCollectorRow(level) {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'editor__collector-button';
-        button.textContent = '⬇️';
+        button.textContent = '';
+        const arrow = document.createElement('img');
+        arrow.className = 'editor__collector-icon';
+        arrow.src = COLLECTOR_ARROW_SRC;
+        arrow.alt = '';
+        button.appendChild(arrow);
         button.classList.toggle('editor__collector-button--active', activeColumns.has(col));
         button.title = `Collector column ${col + 1}`;
         button.addEventListener('click', () => {
@@ -638,8 +645,21 @@ function getTokenDisplay(token) {
     if (type === 'U') return '☢️';
     if (type === 'C') return '';
     if (type === 'Q') return '';
-    if (type === 'D') return '📦';
+    if (type === 'D') return '';
     return '';
+}
+
+function applyTokenDisplay(element, token, variant = 'board') {
+    element.textContent = '';
+    if (token.charAt(0) === 'D') {
+        const icon = document.createElement('img');
+        icon.className = `editor__cell-icon editor__cell-icon--collect editor__cell-icon--${variant}`;
+        icon.src = COLLECT_ICON_SRC;
+        icon.alt = '';
+        element.appendChild(icon);
+        return;
+    }
+    element.textContent = getTokenDisplay(token);
 }
 
 function getTokenColor(token, index) {
@@ -688,7 +708,7 @@ function renderBoardGrid(rows) {
             const cell = document.createElement('button');
             cell.type = 'button';
             cell.className = getTokenClassName(token);
-            cell.textContent = getTokenDisplay(token);
+            applyTokenDisplay(cell, token, 'board');
             cell.dataset.row = String(rowIndex);
             cell.dataset.col = String(colIndex);
             cell.dataset.token = token;
@@ -723,7 +743,7 @@ function applyTokenToCell(row, col, token) {
     const cell = ui.boardGrid.children[cellIndex];
     if (cell) {
         cell.className = getTokenClassName(token);
-        cell.textContent = getTokenDisplay(token);
+            applyTokenDisplay(cell, token, 'board');
         cell.dataset.token = token;
         const color = getTokenColor(token, cellIndex);
         if (color) {
@@ -882,7 +902,7 @@ function setupPalette() {
                 if (!name) return;
                 swatch.classList.add(`editor__cell--${name}`);
             });
-            swatch.textContent = getTokenDisplay(entry.token);
+            applyTokenDisplay(swatch, entry.token, 'palette');
             const type = entry.token.charAt(0);
             const shouldSetColor = type === 'R' || type === 'A' || type === 'B' || type === 'P' || type === 'G' || type === 'Q';
             if (shouldSetColor) {
