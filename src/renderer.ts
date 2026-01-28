@@ -238,11 +238,20 @@ class Renderer {
             slot.className = 'board__collector-slot';
             if (collectorColumns.has(i)) {
                 slot.classList.add('board__collector-slot--active');
-                const icon = document.createElement('img');
-                icon.className = 'board__collector-icon';
-                icon.src = '/assets/images/arrow_drop_down.svg';
-                icon.alt = '';
-                slot.appendChild(icon);
+                const base = document.createElement('img');
+                base.className = 'board__collector-base';
+                base.src = '/assets/images/candy-collector-4.svg';
+                base.alt = '';
+                slot.appendChild(base);
+
+                const arrow = document.createElement('span');
+                arrow.className = 'board__collector-arrow';
+                const arrowIcon = document.createElement('img');
+                arrowIcon.className = 'board__collector-arrow-icon';
+                arrowIcon.src = '/assets/images/arrow_drop_down.svg';
+                arrowIcon.alt = '';
+                arrow.appendChild(arrowIcon);
+                slot.appendChild(arrow);
             }
             row.appendChild(slot);
         }
