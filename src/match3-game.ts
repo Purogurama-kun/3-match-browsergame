@@ -1492,7 +1492,12 @@ class Match3Game implements ModeContext {
             } else if (state.delivery) {
                 cell.classList.add('recording-state__cell--delivery');
                 cell.style.backgroundColor = RECORDING_COLOR_HEX.none;
-                cell.textContent = '📦';
+                cell.textContent = '';
+                const icon = document.createElement('img');
+                icon.className = 'recording-state__cell-icon';
+                icon.src = '/assets/images/collectable-rainbow_star.png';
+                icon.alt = '';
+                cell.appendChild(icon);
             } else {
                 const color = RECORDING_COLOR_HEX[state.color] ?? RECORDING_COLOR_HEX.none;
                 const isHardCandy = state.hard && state.bomb === 'none' && !state.generator;
