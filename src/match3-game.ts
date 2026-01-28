@@ -986,6 +986,7 @@ class Match3Game implements ModeContext {
         const nextLevel = Math.min(rawNextLevel, getLevelCount());
         const reward =
             result === 'win' ? (this.levelWinRewardListener?.(completedLevel) ?? null) : null;
+        const isRepeatWin = result === 'win' && reward === null;
         if (reward && reward.coins > 0) {
             this.sugarCoinListener?.(reward.coins);
         }
@@ -1036,6 +1037,10 @@ class Match3Game implements ModeContext {
                 onSecondary: () => this.requestLevelSelect(),
                 onClose: () => {
                     if (result === 'win') {
+                        if (isRepeatWin) {
+                            this.requestLevelSelect();
+                            return;
+                        }
                         if (hasMoreLevels) {
                             this.requestLevelSelect({
                                 focusLevel: nextLevel,
@@ -1052,7 +1057,18 @@ class Match3Game implements ModeContext {
                     this.createBoard();
                 }
             };
-            const modalOptions = coinSummary ? { ...baseModalOptions, coinSummary } : baseModalOptions;
+            const modalOptions = (() => {
+                if (isRepeatWin) {
+                    const repeatOptions = {
+                        title,
+                        text,
+                        buttonText: t('button.candyWorld'),
+                        onClose: baseModalOptions.onClose
+                    };
+                    return coinSummary ? { ...repeatOptions, coinSummary } : repeatOptions;
+                }
+                return coinSummary ? { ...baseModalOptions, coinSummary } : baseModalOptions;
+            })();
             this.renderer.showModal(modalOptions);
         };
         const postScene = result === 'win' ? getStoryCutscene(completedLevel, 'after') : null;

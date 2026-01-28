@@ -67,6 +67,15 @@
     flex: 1 1 9.5rem;
 }
 
+.modal__actions--pair .modal__button--ghost {
+    flex: 1 1 9.5rem;
+    order: 1;
+}
+
+.modal__actions--pair .modal__button--primary {
+    order: 2;
+}
+
 .modal__button {
     padding: 0.65rem 1.5rem;
     border-radius: 12px;

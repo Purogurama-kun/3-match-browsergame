@@ -37,6 +37,7 @@ class Renderer {
     private readonly modalText: HTMLElement;
     private readonly modalButton: HTMLButtonElement;
     private readonly modalSecondaryButton: HTMLButtonElement;
+    private readonly modalActions: HTMLElement;
     private readonly moveEvaluationEl: HTMLElement;
     private moveEvaluationTimer: number | null = null;
     private readonly shuffleNoticeEl: HTMLElement;
@@ -76,6 +77,7 @@ class Renderer {
         this.modalText = getRequiredElement('result-text');
         this.modalButton = getRequiredElement('result-button') as HTMLButtonElement;
         this.modalSecondaryButton = getRequiredElement('result-home-button') as HTMLButtonElement;
+        this.modalActions = this.getModalActions();
         this.moveEvaluationEl = getRequiredElement('move-evaluation');
         this.shuffleNoticeEl = getRequiredElement('shuffle-notice');
         this.shuffleNoticeTextEl = getRequiredElement('shuffle-notice-text');
@@ -580,6 +582,7 @@ class Renderer {
         } else {
             this.modalSecondaryButton.setAttribute('hidden', 'true');
         }
+        this.updateModalActionsLayout();
         this.modalEl.classList.add('modal--visible');
         this.modalButton.focus();
     }
@@ -590,6 +593,7 @@ class Renderer {
         } else {
             this.recordingButton.setAttribute('hidden', 'true');
         }
+        this.updateModalActionsLayout();
     }
 
     onRecordingRequested(handler: () => void): void {
@@ -617,6 +621,21 @@ class Renderer {
 
     isModalVisible(): boolean {
         return this.modalEl.classList.contains('modal--visible');
+    }
+
+    private getModalActions(): HTMLElement {
+        const actions = this.modalEl.querySelector('.modal__actions');
+        if (!actions) {
+            throw new Error('Missing modal actions container.');
+        }
+        return actions as HTMLElement;
+    }
+
+    private updateModalActionsLayout(): void {
+        const hasSecondary = !this.modalSecondaryButton.hasAttribute('hidden');
+        const hasRecording = !this.recordingButton.hasAttribute('hidden');
+        const shouldPair = !hasSecondary && hasRecording;
+        this.modalActions.classList.toggle('modal__actions--pair', shouldPair);
     }
 
     private applyCellState(index: number, state: CellState): void {

@@ -319,11 +319,38 @@ class GameApp {
         this.shopView.hide();
         this.hideProfile();
         this.hideMainMenu();
-        this.levelSelectView.open(this.progress.highestLevel, request);
+        this.levelSelectView.open(
+            this.progress.highestLevel,
+            this.normalizeLevelSelectRequest(request)
+        );
     }
 
     private hideLevelSelect(): void {
         this.levelSelectView.hide();
+    }
+
+    private normalizeLevelSelectRequest(request?: LevelSelectRequest): LevelSelectRequest | undefined {
+        if (!request) {
+            return undefined;
+        }
+        const highestLevel = this.progress.highestLevel;
+        const focusLevel = request.focusLevel ?? highestLevel;
+        const targetLevel = focusLevel < highestLevel ? highestLevel : focusLevel;
+        const fromLevel = request.fromLevel;
+        const hasAdvance =
+            request.animateMira === true &&
+            typeof fromLevel === 'number' &&
+            targetLevel === highestLevel &&
+            fromLevel === highestLevel - 1;
+        const normalized: LevelSelectRequest = { focusLevel: targetLevel };
+        if (request.showDetails !== undefined) {
+            normalized.showDetails = request.showDetails;
+        }
+        if (hasAdvance) {
+            normalized.fromLevel = fromLevel;
+            normalized.animateMira = true;
+        }
+        return normalized;
     }
 
     private hideLeaderboard(): void {
