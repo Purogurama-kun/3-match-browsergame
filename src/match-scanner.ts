@@ -282,6 +282,7 @@ class MatchScanner {
         if (this.board.isBlockerGenerator(index)) return '';
         if (this.board.isHardCandy(index)) return '';
         if (this.board.isSugarChest(index)) return '';
+        if (this.board.isCollectionItem(index)) return '';
         const booster = this.board.getCellBooster(index);
         if (booster === BOOSTERS.BURST_LARGE) return '';
         return this.board.getCellColor(index);
@@ -328,6 +329,7 @@ class MatchScanner {
         if (this.board.isBlockedIndex(index)) return false;
         if (this.board.isHardCandy(index)) return false;
         if (this.board.isBlockerGenerator(index)) return false;
+        if (this.board.isCollectionItem(index)) return true;
         return Boolean(this.board.getCellColor(index));
     }
 

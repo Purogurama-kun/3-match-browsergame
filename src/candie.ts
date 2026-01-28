@@ -53,6 +53,9 @@ class Candie {
             this.sugarChests.handleHit(index, false);
             return;
         }
+        if (this.board.isCollectionItem(index)) {
+            return;
+        }
         const isGenerator = this.board.isBlockerGenerator(index);
         if (this.board.isHardCandy(index)) {
             if (isGenerator) {

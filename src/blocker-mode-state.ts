@@ -96,6 +96,10 @@ class BlockerModeState implements GameModeState {
         // Blocker mode does not track hard candy goals.
     }
 
+    handleCollectionItems(_state: GameState, _amount: number, _context: ModeContext): void {
+        // Blocker mode does not track collection goals.
+    }
+
     getBoardConfig(): BoardConfig {
         return { blockerGenerators: this.config.generatorIndices };
     }

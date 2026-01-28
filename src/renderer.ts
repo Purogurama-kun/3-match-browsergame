@@ -50,6 +50,7 @@ class Renderer {
     private readonly renderedKeys: string[] = [];
     private readonly pendingCellUpdates = new Map<number, CellState>();
     private pendingFlushHandle: number | null = null;
+    private collectorRow: HTMLDivElement | null = null;
     private renderContextVersion = 0;
     private selectedIndex: number | null = null;
     private readonly hintIndices = new Set<number>();
@@ -203,6 +204,8 @@ class Renderer {
         this.pendingCellUpdates.clear();
         this.gameEl.innerHTML = '';
         this.particleEffect.reset();
+        this.collectorRow = null;
+        this.gameEl.classList.remove('board--has-collector');
         for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
             const cell = document.createElement('div');
             cell.className = 'board__cell';
@@ -211,8 +214,37 @@ class Renderer {
             this.cells.push(cell);
             this.gameEl.appendChild(cell);
         }
+        if (this.createCollectorRow(board)) {
+            this.gameEl.classList.add('board--has-collector');
+        }
         this.refreshBoard(board);
         this.flushPendingUpdates();
+    }
+
+    setCollectorVisible(visible: boolean): void {
+        if (!this.collectorRow) return;
+        this.collectorRow.hidden = !visible;
+    }
+
+    private createCollectorRow(board: Board): boolean {
+        const collectorColumns = new Set(board.getCollectorColumns());
+        if (collectorColumns.size === 0) {
+            return false;
+        }
+        const row = document.createElement('div');
+        row.className = 'board__collector-row';
+        for (let i = 0; i < GRID_SIZE; i++) {
+            const slot = document.createElement('span');
+            slot.className = 'board__collector-slot';
+            if (collectorColumns.has(i)) {
+                slot.classList.add('board__collector-slot--active');
+                slot.textContent = '⬇️';
+            }
+            row.appendChild(slot);
+        }
+        this.gameEl.appendChild(row);
+        this.collectorRow = row;
+        return true;
     }
 
     refreshBoard(board: Board): void {
@@ -588,6 +620,7 @@ class Renderer {
         cell.dataset.hard = state.hard ? 'true' : 'false';
         cell.dataset.generator = state.generator ? 'true' : 'false';
         cell.dataset.shifting = state.shifting ? 'true' : 'false';
+        cell.dataset.collectionItem = state.collectionItem ? 'true' : 'false';
         if (state.lineOrientation) {
             cell.dataset.lineOrientation = state.lineOrientation;
         } else {
@@ -600,6 +633,7 @@ class Renderer {
         cell.style.removeProperty('--cell-color');
         cell.style.removeProperty('--shifting-next-color');
         cell.classList.remove('board__cell--sugar-chest');
+        cell.classList.remove('board__cell--delivery');
         cell.classList.remove('board__cell--hard-2', 'board__cell--hard-3');
         cell.classList.remove(
             'board__cell--hardening',
@@ -619,6 +653,11 @@ class Renderer {
                 '--sugar-chest-image',
                 `url(/assets/images/sugar-chest-${stageIndex}.webp)`
             );
+            return;
+        }
+        if (state.collectionItem) {
+            cell.classList.add('board__cell--delivery');
+            cell.textContent = '📦';
             return;
         }
         if (state.color) {
@@ -703,6 +742,7 @@ class Renderer {
             state.hard ? '1' : '0',
             state.generator ? '1' : '0',
             state.shifting ? '1' : '0',
+            state.collectionItem ? '1' : '0',
             state.shiftingNextColor ?? '',
             stage,
             hardStage,

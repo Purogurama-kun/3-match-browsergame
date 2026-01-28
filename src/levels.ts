@@ -731,6 +731,8 @@ function normalizeLevelDefinition(definition: LevelDefinitionInput, id: number):
     const resolvedHardCandies = boardOverrides?.hardCandies ?? definitionBase.hardCandies;
     const resolvedBlockerGenerators =
         boardOverrides?.blockerGenerators ?? definitionBase.blockerGenerators;
+    const resolvedCollectorColumns =
+        boardOverrides?.collectorColumns ?? definitionBase.collectorColumns;
     const normalizedTimeGoal =
         definitionBase.timeGoalSeconds !== undefined
             ? Math.max(180, definitionBase.timeGoalSeconds)
@@ -752,8 +754,9 @@ function normalizeLevelDefinition(definition: LevelDefinitionInput, id: number):
         goals,
         ...(resolvedMissingCells ? { missingCells: [...resolvedMissingCells] } : {}),
         ...(resolvedHardCandies ? { hardCandies: [...resolvedHardCandies] } : {}),
-        ...(resolvedBlockerGenerators
-            ? { blockerGenerators: [...resolvedBlockerGenerators] }
+        ...(resolvedBlockerGenerators ? { blockerGenerators: [...resolvedBlockerGenerators] } : {}),
+        ...(Array.isArray(resolvedCollectorColumns)
+            ? { collectorColumns: [...resolvedCollectorColumns] }
             : {}),
         ...(boardOverrides?.cellOverrides ? { cellOverrides: [...boardOverrides.cellOverrides] } : {}),
         ...(normalizedTimeGoal !== undefined ? { timeGoalSeconds: normalizedTimeGoal } : {})
@@ -784,6 +787,7 @@ type ParsedBoardLayout = {
     blockedCells: number[];
     hardCandies: number[];
     blockerGenerators: number[];
+    collectorColumns?: number[];
     cellOverrides: BoardCellOverride[];
 };
 
@@ -802,6 +806,7 @@ function parseBoardLayout(layout: BoardLayoutInput, levelId: number): ParsedBoar
     const blockedCells: number[] = [];
     const hardCandies: number[] = [];
     const blockerGenerators: number[] = [];
+    const collectorColumns = new Set<number>();
     const cellOverrides: BoardCellOverride[] = [];
     rows.forEach((row, rowIndex) => {
         const tokens = tokenizeBoardRow(row);
@@ -849,6 +854,14 @@ function parseBoardLayout(layout: BoardLayoutInput, levelId: number): ParsedBoar
                 cellOverrides.push({ index, shifting: true });
                 return;
             }
+            if (parsed.type === 'D') {
+                cellOverrides.push({ index, collectionItem: true });
+                return;
+            }
+            if (parsed.type === 'K') {
+                collectorColumns.add(colIndex);
+                return;
+            }
             const colorKey = BOARD_TOKEN_COLORS[parsed.type];
             if (colorKey) {
                 cellOverrides.push({ index, color: getColorHex(colorKey) });
@@ -877,7 +890,15 @@ function parseBoardLayout(layout: BoardLayoutInput, levelId: number): ParsedBoar
     if (!isValid) {
         return null;
     }
-    return { blockedCells, hardCandies, blockerGenerators, cellOverrides };
+    const resolvedCollectorColumns =
+        collectorColumns.size > 0 ? Array.from(collectorColumns.values()) : undefined;
+    return {
+        blockedCells,
+        hardCandies,
+        blockerGenerators,
+        ...(resolvedCollectorColumns ? { collectorColumns: resolvedCollectorColumns } : {}),
+        cellOverrides
+    };
 }
 
 function tokenizeBoardRow(row: string): string[] {
@@ -930,6 +951,9 @@ function parseBoardToken(rawToken: string): ParsedBoardToken | null {
     if (type === 'Q') {
         return stage === '1' ? { type, stage } : null;
     }
+    if (type === 'D' || type === 'K') {
+        return stage === '1' ? { type, stage } : null;
+    }
     if (BOARD_TOKEN_COLORS[type]) {
         return stage === '1' ? { type, stage } : null;
     }
@@ -979,6 +1003,9 @@ function getLevelDefinition(levelNumber: number): LevelDefinition {
         ...(baseDefinition.missingCells ? { missingCells: [...baseDefinition.missingCells] } : {}),
         ...(baseDefinition.hardCandies ? { hardCandies: [...baseDefinition.hardCandies] } : {}),
         ...(baseDefinition.blockerGenerators ? { blockerGenerators: [...baseDefinition.blockerGenerators] } : {}),
+        ...(Array.isArray(baseDefinition.collectorColumns)
+            ? { collectorColumns: [...baseDefinition.collectorColumns] }
+            : {}),
         ...(baseDefinition.cellOverrides ? { cellOverrides: [...baseDefinition.cellOverrides] } : {}),
         ...(baseDefinition.timeGoalSeconds !== undefined ? { timeGoalSeconds: baseDefinition.timeGoalSeconds } : {})
     };
@@ -1012,6 +1039,9 @@ function describeGoal(goal: LevelGoal): string {
     }
     if (goal.type === 'destroy-hard-candies') {
         return t('goal.destroyHardCandies', { target: goal.target });
+    }
+    if (goal.type === 'collect-items') {
+        return t('goal.collectItems', { target: goal.target });
     }
     const boosterKey = BOOSTER_LABEL_KEYS[goal.booster];
     if (!boosterKey) {

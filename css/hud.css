@@ -566,6 +566,11 @@
     color: #e0f2fe;
 }
 
+.hud__goal-chip--collect {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(251, 146, 60, 0.3));
+    color: #fff7ed;
+}
+
 .hud__goal-count {
     font-weight: 700;
     color: #f5f5ff;

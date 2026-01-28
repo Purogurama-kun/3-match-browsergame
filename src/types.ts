@@ -25,7 +25,7 @@ type LeaderboardIdentity = {
     nationality?: string | null;
 };
 
-type GoalType = 'destroy-color' | 'activate-booster';
+type GoalType = 'destroy-color' | 'activate-booster' | 'collect-items';
 
 type ActivatableBoosterType = Exclude<BoosterType, 'none'>;
 
@@ -46,9 +46,14 @@ type DestroyHardCandiesGoal = {
     target: number;
 };
 
-type LevelGoal = DestroyColorGoal | ActivateBoosterGoal | DestroyHardCandiesGoal;
+type CollectItemsGoal = {
+    type: 'collect-items';
+    target: number;
+};
 
-type GoalProgress = (DestroyColorGoal | ActivateBoosterGoal | DestroyHardCandiesGoal) & {
+type LevelGoal = DestroyColorGoal | ActivateBoosterGoal | DestroyHardCandiesGoal | CollectItemsGoal;
+
+type GoalProgress = (DestroyColorGoal | ActivateBoosterGoal | DestroyHardCandiesGoal | CollectItemsGoal) & {
     current: number;
     description: string;
 };
@@ -65,6 +70,7 @@ type LevelDefinition = {
     missingCells?: number[];
     hardCandies?: number[];
     blockerGenerators?: number[];
+    collectorColumns?: number[];
     cellOverrides?: BoardCellOverride[];
 };
 
@@ -106,6 +112,7 @@ type BoardCellOverride = {
     booster?: BoosterType;
     lineOrientation?: LineOrientation;
     sugarChestStage?: number;
+    collectionItem?: boolean;
     shifting?: boolean;
 };
 
@@ -116,6 +123,7 @@ export {
     ActivatableBoosterType,
     DestroyColorGoal,
     ActivateBoosterGoal,
+    CollectItemsGoal,
     GoalProgress,
     LevelDefinition,
     LevelGoal,

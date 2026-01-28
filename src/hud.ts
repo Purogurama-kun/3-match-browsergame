@@ -520,6 +520,13 @@ class Hud {
             chip.setAttribute('aria-hidden', 'true');
             return chip;
         }
+        if (goal.type === 'collect-items') {
+            const chip = document.createElement('span');
+            chip.className = 'hud__goal-chip hud__goal-chip--collect';
+            chip.textContent = '📦';
+            chip.setAttribute('aria-hidden', 'true');
+            return chip;
+        }
         const chip = document.createElement('span');
         chip.className = 'hud__goal-chip hud__goal-chip--booster';
         chip.textContent = getBoosterIcon(goal.booster);

@@ -32,6 +32,7 @@ type SnapshotCell = {
     generator: boolean;
     shifting: boolean;
     shiftingNextColor: SnapshotCell['color'];
+    delivery: boolean;
     position: Position;
 };
 
@@ -119,7 +120,8 @@ class SnapshotRecorder {
                 cellA.hardeningStage !== cellB.hardeningStage ||
                 cellA.generator !== cellB.generator ||
                 cellA.shifting !== cellB.shifting ||
-                cellA.shiftingNextColor !== cellB.shiftingNextColor
+                cellA.shiftingNextColor !== cellB.shiftingNextColor ||
+                cellA.delivery !== cellB.delivery
             ) {
                 return false;
             }
@@ -146,6 +148,7 @@ class SnapshotRecorder {
             generator: state.generator,
             shifting: state.shifting,
             shiftingNextColor,
+            delivery: state.collectionItem,
             position
         };
     }

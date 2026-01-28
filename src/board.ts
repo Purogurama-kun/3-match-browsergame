@@ -13,6 +13,7 @@ type CellState = {
     blocked: boolean;
     generator: boolean;
     sugarChestStage?: number;
+    collectionItem: boolean;
     shifting: boolean;
     shiftingNextColor?: string;
 };
@@ -26,6 +27,7 @@ type ColumnEntry = {
     hardeningStage?: number;
     generator: boolean;
     sugarChestStage?: number;
+    collectionItem?: boolean;
     shifting: boolean;
     shiftingNextColor?: string;
 };
@@ -38,16 +40,19 @@ type DropMove = {
 type CollapseResult = {
     emptyIndices: number[];
     moves: DropMove[];
+    collectedIndices: number[];
 };
 
 class Board {
     private cellStates: CellState[] = [];
     private blockedIndices: Set<number> = new Set();
+    private collectorColumns: Set<number> = new Set();
 
     create(config?: {
         blockedCells?: number[];
         hardCandies?: number[];
         blockerGenerators?: number[];
+        collectorColumns?: number[];
         cellOverrides?: Array<{
             index: number;
             color?: string;
@@ -59,6 +64,7 @@ class Board {
             booster?: BoosterType;
             lineOrientation?: LineOrientation;
             sugarChestStage?: number;
+            collectionItem?: boolean;
             shifting?: boolean;
         }>;
     }): void {
@@ -74,6 +80,7 @@ class Board {
                 booster?: BoosterType;
                 lineOrientation?: LineOrientation;
                 sugarChestStage?: number;
+                collectionItem?: boolean;
                 shifting?: boolean;
             }
         >();
@@ -83,6 +90,14 @@ class Board {
         const blockedFromConfig = new Set(config?.blockedCells ?? []);
         const hardCandies = new Set(config?.hardCandies ?? []);
         const blockerGenerators = new Set(config?.blockerGenerators ?? []);
+        const collectorColumns = config?.collectorColumns;
+        if (Array.isArray(collectorColumns)) {
+            this.collectorColumns = new Set(
+                collectorColumns.filter((col) => Number.isInteger(col) && col >= 0 && col < GRID_SIZE)
+            );
+        } else {
+            this.collectorColumns = new Set();
+        }
         const blockedFromOverrides = new Set<number>();
         overrideMap.forEach((override, index) => {
             if (override.blocked) {
@@ -101,12 +116,14 @@ class Board {
             const baseHard = overrideHard ?? hardCandies.has(i);
             const hard = isGenerator ? true : (baseHard || hardStage !== null);
             const hasHardening = !hard && !blocked && !isGenerator && hardeningStage !== null;
+            const hasCollectionItem = !blocked && Boolean(override?.collectionItem);
             const state: CellState = {
                 color: '',
                 booster: BOOSTERS.NONE,
                 hard,
                 blocked,
                 generator: isGenerator,
+                collectionItem: hasCollectionItem,
                 shifting: false
             };
             if (hard) {
@@ -121,10 +138,13 @@ class Board {
                 !state.hard &&
                 !state.hardeningStage &&
                 !state.generator &&
+                !state.collectionItem &&
                 !override?.color &&
                 !hasOverrideChest &&
                 this.shouldSpawnSugarChest();
             if (blocked) {
+                state.color = '';
+            } else if (state.collectionItem) {
                 state.color = '';
             } else if (override?.color) {
                 state.color = override.color;
@@ -133,7 +153,14 @@ class Board {
             } else {
                 state.color = this.pickColorForIndex(i);
             }
-            if (!blocked && !state.generator && !state.hardeningStage && !hasOverrideChest && override?.booster) {
+            if (
+                !blocked &&
+                !state.generator &&
+                !state.hardeningStage &&
+                !hasOverrideChest &&
+                !state.collectionItem &&
+                override?.booster
+            ) {
                 state.booster = override.booster;
                 if (override.booster === BOOSTERS.LINE && override.lineOrientation) {
                     state.lineOrientation = override.lineOrientation;
@@ -147,6 +174,7 @@ class Board {
                 !state.hard &&
                 !state.hardeningStage &&
                 !hasOverrideChest &&
+                !state.collectionItem &&
                 !override?.booster &&
                 Boolean(state.color);
             state.shifting = canShift;
@@ -170,6 +198,7 @@ class Board {
     clear(): void {
         this.cellStates = [];
         this.blockedIndices.clear();
+        this.collectorColumns.clear();
     }
 
     getCellState(index: number): CellState {
@@ -185,7 +214,9 @@ class Board {
     }
 
     setCellColor(index: number, color: string): void {
-        this.getCellState(index).color = color;
+        const state = this.getCellState(index);
+        if (state.collectionItem) return;
+        state.color = color;
     }
 
     getCellBooster(index: number): BoosterType {
@@ -196,6 +227,7 @@ class Board {
         const state = this.getCellState(index);
         state.booster = type;
         if (type !== BOOSTERS.NONE) {
+            state.collectionItem = false;
             state.shifting = false;
             delete state.shiftingNextColor;
             delete state.hardeningStage;
@@ -243,6 +275,9 @@ class Board {
     setHardCandy(index: number, isHard: boolean, stage: number = 1): void {
         const state = this.getCellState(index);
         state.hard = isHard;
+        if (isHard) {
+            state.collectionItem = false;
+        }
         delete state.hardeningStage;
         if (isHard) {
             state.shifting = false;
@@ -259,6 +294,7 @@ class Board {
         const state = this.getCellState(index);
         if (state.blocked || state.generator || state.hard) return;
         if (state.sugarChestStage !== undefined) return;
+        if (state.collectionItem) return;
         state.booster = BOOSTERS.NONE;
         state.shifting = false;
         delete state.shiftingNextColor;
@@ -284,6 +320,9 @@ class Board {
         const state = this.getCellState(index);
         state.generator = isGenerator;
         state.hard = isHard;
+        if (isGenerator) {
+            state.collectionItem = false;
+        }
         delete state.hardeningStage;
         if (isHard) {
             state.hardStage = 1;
@@ -317,6 +356,7 @@ class Board {
         delete state.hardStage;
         delete state.hardeningStage;
         state.generator = false;
+        state.collectionItem = false;
         state.shifting = false;
         delete state.shiftingNextColor;
         delete state.lineOrientation;
@@ -346,11 +386,16 @@ class Board {
         return this.cellStates;
     }
 
+    getCollectorColumns(): number[] {
+        return Array.from(this.collectorColumns.values());
+    }
+
     collapseColumn(col: number): CollapseResult {
         const emptyIndices: number[] = [];
         const moves: DropMove[] = [];
-        this.collapseColumnEntries(col, emptyIndices, moves);
-        return { emptyIndices, moves };
+        const collectedIndices: number[] = [];
+        this.collapseColumnEntries(col, emptyIndices, moves, collectedIndices);
+        return { emptyIndices, moves, collectedIndices };
     }
 
     private pickColorForIndex(index: number): string {
@@ -403,6 +448,28 @@ class Board {
 
     isSugarChest(index: number): boolean {
         return typeof this.getCellState(index).sugarChestStage === 'number';
+    }
+
+    isCollectionItem(index: number): boolean {
+        return this.getCellState(index).collectionItem;
+    }
+
+    setCollectionItem(index: number, enabled: boolean): void {
+        const state = this.getCellState(index);
+        if (state.blocked) return;
+        state.collectionItem = enabled;
+        if (enabled) {
+            state.color = '';
+            state.booster = BOOSTERS.NONE;
+            state.hard = false;
+            delete state.hardStage;
+            delete state.hardeningStage;
+            state.generator = false;
+            state.shifting = false;
+            delete state.shiftingNextColor;
+            delete state.lineOrientation;
+            delete state.sugarChestStage;
+        }
     }
 
     isShiftingCandy(index: number): boolean {
@@ -465,6 +532,7 @@ class Board {
         state.booster = BOOSTERS.NONE;
         state.hard = false;
         state.generator = false;
+        state.collectionItem = false;
         delete state.hardeningStage;
         state.shifting = false;
         delete state.shiftingNextColor;
@@ -493,7 +561,12 @@ class Board {
         return Math.random() < SUGAR_CHEST_CHANCE;
     }
 
-    private collapseColumnEntries(col: number, emptyIndices: number[], moves: DropMove[]): void {
+    private collapseColumnEntries(
+        col: number,
+        emptyIndices: number[],
+        moves: DropMove[],
+        collectedIndices: number[]
+    ): void {
         const entries: { entry: ColumnEntry; fromIndex: number }[] = [];
         const targetRows: number[] = [];
         for (let row = GRID_SIZE - 1; row >= 0; row--) {
@@ -517,6 +590,15 @@ class Board {
                 emptyIndices.push(index);
                 continue;
             }
+            if (
+                nextEntry.entry.collectionItem &&
+                targetRow === targetRows[0] &&
+                this.collectorColumns.has(col)
+            ) {
+                collectedIndices.push(index);
+                emptyIndices.push(index);
+                continue;
+            }
             this.placeColumnEntry(index, nextEntry.entry);
             if (nextEntry.fromIndex !== index) {
                 moves.push({ from: nextEntry.fromIndex, to: index });
@@ -534,6 +616,16 @@ class Board {
                 hard: false,
                 generator: false,
                 sugarChestStage: state.sugarChestStage,
+                shifting: false
+            };
+        }
+        if (state.collectionItem) {
+            return {
+                color: '',
+                booster: BOOSTERS.NONE,
+                hard: false,
+                generator: false,
+                collectionItem: true,
                 shifting: false
             };
         }
@@ -564,6 +656,10 @@ class Board {
         this.clearCell(index);
         if (entry.sugarChestStage !== undefined) {
             this.setSugarChestStage(index, entry.sugarChestStage);
+            return;
+        }
+        if (entry.collectionItem) {
+            this.setCollectionItem(index, true);
             return;
         }
         if (entry.generator) {
@@ -612,6 +708,7 @@ class Board {
         if (normalized < 1 || normalized > 3) return null;
         return normalized;
     }
+
 }
 
 export { Board, CellState, CollapseResult, DropMove };

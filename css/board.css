@@ -10,9 +10,41 @@
     touch-action: none;
 }
 
+.board__collector-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--cell-size) * -0.55);
+    display: grid;
+    grid-template-columns: repeat(9, var(--cell-size));
+    gap: 0.25rem;
+    padding: 0.375rem;
+    pointer-events: none;
+    filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.35));
+}
+
+.board__collector-slot {
+    height: calc(var(--cell-size) * 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(var(--cell-size) * 0.3);
+    color: transparent;
+    text-shadow: none;
+}
+
+.board__collector-slot--active {
+    color: #fdba74;
+    text-shadow: 0 3px 8px rgba(15, 23, 42, 0.7);
+}
+
 .match-app--playing .board {
     margin-top: auto;
     margin-bottom: auto;
+}
+
+.board--has-collector {
+    margin-bottom: calc(var(--cell-size) * 0.55);
 }
 
 .board__particles {
@@ -213,6 +245,13 @@
         0 10px 20px rgba(0, 0, 0, 0.35),
         0 0 0 0.1875rem rgba(17, 17, 17, 0.7);
     cursor: default;
+}
+
+.board__cell--delivery {
+    font-size: 1.45rem;
+    color: #fff7ed;
+    text-shadow: 0 2px 8px rgba(15, 23, 42, 0.6);
+    cursor: grab;
 }
 
 .board__cell--shifting {

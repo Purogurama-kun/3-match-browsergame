@@ -123,11 +123,27 @@ class LevelModeState implements GameModeState {
         }
     }
 
+    handleCollectionItems(state: GameState, amount: number, context: ModeContext): void {
+        if (amount <= 0) return;
+        let progressed = false;
+        state.goals = state.goals.map((goal) => {
+            if (goal.type !== 'collect-items') return goal;
+            progressed = true;
+            return { ...goal, current: Math.min(goal.target, goal.current + amount) };
+        });
+        if (progressed) {
+            context.updateHud(state);
+        }
+    }
+
     getBoardConfig(): BoardConfig {
         const config: BoardConfig = {};
         if (this.levelDefinition.missingCells) config.blockedCells = this.levelDefinition.missingCells;
         if (this.levelDefinition.hardCandies) config.hardCandies = this.levelDefinition.hardCandies;
         if (this.levelDefinition.cellOverrides) config.cellOverrides = this.levelDefinition.cellOverrides;
+        if (Array.isArray(this.levelDefinition.collectorColumns)) {
+            config.collectorColumns = this.levelDefinition.collectorColumns;
+        }
         const generators = this.pickBlockerGenerators();
         if (generators.length > 0) {
             config.blockerGenerators = generators;

@@ -214,7 +214,7 @@ class Match3Game implements ModeContext {
                 this.captureSnapshot();
                 this.powerups.finishPowerupIfNeeded();
             },
-            onBoardSettled: () => this.modeState.handleBoardSettled(this.state, this),
+            onBoardSettled: () => this.handleBoardSettled(),
             getMatchContext: () => this.matchContext,
             onMatchesDetected: (result, context) => this.handleMatchesDetected(result, context),
             scheduleHint: () => this.scheduleHint()
@@ -565,6 +565,7 @@ class Match3Game implements ModeContext {
             (index) => this.handleCellClick(index),
             (index, direction) => this.handleCellSwipe(index, direction)
         );
+        this.renderer.setCollectorVisible(this.board.getCollectorColumns().length > 0);
         this.renderer.setRecordingButtonVisible(false);
         this.recordingAvailable = false;
         this.closeRecordingState();
@@ -582,6 +583,7 @@ class Match3Game implements ModeContext {
         this.updateRecordingLock(true);
         this.animateBoardEntry();
     }
+
 
     ensurePlayableBoard(boardConfig: BoardConfig): void {
         let attempts = 0;
@@ -795,9 +797,12 @@ class Match3Game implements ModeContext {
     private dropCells(): void {
         const moves: DropMove[] = [];
         const spawnedIndices: number[] = [];
+        const collectedIndices: number[] = [];
         for (let col = 0; col < GRID_SIZE; col++) {
-            const { emptyIndices, moves: columnMoves } = this.board.collapseColumn(col);
+            const { emptyIndices, moves: columnMoves, collectedIndices: columnCollected } =
+                this.board.collapseColumn(col);
             moves.push(...columnMoves);
+            collectedIndices.push(...columnCollected);
             emptyIndices.forEach((index) => {
                 if (this.board.isBlockedIndex(index)) return;
                 spawnedIndices.push(index);
@@ -818,6 +823,20 @@ class Match3Game implements ModeContext {
         }
         this.renderer.refreshBoard(this.board);
         this.renderer.animateDrops(moves, spawnedIndices);
+        if (collectedIndices.length > 0) {
+            collectedIndices.forEach((index) => {
+                if (!this.performanceMode) {
+                    this.renderer.emitCellParticles(index, '#fb923c', {
+                        count: 16,
+                        minDistance: 14,
+                        maxDistance: 30,
+                        minDuration: 0.6,
+                        maxDuration: 0.9
+                    });
+                }
+            });
+            this.modeState.handleCollectionItems(this.state, collectedIndices.length, this);
+        }
         this.captureSnapshot();
         this.defer(() => {
             this.setMatchSwap(null);
@@ -1440,6 +1459,7 @@ class Match3Game implements ModeContext {
             const state = snapshot.board[idx];
             cell.classList.remove(
                 'recording-state__cell--sugar-chest',
+                'recording-state__cell--delivery',
                 'recording-state__cell--hard',
                 'recording-state__cell--hard-2',
                 'recording-state__cell--hard-3',
@@ -1469,6 +1489,10 @@ class Match3Game implements ModeContext {
                 );
                 cell.style.backgroundColor = 'transparent';
                 cell.textContent = '';
+            } else if (state.delivery) {
+                cell.classList.add('recording-state__cell--delivery');
+                cell.style.backgroundColor = RECORDING_COLOR_HEX.none;
+                cell.textContent = '📦';
             } else {
                 const color = RECORDING_COLOR_HEX[state.color] ?? RECORDING_COLOR_HEX.none;
                 const isHardCandy = state.hard && state.bomb === 'none' && !state.generator;
@@ -1630,6 +1654,10 @@ class Match3Game implements ModeContext {
             this.autoLimitExceeded = false;
             this.snapshotRecorder.beginManualSequence();
         }
+    }
+
+    private handleBoardSettled(): void {
+        this.modeState.handleBoardSettled(this.state, this);
     }
 
     private buildMatchCells(result: MatchResult): Position[] {

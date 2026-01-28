@@ -139,6 +139,10 @@ class LeaderboardState implements GameModeState {
         // Leaderboard view has no hard candy goals.
     }
 
+    handleCollectionItems(_state: GameState, _amount: number, _context: ModeContext): void {
+        // Leaderboard view has no collection goals.
+    }
+
     getBoardConfig(): BoardConfig {
         return {};
     }

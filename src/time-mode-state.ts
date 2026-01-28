@@ -107,6 +107,10 @@ class TimeModeState implements GameModeState {
         // Time mode ignores hard candy goals.
     }
 
+    handleCollectionItems(_state: GameState, _amount: number, _context: ModeContext): void {
+        // Time mode ignores collection goals.
+    }
+
     handleScoreAwarded(state: GameState, basePoints: number, _context: ModeContext): void {
         this.addTime(state, basePoints * this.config.scoreTimeFactor);
     }
@@ -281,6 +285,9 @@ class TimeModeState implements GameModeState {
             if (goal.type === 'destroy-hard-candies' && other.type === 'destroy-hard-candies') {
                 return true;
             }
+            if (goal.type === 'collect-items' && other.type === 'collect-items') {
+                return true;
+            }
             return false;
         });
     }
@@ -291,6 +298,9 @@ class TimeModeState implements GameModeState {
         }
         if (goal.type === 'activate-booster') {
             return { type: 'activate-booster', booster: goal.booster, target: goal.target };
+        }
+        if (goal.type === 'collect-items') {
+            return { type: 'collect-items', target: goal.target };
         }
         return { type: 'destroy-hard-candies', target: goal.target };
     }

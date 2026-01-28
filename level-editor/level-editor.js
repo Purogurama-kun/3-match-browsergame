@@ -2,7 +2,7 @@ const GRID_SIZE = 9;
 const COLORS = ['red', 'amber', 'blue', 'purple', 'green'];
 const BOOSTERS = ['line', 'burstSmall', 'burstMedium', 'burstLarge'];
 const DIFFICULTIES = ['easy', 'normal', 'hard', 'expert', 'nightmare'];
-const GOAL_TYPES = ['destroy-color', 'activate-booster', 'destroy-hard-candies'];
+const GOAL_TYPES = ['destroy-color', 'activate-booster', 'destroy-hard-candies', 'collect-items'];
 
 const BOARD_PALETTE_GROUPS = [
     {
@@ -49,6 +49,12 @@ const BOARD_PALETTE_GROUPS = [
         ]
     },
     {
+        title: 'Collection',
+        entries: [
+            { token: 'D1', label: 'Delivery item', className: 'delivery', swatch: '#fff7ed' }
+        ]
+    },
+    {
         title: 'Colors',
         entries: [
             { token: 'R1', label: 'Red', className: 'red', swatch: '#ff7b7b' },
@@ -63,6 +69,7 @@ const BOARD_PALETTE_GROUPS = [
 const BOARD_TOKENS = BOARD_PALETTE_GROUPS.flatMap((group) => group.entries);
 
 const BOARD_TOKEN_SET = new Set(BOARD_TOKENS.map((entry) => entry.token));
+BOARD_TOKEN_SET.add('K1');
 const COLOR_HEX_TO_TOKEN = {
     '#ff7b7b': 'R1',
     '#ffd166': 'A1',
@@ -135,6 +142,7 @@ const ui = {
     boardEnabled: document.getElementById('board-enabled'),
     boardPanel: document.getElementById('board-panel'),
     boardPalette: document.getElementById('board-palette'),
+    collectorRow: document.getElementById('collector-row'),
     boardGrid: document.getElementById('board-grid'),
     boardRows: document.getElementById('board-rows'),
     clearBoard: document.getElementById('clear-board'),
@@ -337,6 +345,9 @@ function renderGoals(level) {
             } else if (goal.type === 'activate-booster') {
                 goal.booster = BOOSTERS[0];
                 delete goal.color;
+            } else if (goal.type === 'collect-items') {
+                delete goal.color;
+                delete goal.booster;
             } else {
                 delete goal.color;
                 delete goal.booster;
@@ -437,7 +448,10 @@ function ensureBoard(level) {
         level.board = { rows: createEmptyBoardRows() };
         return;
     }
-    level.board.rows = normalizeBoardRows(level.board.rows);
+    const normalizedRows = normalizeBoardRows(level.board.rows);
+    const result = extractCollectorColumnsFromRows(normalizedRows);
+    level.board.rows = result.rows;
+    mergeCollectorColumns(level, result.columns);
 }
 
 function createEmptyBoardRows() {
@@ -544,8 +558,72 @@ function renderBoard(level) {
     }
     ensureBoard(level);
     applyBoardBackground(level);
+    renderCollectorRow(level);
     renderBoardGrid(level.board.rows);
     syncBoardTextarea(level.board.rows);
+}
+
+function renderCollectorRow(level) {
+    ui.collectorRow.innerHTML = '';
+    const activeColumns = getCollectorColumns(level);
+    for (let col = 0; col < GRID_SIZE; col += 1) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'editor__collector-button';
+        button.textContent = '⬇️';
+        button.classList.toggle('editor__collector-button--active', activeColumns.has(col));
+        button.title = `Collector column ${col + 1}`;
+        button.addEventListener('click', () => {
+            const nextColumns = new Set(activeColumns);
+            if (nextColumns.has(col)) {
+                nextColumns.delete(col);
+            } else {
+                nextColumns.add(col);
+            }
+            setCollectorColumns(level, nextColumns);
+            renderCollectorRow(level);
+            markDirty();
+        });
+        ui.collectorRow.appendChild(button);
+    }
+}
+
+function getCollectorColumns(level) {
+    if (Array.isArray(level.collectorColumns)) {
+        return new Set(level.collectorColumns);
+    }
+    return new Set(Array.from({ length: GRID_SIZE }, (_, index) => index));
+}
+
+function setCollectorColumns(level, columns) {
+    const sorted = Array.from(columns).filter((col) => Number.isInteger(col) && col >= 0 && col < GRID_SIZE);
+    if (sorted.length === GRID_SIZE) {
+        delete level.collectorColumns;
+        return;
+    }
+    level.collectorColumns = sorted.sort((a, b) => a - b);
+}
+
+function mergeCollectorColumns(level, columns) {
+    if (!columns || columns.size === 0) return;
+    const current = getCollectorColumns(level);
+    columns.forEach((col) => current.add(col));
+    setCollectorColumns(level, current);
+}
+
+function extractCollectorColumnsFromRows(rows) {
+    const columns = new Set();
+    const nextRows = rows.map((row) => {
+        const tokens = tokenizeBoardRow(row);
+        tokens.forEach((token, col) => {
+            if (token.charAt(0) === 'K') {
+                columns.add(col);
+                tokens[col] = '.1';
+            }
+        });
+        return tokens.join('');
+    });
+    return { rows: nextRows, columns };
 }
 
 function getTokenDisplay(token) {
@@ -560,6 +638,7 @@ function getTokenDisplay(token) {
     if (type === 'U') return '☢️';
     if (type === 'C') return '';
     if (type === 'Q') return '';
+    if (type === 'D') return '📦';
     return '';
 }
 
@@ -568,7 +647,7 @@ function getTokenColor(token, index) {
     if (type === 'U') return '';
     const color = TOKEN_TO_COLOR[type];
     if (color) return color;
-    if (type === 'X' || type === 'C') return '';
+    if (type === 'X' || type === 'C' || type === 'D' || type === 'K') return '';
     if (type === 'Q') return NATURAL_COLORS[(index * 7 + 3) % NATURAL_COLORS.length];
     return NATURAL_COLORS[(index * 7 + 3) % NATURAL_COLORS.length];
 }
@@ -686,6 +765,7 @@ function getTokenClassName(token) {
     if (type === 'U') tokenClass = 'bomb-large';
     if (type === 'C') tokenClass = `sugar-chest sugar-chest-${stage}`;
     if (type === 'Q') tokenClass = 'shifting';
+    if (type === 'D') tokenClass = 'delivery';
     if (type === 'R') tokenClass = 'red';
     if (type === 'A') tokenClass = 'amber';
     if (type === 'B') tokenClass = 'blue';
@@ -752,7 +832,19 @@ function normalizeBoardToken(raw) {
         if (type === 'N') {
             return stage === '1' || stage === '2' || stage === '3' ? `N${stage}` : '.1';
         }
-        if (type === '.' || type === 'X' || type === 'T' || type === 'L' || type === 'V' || type === 'S' || type === 'M' || type === 'U' || type === 'Q') {
+        if (
+            type === '.' ||
+            type === 'X' ||
+            type === 'T' ||
+            type === 'L' ||
+            type === 'V' ||
+            type === 'S' ||
+            type === 'M' ||
+            type === 'U' ||
+            type === 'Q' ||
+            type === 'D' ||
+            type === 'K'
+        ) {
             return stage === '1' ? `${type}1` : '.1';
         }
         if (type === 'R' || type === 'A' || type === 'B' || type === 'P' || type === 'G') {
@@ -1076,8 +1168,11 @@ ui.boardRows.addEventListener('input', () => {
     const level = state.levels[state.selectedIndex];
     if (!level || !level.board) return;
     const rows = parseBoardTextarea(ui.boardRows.value);
-    level.board.rows = rows;
-    renderBoardGrid(rows);
+    const result = extractCollectorColumnsFromRows(rows);
+    level.board.rows = result.rows;
+    mergeCollectorColumns(level, result.columns);
+    renderBoardGrid(level.board.rows);
+    renderCollectorRow(level);
     syncMissingCells(level);
     markDirty();
 });

@@ -33,6 +33,7 @@ type LevelSelectGoalIcon =
     | { variant: 'color'; color: string }
     | { variant: 'booster'; symbol: string }
     | { variant: 'hard'; symbol: string }
+    | { variant: 'collect'; symbol: string }
     | { variant: 'score'; symbol: string };
 
 type MetaChipVariant = 'moves' | 'difficulty';
@@ -564,8 +565,11 @@ class LevelSelectView {
             case 'destroy-hard-candies':
                 return { variant: 'hard', symbol: '▣' };
             case 'activate-booster':
-            default:
                 return { variant: 'booster', symbol: getBoosterIcon(goal.booster) };
+            case 'collect-items':
+                return { variant: 'collect', symbol: '📦' };
+            default:
+                return { variant: 'score', symbol: SCORE_GOAL_ICON_SYMBOL };
         }
     }
 

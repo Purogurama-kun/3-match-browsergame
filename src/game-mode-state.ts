@@ -8,6 +8,7 @@ type BoardConfig = {
     blockedCells?: number[];
     hardCandies?: number[];
     blockerGenerators?: number[];
+    collectorColumns?: number[];
     cellOverrides?: BoardCellOverride[];
 };
 
@@ -43,6 +44,7 @@ interface GameModeState {
     handleColorCleared(state: GameState, color: string, context: ModeContext): void;
     handleBoosterUsed(state: GameState, booster: BoosterType, context: ModeContext): void;
     handleHardCandyHit(state: GameState, context: ModeContext): void;
+    handleCollectionItems(state: GameState, amount: number, context: ModeContext): void;
     handleScoreAwarded?(state: GameState, basePoints: number, context: ModeContext): void;
     getBoardConfig(): BoardConfig;
     shouldSpawnHardCandy(state: GameState): boolean;
