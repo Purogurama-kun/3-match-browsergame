@@ -238,7 +238,11 @@ class Renderer {
             slot.className = 'board__collector-slot';
             if (collectorColumns.has(i)) {
                 slot.classList.add('board__collector-slot--active');
-                slot.textContent = '⬇️';
+                const icon = document.createElement('img');
+                icon.className = 'board__collector-icon';
+                icon.src = '/assets/images/arrow_drop_down.svg';
+                icon.alt = '';
+                slot.appendChild(icon);
             }
             row.appendChild(slot);
         }
