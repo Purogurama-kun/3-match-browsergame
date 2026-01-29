@@ -13,6 +13,7 @@
     "watch": "npm run build:sw && tsc --watch",
     "watch:templates": "python3 scripts/watch-templates.py",
     "server": "npm run render && php -c backend/php.ini -S 0.0.0.0:5500 -t .",
+    "dev": "node scripts/dev.mjs",
     "docs": "jsdoc -c jsdoc.json",
     "publish": "node scripts/publish.cjs",
     "codex": "codex --model gpt-5.1-codex-mini",
