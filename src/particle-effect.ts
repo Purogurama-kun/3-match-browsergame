@@ -32,6 +32,10 @@ class ParticleEffect {
         const centerX = cellRect.left + cellRect.width / 2 - boardRect.left;
         const centerY = cellRect.top + cellRect.height / 2 - boardRect.top;
 
+        this.emitAtPoint(centerX, centerY, color, options);
+    }
+
+    emitAtPoint(centerX: number, centerY: number, color: string | null, options: ParticleOptions = {}): void {
         const count = options.count ?? 16;
         const minDistance = options.minDistance ?? 14;
         const maxDistance = Math.max(options.maxDistance ?? minDistance + 16, minDistance + 0.5);
@@ -68,6 +72,10 @@ class ParticleEffect {
         const centerX = cellRect.left + cellRect.width / 2 - boardRect.left;
         const centerY = cellRect.top + cellRect.height / 2 - boardRect.top;
 
+        this.emitShockwaveAtPoint(centerX, centerY, type);
+    }
+
+    emitShockwaveAtPoint(centerX: number, centerY: number, type: ShockwaveType): void {
         const shockwave = document.createElement('div');
         shockwave.className = `board__shockwave board__shockwave--${type}`;
         shockwave.style.left = `${centerX}px`;
@@ -89,6 +97,10 @@ class ParticleEffect {
         const centerX = cellRect.left + cellRect.width / 2 - boardRect.left;
         const centerY = cellRect.top + cellRect.height / 2 - boardRect.top;
 
+        this.emitComboShockwaveAtPoint(centerX, centerY, strength);
+    }
+
+    emitComboShockwaveAtPoint(centerX: number, centerY: number, strength: number = 0.5): void {
         const scale = Math.min(Math.max(strength, 0.2), 1);
 
         const outerRing = document.createElement('div');
@@ -114,6 +126,10 @@ class ParticleEffect {
         const centerX = cellRect.left + cellRect.width / 2 - boardRect.left;
         const centerY = cellRect.top + cellRect.height / 2 - boardRect.top;
 
+        this.emitComboSparksAtPoint(centerX, centerY, strength);
+    }
+
+    emitComboSparksAtPoint(centerX: number, centerY: number, strength: number = 0.5): void {
         const sparkCount = Math.round(12 + strength * 24);
         const baseDistance = 20 + strength * 50;
         const distanceVariance = 20 + strength * 50;

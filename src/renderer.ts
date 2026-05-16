@@ -7,11 +7,10 @@ import {
     GRID_SIZE,
     BOOSTERS,
     BoosterType,
+    BLACK_BOMB_COLOR,
     getColorKeyFromHex,
-    COLOR_SHAPE_CLASS,
-    SHAPE_CLASS_NAMES
+    COLOR_SHAPE_CLASS
 } from './constants.js';
-import type { ColorKey } from './constants.js';
 import { t } from './i18n.js';
 import { ParticleEffect } from './particle-effect.js';
 import type { ParticleOptions, ShockwaveType } from './particle-effect.js';
@@ -28,6 +27,32 @@ type ModalOptions = {
         bonusText?: string;
     };
 };
+
+type BoardMetrics = {
+    width: number;
+    height: number;
+    paddingLeft: number;
+    paddingTop: number;
+    cellSize: number;
+    gap: number;
+    rowStep: number;
+};
+
+type CanvasCellRect = {
+    x: number;
+    y: number;
+    size: number;
+};
+
+type CellAnimation =
+    | { kind: 'drop'; index: number; fromRowOffset: number; startedAt: number; duration: number }
+    | { kind: 'spawn'; index: number; startedAt: number; duration: number; delay: number }
+    | { kind: 'invalid'; index: number; startedAt: number; duration: number }
+    | { kind: 'explode'; index: number; startedAt: number; duration: number }
+    | { kind: 'generatorHit'; index: number; startedAt: number; duration: number }
+    | { kind: 'bombActivation'; index: number; startedAt: number; duration: number }
+    | { kind: 'bombExplosion'; index: number; startedAt: number; duration: number }
+    | { kind: 'bombCombo'; index: number; startedAt: number; duration: number; strength: number };
 
 class Renderer {
     private readonly hud: Hud;
@@ -47,20 +72,39 @@ class Renderer {
     private celebrationTimer: number | null = null;
     private modalCallback: (() => void) | null = null;
     private modalSecondaryCallback: (() => void) | null = null;
-    private readonly cells: HTMLDivElement[] = [];
+    private readonly canvas: HTMLCanvasElement;
+    private readonly context: CanvasRenderingContext2D;
+    private resizeObserver: ResizeObserver | null = null;
+    private readonly cellStates: CellState[] = [];
     private readonly renderedKeys: string[] = [];
     private readonly pendingCellUpdates = new Map<number, CellState>();
     private pendingFlushHandle: number | null = null;
+    private animationFrameHandle: number | null = null;
+    private redrawRequested = false;
+    private metrics: BoardMetrics = {
+        width: 0,
+        height: 0,
+        paddingLeft: 0,
+        paddingTop: 0,
+        cellSize: 0,
+        gap: 0,
+        rowStep: 0
+    };
+    private readonly activeAnimations: CellAnimation[] = [];
+    private readonly sugarChestImages = new Map<number, HTMLImageElement>();
+    private collectionImage: HTMLImageElement | null = null;
     private collectorRow: HTMLDivElement | null = null;
     private renderContextVersion = 0;
     private selectedIndex: number | null = null;
+    private hoveredIndex: number | null = null;
     private readonly hintIndices = new Set<number>();
     private readonly explodingIndices = new Set<number>();
     private onCellClick: ((index: number) => void) | null = null;
     private onCellSwipe: ((index: number, direction: SwipeDirection) => void) | null = null;
-    private touchStartIndex: number | null = null;
-    private touchStartX: number | null = null;
-    private touchStartY: number | null = null;
+    private pointerStartIndex: number | null = null;
+    private pointerStartX: number | null = null;
+    private pointerStartY: number | null = null;
+    private pointerHandledSwipe = false;
     private readonly swipeThreshold = 18;
     private cellShapesEnabled = true;
     private animationsEnabled = true;
@@ -72,6 +116,16 @@ class Renderer {
     constructor(hud: Hud) {
         this.hud = hud;
         this.gameEl = getRequiredElement('game');
+        const canvas = getRequiredElement('game-canvas');
+        if (!(canvas instanceof HTMLCanvasElement)) {
+            throw new Error('Game canvas element is missing.');
+        }
+        const context = canvas.getContext('2d');
+        if (!context) {
+            throw new Error('Canvas 2D context is unavailable.');
+        }
+        this.canvas = canvas;
+        this.context = context;
         this.modalEl = getRequiredElement('result-modal');
         this.modalTitle = getRequiredElement('result-title');
         this.modalText = getRequiredElement('result-text');
@@ -82,6 +136,9 @@ class Renderer {
         this.shuffleNoticeEl = getRequiredElement('shuffle-notice');
         this.shuffleNoticeTextEl = getRequiredElement('shuffle-notice-text');
         this.particleEffect = new ParticleEffect(this.gameEl);
+        this.preloadBoardImages();
+        this.attachCanvasListeners();
+        this.setupResizeObserver();
         this.recordingButton = getRequiredElement('result-recording-button') as HTMLButtonElement;
         this.recordingButton.addEventListener('click', () => {
             if (!this.recordingButtonHandler) return;
@@ -112,6 +169,7 @@ class Renderer {
         } else if (mode === 'blocker') {
             document.body.classList.add('match-app--mode-blocker');
         }
+        this.requestRedraw();
     }
 
     screenShake(): void {
@@ -126,6 +184,7 @@ class Renderer {
     setCellShapesEnabled(enabled: boolean): void {
         this.cellShapesEnabled = enabled;
         this.renderContextVersion++;
+        this.requestRedraw();
     }
 
     setAnimationsEnabled(enabled: boolean): void {
@@ -199,26 +258,20 @@ class Renderer {
         this.clearHint();
         this.onCellClick = onCellClick;
         this.onCellSwipe = onCellSwipe;
-        this.resetTouchState();
+        this.resetPointerState();
         this.selectedIndex = null;
-        this.cells.length = 0;
+        this.cellStates.length = 0;
         this.renderedKeys.length = 0;
         this.pendingCellUpdates.clear();
-        this.gameEl.innerHTML = '';
+        this.activeAnimations.length = 0;
+        this.clearBoardDomChildren();
         this.particleEffect.reset();
         this.collectorRow = null;
         this.gameEl.classList.remove('board--has-collector');
-        for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
-            const cell = document.createElement('div');
-            cell.className = 'board__cell';
-            cell.dataset.index = String(i);
-            this.attachCellListeners(cell, i);
-            this.cells.push(cell);
-            this.gameEl.appendChild(cell);
-        }
         if (this.createCollectorRow(board)) {
             this.gameEl.classList.add('board--has-collector');
         }
+        this.updateCanvasMetrics();
         this.refreshBoard(board);
         this.flushPendingUpdates();
     }
@@ -264,7 +317,7 @@ class Renderer {
 
     refreshBoard(board: Board): void {
         this.clearHint();
-        for (let i = 0; i < this.cells.length; i++) {
+        for (let i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
             this.queueCellUpdate(i, board.getCellState(i));
         }
     }
@@ -280,94 +333,101 @@ class Renderer {
         if (moves.length === 0 && spawnedIndices.length === 0) {
             return;
         }
-        const rowStep = this.getRowStep();
+        const rowStep = this.metrics.rowStep || this.getRowStep();
         if (rowStep <= 0) {
             return;
         }
+        const now = performance.now();
         const animatedIndices = new Set<number>();
         moves.forEach((move) => {
             const fromRow = this.getRowCol(move.from).row;
             const toRow = this.getRowCol(move.to).row;
             const deltaRows = toRow - fromRow;
             if (deltaRows <= 0) return;
-            this.applyDropAnimation(move.to, deltaRows, rowStep);
+            this.applyDropAnimation(move.to, deltaRows, now);
             animatedIndices.add(move.to);
         });
         spawnedIndices.forEach((index) => {
             if (animatedIndices.has(index)) return;
             const row = this.getRowCol(index).row;
             const deltaRows = Math.max(1, row + 1);
-            this.applyDropAnimation(index, deltaRows, rowStep);
+            this.applyDropAnimation(index, deltaRows, now);
         });
     }
 
     showInvalidMove(index: number): void {
-        const cell = this.getCellElement(index);
-        cell.classList.add('board__cell--shake');
+        this.replaceAnimation(index, 'invalid', {
+            kind: 'invalid',
+            index,
+            startedAt: performance.now(),
+            duration: 360
+        });
+        this.requestRedraw();
     }
 
     clearInvalidMove(index: number): void {
-        const cell = this.getCellElement(index);
-        cell.classList.remove('board__cell--shake');
+        this.removeAnimations(index, 'invalid');
+        this.requestRedraw();
     }
 
     selectCell(index: number): void {
         if (this.selectedIndex === index) return;
         this.clearSelection();
         this.selectedIndex = index;
-        this.getCellElement(index).classList.add('board__cell--selected');
+        this.requestRedraw();
     }
 
     clearSelection(): void {
         if (this.selectedIndex === null) return;
-        this.getCellElement(this.selectedIndex).classList.remove('board__cell--selected');
         this.selectedIndex = null;
+        this.requestRedraw();
     }
 
     showHint(indices: number[]): void {
         this.clearHint();
         indices.forEach((index) => {
-            const cell = this.cells[index];
-            if (!cell) return;
-            cell.classList.add('board__cell--hint');
+            if (index < 0 || index >= GRID_SIZE * GRID_SIZE) return;
             this.hintIndices.add(index);
         });
+        this.requestRedraw();
     }
 
     clearHint(): void {
-        this.hintIndices.forEach((index) => {
-            const cell = this.cells[index];
-            if (!cell) return;
-            cell.classList.remove('board__cell--hint');
-        });
         this.hintIndices.clear();
+        this.requestRedraw();
     }
 
     markCellExploding(index: number): void {
         if (this.explodingIndices.has(index)) return;
         this.explodingIndices.add(index);
-        this.getCellElement(index).classList.add('board__cell--explode');
+        this.replaceAnimation(index, 'explode', {
+            kind: 'explode',
+            index,
+            startedAt: performance.now(),
+            duration: 520
+        });
+        this.requestRedraw();
     }
 
     clearCellExplosion(index: number): void {
         if (!this.explodingIndices.delete(index)) return;
-        this.getCellElement(index).classList.remove('board__cell--explode');
+        this.removeAnimations(index, 'explode');
+        this.requestRedraw();
     }
 
     emitCellParticles(index: number, color: string | null = null, options: ParticleOptions = {}): void {
-        const cell = this.getCellElement(index);
-        const resolvedColor =
-            color ||
-            cell.style.getPropertyValue('--cell-color') ||
-            options.accentColor ||
-            null;
-        this.particleEffect.emitFromCell(cell, resolvedColor, options);
+        const state = this.cellStates[index];
+        const center = this.getCellCenter(index);
+        if (!center) return;
+        const resolvedColor = color || state?.color || options.accentColor || null;
+        this.particleEffect.emitAtPoint(center.x, center.y, resolvedColor, options);
     }
 
     emitHardCandyBreak(index: number): void {
         if (!this.animationsEnabled) return;
-        const cell = this.getCellElement(index);
-        this.particleEffect.emitFromCell(cell, '#fef3c7', {
+        const center = this.getCellCenter(index);
+        if (!center) return;
+        this.particleEffect.emitAtPoint(center.x, center.y, '#fef3c7', {
             count: 22,
             minDistance: 18,
             maxDistance: 40,
@@ -380,61 +440,61 @@ class Renderer {
 
     animateBombActivation(index: number, _boosterType: BoosterType): void {
         if (!this.animationsEnabled) return;
-        const cell = this.getCellElement(index);
-        cell.classList.add('board__cell--bomb-activate');
-        cell.addEventListener(
-            'animationend',
-            () => cell.classList.remove('board__cell--bomb-activate'),
-            { once: true }
-        );
+        this.replaceAnimation(index, 'bombActivation', {
+            kind: 'bombActivation',
+            index,
+            startedAt: performance.now(),
+            duration: 480
+        });
+        this.requestRedraw();
     }
 
     animateBombExplosion(index: number, boosterType: BoosterType): void {
         if (!this.animationsEnabled) return;
-        const cell = this.getCellElement(index);
         const shockwaveType = this.getShockwaveType(boosterType);
         if (!shockwaveType) return;
 
-        const explosionClass = `board__cell--bomb-explode-${shockwaveType}`;
-        cell.classList.add(explosionClass);
-        cell.addEventListener(
-            'animationend',
-            () => cell.classList.remove(explosionClass),
-            { once: true }
-        );
-
-        this.particleEffect.emitShockwave(cell, shockwaveType);
+        this.replaceAnimation(index, 'bombExplosion', {
+            kind: 'bombExplosion',
+            index,
+            startedAt: performance.now(),
+            duration: 520
+        });
+        const center = this.getCellCenter(index);
+        if (center) {
+            this.particleEffect.emitShockwaveAtPoint(center.x, center.y, shockwaveType);
+        }
 
         if (boosterType === BOOSTERS.BURST_MEDIUM || boosterType === BOOSTERS.BURST_LARGE) {
             this.particleEffect.emitFlash(shockwaveType);
         }
+        this.requestRedraw();
     }
 
     animateBombCombo(indices: number[], strength: number = 0.5): void {
         if (!this.animationsEnabled) return;
         if (indices.length === 0) return;
 
+        const now = performance.now();
         indices.forEach((index) => {
-            const cell = this.getCellElement(index);
-            cell.classList.add('board__cell--bomb-explode-combo');
-            cell.style.setProperty('--combo-strength', String(Math.min(Math.max(strength, 0.2), 1)));
-            cell.addEventListener(
-                'animationend',
-                () => {
-                    cell.classList.remove('board__cell--bomb-explode-combo');
-                    cell.style.removeProperty('--combo-strength');
-                },
-                { once: true }
-            );
+            this.replaceAnimation(index, 'bombCombo', {
+                kind: 'bombCombo',
+                index,
+                startedAt: now,
+                duration: 600,
+                strength: Math.min(Math.max(strength, 0.2), 1)
+            });
         });
 
         const primaryIndex = indices[0];
         if (primaryIndex === undefined) return;
-        const primaryCell = this.getCellElement(primaryIndex);
-
-        this.particleEffect.emitComboShockwave(primaryCell, strength);
-        this.particleEffect.emitComboSparks(primaryCell, strength);
+        const center = this.getCellCenter(primaryIndex);
+        if (center) {
+            this.particleEffect.emitComboShockwaveAtPoint(center.x, center.y, strength);
+            this.particleEffect.emitComboSparksAtPoint(center.x, center.y, strength);
+        }
         this.particleEffect.emitFlash('combo');
+        this.requestRedraw();
     }
 
     private getShockwaveType(boosterType: BoosterType): ShockwaveType | null {
@@ -516,36 +576,33 @@ class Renderer {
         }
         const baseDuration = 550;
         let longestDelay = 0;
-        this.cells.forEach((cell, index) => {
-            if (cell.classList.contains('board__cell--void')) return;
+        const now = performance.now();
+        this.cellStates.forEach((state, index) => {
+            if (state.blocked) return;
             const { row, col } = this.getRowCol(index);
             const delay = row * 70 + col * 12;
             longestDelay = Math.max(longestDelay, delay);
-            cell.classList.remove('board__cell--spawn');
-            cell.style.animationDelay = delay + 'ms';
-            cell.classList.add('board__cell--spawn');
-            cell.addEventListener(
-                'animationend',
-                () => {
-                    cell.classList.remove('board__cell--spawn');
-                    cell.style.removeProperty('animation-delay');
-                },
-                { once: true }
-            );
+            this.replaceAnimation(index, 'spawn', {
+                kind: 'spawn',
+                index,
+                startedAt: now,
+                duration: baseDuration,
+                delay
+            });
         });
+        this.requestRedraw();
         return baseDuration + longestDelay;
     }
 
     animateGeneratorHit(index: number): void {
-        const cell = this.getCellElement(index);
-        cell.classList.add('board__cell--generator-hit');
-        cell.addEventListener(
-            'animationend',
-            () => {
-                cell.classList.remove('board__cell--generator-hit');
-            },
-            { once: true }
-        );
+        if (!this.animationsEnabled) return;
+        this.replaceAnimation(index, 'generatorHit', {
+            kind: 'generatorHit',
+            index,
+            startedAt: performance.now(),
+            duration: 450
+        });
+        this.requestRedraw();
     }
 
     showModal(options: ModalOptions): void {
@@ -644,94 +701,7 @@ class Renderer {
             return;
         }
         this.renderedKeys[index] = renderedKey;
-        const cell = this.getCellElement(index);
-        cell.className = 'board__cell';
-        cell.dataset.index = String(index);
-        cell.dataset.booster = state.booster;
-        cell.dataset.blocked = state.blocked ? 'true' : 'false';
-        cell.dataset.hard = state.hard ? 'true' : 'false';
-        cell.dataset.generator = state.generator ? 'true' : 'false';
-        cell.dataset.shifting = state.shifting ? 'true' : 'false';
-        cell.dataset.collectionItem = state.collectionItem ? 'true' : 'false';
-        if (state.lineOrientation) {
-            cell.dataset.lineOrientation = state.lineOrientation;
-        } else {
-            delete cell.dataset.lineOrientation;
-        }
-        this.clearShapeClasses(cell);
-        const colorKey = state.color ? getColorKeyFromHex(state.color) : null;
-        cell.dataset.colorKey = colorKey ?? '';
-        cell.textContent = '';
-        cell.style.removeProperty('--cell-color');
-        cell.style.removeProperty('--shifting-next-color');
-        cell.classList.remove('board__cell--sugar-chest');
-        cell.classList.remove('board__cell--delivery');
-        cell.classList.remove('board__cell--hard-2', 'board__cell--hard-3');
-        cell.classList.remove(
-            'board__cell--hardening',
-            'board__cell--hardening-2',
-            'board__cell--hardening-3'
-        );
-        cell.style.removeProperty('--sugar-chest-image');
-        if (state.blocked) {
-            cell.classList.add('board__cell--void');
-            return;
-        }
-        const chestStage = state.sugarChestStage;
-        if (typeof chestStage === 'number') {
-            const stageIndex = String(chestStage).padStart(2, '0');
-            cell.classList.add('board__cell--sugar-chest');
-            cell.style.setProperty(
-                '--sugar-chest-image',
-                `url(/assets/images/sugar-chest-${stageIndex}.webp)`
-            );
-            return;
-        }
-        if (state.collectionItem) {
-            cell.classList.add('board__cell--delivery');
-            const icon = document.createElement('img');
-            icon.className = 'board__delivery-icon';
-            icon.src = '/assets/images/collectable-rainbow_star.png';
-            icon.alt = '';
-            cell.appendChild(icon);
-            return;
-        }
-        if (state.color) {
-            cell.style.setProperty('--cell-color', state.color);
-        }
-        if (state.shiftingNextColor) {
-            cell.style.setProperty('--shifting-next-color', state.shiftingNextColor);
-        }
-        if (!state.generator && this.cellShapesEnabled) {
-            this.applyShapeForColor(cell, colorKey);
-        }
-        if (state.generator) {
-            cell.classList.add('board__cell--generator');
-            cell.textContent = '⛓️';
-            return;
-        }
-        if (state.shifting) {
-            cell.classList.add('board__cell--shifting');
-        }
-        if (!state.hard && typeof state.hardeningStage === 'number') {
-            cell.classList.add('board__cell--hardening');
-            if (state.hardeningStage >= 2) {
-                cell.classList.add('board__cell--hardening-2');
-            }
-            if (state.hardeningStage >= 3) {
-                cell.classList.add('board__cell--hardening-3');
-            }
-        }
-        if (state.hard) {
-            cell.classList.add('board__cell--hard');
-            if (state.hardStage === 2) {
-                cell.classList.add('board__cell--hard-2');
-            }
-            if (state.hardStage === 3) {
-                cell.classList.add('board__cell--hard-3');
-            }
-        }
-        this.applyBoosterVisual(cell, state.booster, state.lineOrientation);
+        this.cellStates[index] = { ...state };
     }
 
     private queueCellUpdate(index: number, state: CellState): void {
@@ -759,9 +729,7 @@ class Renderer {
             this.applyCellState(index, state);
         });
         this.pendingCellUpdates.clear();
-        if (this.selectedIndex !== null) {
-            this.getCellElement(this.selectedIndex).classList.add('board__cell--selected');
-        }
+        this.requestRedraw();
     }
 
     private getRenderedKey(state: CellState): string {
@@ -787,79 +755,32 @@ class Renderer {
         ].join('|');
     }
 
-    private applyShapeForColor(cell: HTMLDivElement, colorKey: ColorKey | null): void {
-        if (!colorKey) return;
-        const shape = COLOR_SHAPE_CLASS[colorKey];
-        if (!shape) return;
-        cell.classList.add(`board__cell--shape-${shape}`);
+    private attachCanvasListeners(): void {
+        this.canvas.addEventListener('pointerdown', (event) => this.handlePointerDown(event));
+        this.canvas.addEventListener('pointermove', (event) => this.handlePointerMove(event));
+        this.canvas.addEventListener('pointerup', (event) => this.handlePointerUp(event));
+        this.canvas.addEventListener('pointercancel', () => this.resetPointerState());
+        this.canvas.addEventListener('pointerleave', () => this.handlePointerLeave());
     }
 
-    private clearShapeClasses(cell: HTMLDivElement): void {
-        SHAPE_CLASS_NAMES.forEach((className) => cell.classList.remove(className));
+    private handlePointerDown(event: PointerEvent): void {
+        const index = this.getIndexAtPoint(event.clientX, event.clientY);
+        if (index === null) return;
+        this.setHoveredIndex(index);
+        this.pointerStartIndex = index;
+        this.pointerStartX = event.clientX;
+        this.pointerStartY = event.clientY;
+        this.pointerHandledSwipe = false;
+        this.canvas.setPointerCapture(event.pointerId);
     }
 
-    private applyBoosterVisual(cell: HTMLDivElement, booster: BoosterType, orientation?: LineOrientation): void {
-        cell.classList.remove(
-            'board__cell--bomb-line',
-            'board__cell--bomb-line-horizontal',
-            'board__cell--bomb-line-vertical',
-            'board__cell--bomb-radius',
-            'board__cell--bomb-small',
-            'board__cell--bomb-medium',
-            'board__cell--bomb-large',
-            'board__cell--bomb-ultimate'
-        );
-        cell.style.color = '#0b0f1d';
-        cell.textContent = '';
-        if (booster === BOOSTERS.LINE) {
-            cell.classList.add('board__cell--bomb-line');
-            if (this.gameMode === 'blocker') {
-                cell.classList.add('board__cell--bomb-line-horizontal', 'board__cell--bomb-line-vertical');
-            } else {
-                const directionClass =
-                    orientation === 'vertical' ? 'board__cell--bomb-line-vertical' : 'board__cell--bomb-line-horizontal';
-                cell.classList.add(directionClass);
-            }
-            cell.textContent = '💣';
-        }
-        if (booster === BOOSTERS.BURST_SMALL) {
-            cell.classList.add('board__cell--bomb-small');
-            cell.textContent = '🧨';
-        }
-        if (booster === BOOSTERS.BURST_MEDIUM) {
-            cell.classList.add('board__cell--bomb-medium');
-            cell.textContent = '💥';
-        }
-        if (booster === BOOSTERS.BURST_LARGE) {
-            cell.classList.add('board__cell--bomb-large', 'board__cell--bomb-ultimate');
-            cell.style.color = '#f8fafc';
-            cell.textContent = '☢️';
-        }
-    }
-
-    private attachCellListeners(cell: HTMLDivElement, index: number): void {
-        cell.addEventListener('click', () => this.onCellClick?.(index));
-        cell.addEventListener('touchstart', (event) => this.handleTouchStart(index, event), { passive: false });
-        cell.addEventListener('touchmove', (event) => this.handleTouchMove(event), { passive: false });
-        cell.addEventListener('touchend', (event) => this.handleTouchEnd(event), { passive: false });
-        cell.addEventListener('touchcancel', () => this.resetTouchState());
-    }
-
-    private handleTouchStart(index: number, event: TouchEvent): void {
-        const touch = event.touches[0];
-        if (!touch) return;
-        this.touchStartIndex = index;
-        this.touchStartX = touch.clientX;
-        this.touchStartY = touch.clientY;
-    }
-
-    private handleTouchMove(event: TouchEvent): void {
-        if (this.touchStartIndex === null) return;
-        if (!this.touchStartX || !this.touchStartY) return;
-        const touch = event.touches[0];
-        if (!touch) return;
-        const deltaX = touch.clientX - this.touchStartX;
-        const deltaY = touch.clientY - this.touchStartY;
+    private handlePointerMove(event: PointerEvent): void {
+        this.setHoveredIndex(this.getIndexAtPoint(event.clientX, event.clientY));
+        if (this.pointerStartIndex === null) return;
+        if (this.pointerStartX === null || this.pointerStartY === null) return;
+        if (this.pointerHandledSwipe) return;
+        const deltaX = event.clientX - this.pointerStartX;
+        const deltaY = event.clientY - this.pointerStartY;
         const absX = Math.abs(deltaX);
         const absY = Math.abs(deltaY);
         if (Math.max(absX, absY) < this.swipeThreshold) {
@@ -868,35 +789,723 @@ class Renderer {
         event.preventDefault();
         const direction: SwipeDirection =
             absX > absY ? (deltaX > 0 ? 'right' : 'left') : deltaY > 0 ? 'down' : 'up';
-        this.onCellSwipe?.(this.touchStartIndex, direction);
-        this.resetTouchState();
+        this.onCellSwipe?.(this.pointerStartIndex, direction);
+        this.pointerHandledSwipe = true;
     }
 
-    private handleTouchEnd(event: TouchEvent): void {
-        if (!event.changedTouches.length) {
-            this.resetTouchState();
+    private handlePointerUp(event: PointerEvent): void {
+        this.setHoveredIndex(this.getIndexAtPoint(event.clientX, event.clientY));
+        if (this.pointerStartIndex !== null && !this.pointerHandledSwipe) {
+            const endIndex = this.getIndexAtPoint(event.clientX, event.clientY);
+            if (endIndex === this.pointerStartIndex) {
+                this.onCellClick?.(this.pointerStartIndex);
+            }
+        }
+        if (this.canvas.hasPointerCapture(event.pointerId)) {
+            this.canvas.releasePointerCapture(event.pointerId);
+        }
+        this.resetPointerState();
+    }
+
+    private handlePointerLeave(): void {
+        this.setHoveredIndex(null);
+        this.resetPointerState();
+    }
+
+    private setHoveredIndex(index: number | null): void {
+        if (this.hoveredIndex === index) return;
+        this.hoveredIndex = index;
+        this.canvas.style.cursor = index === null ? '' : 'pointer';
+        this.requestRedraw();
+    }
+
+    private resetPointerState(): void {
+        this.pointerStartIndex = null;
+        this.pointerStartX = null;
+        this.pointerStartY = null;
+        this.pointerHandledSwipe = false;
+    }
+
+    private setupResizeObserver(): void {
+        this.resizeObserver = new ResizeObserver(() => {
+            this.updateCanvasMetrics();
+            this.requestRedraw();
+        });
+        this.resizeObserver.observe(this.gameEl);
+    }
+
+    private preloadBoardImages(): void {
+        [1, 2, 3].forEach((stage) => {
+            const image = new Image();
+            image.src = `/assets/images/sugar-chest-${String(stage).padStart(2, '0')}.webp`;
+            image.addEventListener('load', () => this.requestRedraw(), { once: true });
+            this.sugarChestImages.set(stage, image);
+        });
+        const collectionImage = new Image();
+        collectionImage.src = '/assets/images/collectable-rainbow_star.png';
+        collectionImage.addEventListener('load', () => this.requestRedraw(), { once: true });
+        this.collectionImage = collectionImage;
+    }
+
+    private clearBoardDomChildren(): void {
+        Array.from(this.gameEl.children).forEach((child) => {
+            if (child === this.canvas) return;
+            child.remove();
+        });
+        if (this.canvas.parentElement !== this.gameEl) {
+            this.gameEl.prepend(this.canvas);
+        }
+    }
+
+    private updateCanvasMetrics(): void {
+        const style = window.getComputedStyle(this.gameEl);
+        const paddingLeft = this.readPixelValue(style.paddingLeft);
+        const paddingRight = this.readPixelValue(style.paddingRight);
+        const paddingTop = this.readPixelValue(style.paddingTop);
+        const paddingBottom = this.readPixelValue(style.paddingBottom);
+        const gap = this.readPixelValue(style.gap || style.columnGap);
+        const width = this.gameEl.clientWidth;
+        const height = this.gameEl.clientHeight;
+        const availableWidth = Math.max(width - paddingLeft - paddingRight - gap * (GRID_SIZE - 1), 0);
+        const availableHeight = Math.max(height - paddingTop - paddingBottom - gap * (GRID_SIZE - 1), 0);
+        const cellSize = Math.max(Math.min(availableWidth, availableHeight) / GRID_SIZE, 0);
+        const pixelRatio = window.devicePixelRatio || 1;
+
+        this.metrics = {
+            width,
+            height,
+            paddingLeft,
+            paddingTop,
+            cellSize,
+            gap,
+            rowStep: cellSize + gap
+        };
+        this.canvas.width = Math.max(Math.round(width * pixelRatio), 1);
+        this.canvas.height = Math.max(Math.round(height * pixelRatio), 1);
+        this.context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    }
+
+    private readPixelValue(value: string): number {
+        const parsed = Number.parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    private requestRedraw(): void {
+        this.redrawRequested = true;
+        if (this.animationFrameHandle !== null) return;
+        this.animationFrameHandle = window.requestAnimationFrame((time) => this.drawFrame(time));
+    }
+
+    private drawFrame(time: number): void {
+        this.animationFrameHandle = null;
+        this.redrawRequested = false;
+        this.drawBoard(time);
+        this.removeFinishedAnimations(time);
+        if (this.activeAnimations.length > 0 || this.hintIndices.size > 0 || this.redrawRequested) {
+            this.requestRedraw();
+        }
+    }
+
+    private removeFinishedAnimations(time: number): void {
+        for (let i = this.activeAnimations.length - 1; i >= 0; i--) {
+            const animation = this.activeAnimations[i];
+            if (!animation) continue;
+            const delay = animation.kind === 'spawn' ? animation.delay : 0;
+            if (time - animation.startedAt < animation.duration + delay) continue;
+            this.activeAnimations.splice(i, 1);
+        }
+    }
+
+    private drawBoard(time: number): void {
+        if (this.metrics.width <= 0 || this.metrics.height <= 0 || this.metrics.cellSize <= 0) {
+            this.updateCanvasMetrics();
+        }
+        const context = this.context;
+        context.clearRect(0, 0, this.metrics.width, this.metrics.height);
+        for (let index = 0; index < GRID_SIZE * GRID_SIZE; index++) {
+            const state = this.cellStates[index];
+            if (!state) continue;
+            this.drawCell(index, state, time);
+        }
+    }
+
+    private drawCell(index: number, state: CellState, time: number): void {
+        const rect = this.getCellRect(index);
+        const transform = this.getAnimationTransform(index, time);
+        const context = this.context;
+        context.save();
+        context.globalAlpha *= transform.opacity;
+        context.translate(rect.x + rect.size / 2 + transform.translateX, rect.y + rect.size / 2 + transform.translateY);
+        context.scale(transform.scale, transform.scale);
+        context.translate(-rect.size / 2, -rect.size / 2);
+
+        const localRect = { x: 0, y: 0, size: rect.size };
+        if (state.blocked) {
+            this.drawVoidCell(localRect);
+        } else if (typeof state.sugarChestStage === 'number') {
+            this.drawSugarChest(localRect, state.sugarChestStage);
+        } else if (state.collectionItem) {
+            this.drawCollectionItem(localRect);
+        } else if (state.generator) {
+            this.drawGenerator(localRect, state);
+        } else {
+            this.drawCandy(localRect, state);
+        }
+        this.drawStateOverlays(localRect, state);
+        this.drawBooster(localRect, state.booster, state.lineOrientation);
+        if (this.hoveredIndex === index) {
+            this.drawHover(localRect);
+        }
+        if (this.selectedIndex === index) {
+            this.drawSelection(localRect);
+        }
+        if (this.hintIndices.has(index)) {
+            this.drawHint(localRect, time);
+        }
+        if (this.explodingIndices.has(index) || this.hasAnimation(index, 'explode')) {
+            this.drawExplosion(localRect, this.getAnimationProgress(index, 'explode', time));
+        }
+        context.restore();
+    }
+
+    private getAnimationTransform(index: number, time: number): { translateX: number; translateY: number; scale: number; opacity: number } {
+        let translateX = 0;
+        let translateY = 0;
+        let scale = 1;
+        let opacity = 1;
+        this.activeAnimations.forEach((animation) => {
+            if (animation.index !== index) return;
+            if (animation.kind === 'drop') {
+                const progress = this.easeOutCubic(this.getProgress(animation, time));
+                translateY += -animation.fromRowOffset * this.metrics.rowStep * (1 - progress);
+            } else if (animation.kind === 'spawn') {
+                const progress = this.easeOutBack(this.getProgress(animation, time));
+                scale *= Math.max(progress, 0);
+                opacity *= Math.min(Math.max(progress, 0), 1);
+            } else if (animation.kind === 'invalid') {
+                const progress = this.getProgress(animation, time);
+                translateX += Math.sin(progress * Math.PI * 6) * (1 - progress) * 7;
+            } else if (animation.kind === 'generatorHit') {
+                const progress = this.getProgress(animation, time);
+                scale *= 1 + Math.sin(progress * Math.PI) * 0.12;
+            } else if (animation.kind === 'bombActivation') {
+                const progress = this.getProgress(animation, time);
+                scale *= 1 + Math.sin(progress * Math.PI * 4) * 0.08;
+            } else if (animation.kind === 'bombExplosion') {
+                const progress = this.getProgress(animation, time);
+                scale *= 1 + Math.sin(progress * Math.PI) * 0.18;
+            } else if (animation.kind === 'bombCombo') {
+                const progress = this.getProgress(animation, time);
+                scale *= 1 + Math.sin(progress * Math.PI) * 0.16 * animation.strength;
+            }
+        });
+        if (this.hoveredIndex === index && this.pointerStartIndex === null) {
+            translateY -= Math.max(1, this.metrics.cellSize * 0.03);
+            scale *= 1.02;
+        }
+        return { translateX, translateY, scale, opacity };
+    }
+
+    private drawCandy(rect: CanvasCellRect, state: CellState): void {
+        const color = state.color || '#6b7280';
+        const colorKey = getColorKeyFromHex(color);
+        const shape = this.cellShapesEnabled && colorKey ? COLOR_SHAPE_CLASS[colorKey] : 'square';
+        this.drawBaseCandy(rect, color, shape);
+        if (state.shifting && state.shiftingNextColor) {
+            this.drawShiftingOverlay(rect, state.shiftingNextColor);
+        }
+    }
+
+    private drawBaseCandy(rect: CanvasCellRect, color: string, shape: string): void {
+        const context = this.context;
+        const inset = rect.size * 0.06;
+        const size = rect.size - inset * 2;
+        context.save();
+        this.createCandyPath(inset, inset, size, shape);
+        context.shadowColor = 'rgba(0, 0, 0, 0.35)';
+        context.shadowBlur = rect.size * 0.16;
+        context.shadowOffsetY = rect.size * 0.08;
+        context.fillStyle = color;
+        context.fill();
+        context.restore();
+
+        context.save();
+        this.createCandyPath(inset, inset, size, shape);
+        context.fillStyle = color;
+        context.fill();
+        context.clip();
+        const gradient = context.createLinearGradient(0, 0, rect.size, rect.size);
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+        gradient.addColorStop(0.45, 'rgba(255, 255, 255, 0.08)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.32)');
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, rect.size, rect.size);
+        const shine = context.createRadialGradient(
+            rect.size * 0.3,
+            rect.size * 0.24,
+            rect.size * 0.02,
+            rect.size * 0.3,
+            rect.size * 0.24,
+            rect.size * 0.5
+        );
+        shine.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+        shine.addColorStop(0.48, 'rgba(255, 255, 255, 0.12)');
+        shine.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        context.fillStyle = shine;
+        context.fillRect(0, 0, rect.size, rect.size);
+        context.restore();
+
+        context.save();
+        this.createCandyPath(inset, inset, size, shape);
+        context.lineWidth = Math.max(1, rect.size * 0.04);
+        context.strokeStyle = 'rgba(17, 17, 17, 0.65)';
+        context.stroke();
+        context.lineWidth = Math.max(1, rect.size * 0.018);
+        context.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+        context.stroke();
+        context.restore();
+    }
+
+    private createCandyPath(x: number, y: number, size: number, shape: string): void {
+        const context = this.context;
+        const center = x + size / 2;
+        context.beginPath();
+        if (shape === 'round') {
+            context.arc(center, y + size / 2, size / 2, 0, Math.PI * 2);
             return;
         }
-        this.resetTouchState();
-    }
-
-    private resetTouchState(): void {
-        this.touchStartIndex = null;
-        this.touchStartX = null;
-        this.touchStartY = null;
-    }
-
-    private getCellElement(index: number): HTMLDivElement {
-        const cell = this.cells[index];
-        if (!cell) {
-            throw new Error('Cell element missing for index: ' + index);
+        if (shape === 'triangle') {
+            context.moveTo(center, y);
+            context.lineTo(x + size, y + size);
+            context.lineTo(x, y + size);
+            context.closePath();
+            return;
         }
-        return cell;
+        if (shape === 'diamond') {
+            context.moveTo(center, y);
+            context.lineTo(x + size, y + size / 2);
+            context.lineTo(center, y + size);
+            context.lineTo(x, y + size / 2);
+            context.closePath();
+            return;
+        }
+        if (shape === 'hexagon' || shape === 'pentagon') {
+            const sides = shape === 'hexagon' ? 6 : 5;
+            const radius = size / 2;
+            for (let i = 0; i < sides; i++) {
+                const angle = -Math.PI / 2 + (i / sides) * Math.PI * 2;
+                const px = center + Math.cos(angle) * radius;
+                const py = y + size / 2 + Math.sin(angle) * radius;
+                if (i === 0) {
+                    context.moveTo(px, py);
+                } else {
+                    context.lineTo(px, py);
+                }
+            }
+            context.closePath();
+            return;
+        }
+        context.roundRect(x, y, size, size, Math.max(6, size * 0.2));
+    }
+
+    private drawVoidCell(rect: CanvasCellRect): void {
+        const context = this.context;
+        context.save();
+        context.globalAlpha = 0.28;
+        context.fillStyle = 'rgba(15, 23, 42, 0.55)';
+        context.beginPath();
+        context.roundRect(rect.size * 0.1, rect.size * 0.1, rect.size * 0.8, rect.size * 0.8, rect.size * 0.18);
+        context.fill();
+        context.restore();
+    }
+
+    private drawSugarChest(rect: CanvasCellRect, stage: number): void {
+        this.drawCellShadow(rect, 'rgba(0, 0, 0, 0.32)');
+        const image = this.sugarChestImages.get(stage);
+        if (image?.complete && image.naturalWidth > 0) {
+            this.context.drawImage(image, rect.size * 0.06, rect.size * 0.06, rect.size * 0.88, rect.size * 0.88);
+            return;
+        }
+        this.drawBaseCandy(rect, '#fbbf24', 'square');
+    }
+
+    private drawCollectionItem(rect: CanvasCellRect): void {
+        this.drawBaseCandy(rect, '#111827', 'round');
+        const image = this.collectionImage;
+        if (image?.complete && image.naturalWidth > 0) {
+            this.context.drawImage(image, rect.size * 0.14, rect.size * 0.14, rect.size * 0.72, rect.size * 0.72);
+        }
+    }
+
+    private drawGenerator(rect: CanvasCellRect, state: CellState): void {
+        this.drawBaseCandy(rect, state.color || '#64748b', 'square');
+        this.drawDiagonalStripes(rect, 'rgba(255, 255, 255, 0.55)', 'rgba(251, 191, 36, 0.14)', 0.55);
+        this.drawRoundedStroke(rect, rect.size * 0.08, rect.size * 0.82, 'rgba(248, 250, 252, 0.82)', rect.size * 0.045);
+        this.drawOutlinedText('⛓️', rect, rect.size * 0.42, '#e2e8f0', '#0b0f1d');
+    }
+
+    private drawStateOverlays(rect: CanvasCellRect, state: CellState): void {
+        if (!state.hard && typeof state.hardeningStage === 'number') {
+            this.drawHardeningOverlay(rect, state.hardeningStage);
+        }
+        if (state.hard) {
+            this.drawHardCandyOverlay(rect, state.hardStage ?? 1);
+        }
+    }
+
+    private drawHardCandyOverlay(rect: CanvasCellRect, stage: number): void {
+        const context = this.context;
+        if (stage >= 3) {
+            context.save();
+            context.globalAlpha = 0.78;
+            const gradient = context.createRadialGradient(
+                rect.size * 0.34,
+                rect.size * 0.3,
+                rect.size * 0.04,
+                rect.size * 0.48,
+                rect.size * 0.52,
+                rect.size * 0.62
+            );
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.78)');
+            gradient.addColorStop(1, 'rgba(226, 232, 240, 0.2)');
+            context.fillStyle = gradient;
+            context.beginPath();
+            context.roundRect(rect.size * 0.08, rect.size * 0.08, rect.size * 0.84, rect.size * 0.84, rect.size * 0.2);
+            context.fill();
+            context.restore();
+        } else {
+            this.drawDiagonalStripes(
+                rect,
+                'rgba(255, 255, 255, 0.48)',
+                stage === 2 ? 'rgba(251, 191, 36, 0.2)' : 'rgba(251, 191, 36, 0.12)',
+                stage === 2 ? 0.75 : 0.55
+            );
+            if (stage >= 2) {
+                this.drawDiagonalStripes(rect, 'rgba(255, 255, 255, 0.36)', 'rgba(251, 191, 36, 0.18)', 0.55, -1);
+            }
+        }
+        context.save();
+        context.lineWidth = Math.max(2, rect.size * 0.07);
+        context.strokeStyle = stage >= 3 ? 'rgba(255, 255, 255, 0.92)' : stage === 2 ? 'rgba(226, 232, 240, 0.82)' : 'rgba(241, 245, 249, 0.62)';
+        context.beginPath();
+        context.roundRect(rect.size * 0.13, rect.size * 0.13, rect.size * 0.74, rect.size * 0.74, rect.size * 0.18);
+        context.stroke();
+        context.restore();
+    }
+
+    private drawHardeningOverlay(rect: CanvasCellRect, stage: number): void {
+        const context = this.context;
+        const edgeSize = Math.max(3, rect.size * 0.09);
+        const capSize = edgeSize * 0.52;
+        const clampedStage = Math.min(Math.max(stage, 1), 3);
+        context.save();
+        context.globalAlpha = 0.9;
+        context.fillStyle = '#f8fafc';
+        context.fillRect(rect.size * 0.12, rect.size * 0.1, rect.size * 0.76, edgeSize);
+        this.drawHardeningCap(rect.size * 0.12, rect.size * 0.1 + edgeSize / 2, capSize);
+        this.drawHardeningCap(rect.size * 0.88, rect.size * 0.1 + edgeSize / 2, capSize);
+        if (clampedStage >= 2) {
+            context.fillRect(rect.size * 0.88 - edgeSize, rect.size * 0.12, edgeSize, rect.size * 0.76);
+            this.drawHardeningCap(rect.size * 0.88 - edgeSize / 2, rect.size * 0.88, capSize);
+        }
+        if (clampedStage >= 3) {
+            context.fillRect(rect.size * 0.12, rect.size * 0.88 - edgeSize, rect.size * 0.76, edgeSize);
+            context.fillRect(rect.size * 0.1, rect.size * 0.12, edgeSize, rect.size * 0.76);
+            this.drawHardeningCap(rect.size * 0.12 + edgeSize / 2, rect.size * 0.88, capSize);
+            this.drawHardeningCap(rect.size * 0.12 + edgeSize / 2, rect.size * 0.12, capSize);
+        }
+        context.restore();
+    }
+
+    private drawBooster(rect: CanvasCellRect, booster: BoosterType, orientation?: LineOrientation): void {
+        if (booster === BOOSTERS.NONE) return;
+        const context = this.context;
+        if (booster === BOOSTERS.LINE) {
+            this.drawGlow(rect, 'rgba(255, 235, 59, 0.38)', 0.18);
+            context.save();
+            context.strokeStyle = 'rgba(255, 255, 255, 0.92)';
+            context.lineWidth = Math.max(4, rect.size * 0.09);
+            context.lineCap = 'round';
+            if (this.gameMode === 'blocker' || orientation !== 'vertical') {
+                context.beginPath();
+                context.moveTo(rect.size * 0.18, rect.size * 0.5);
+                context.lineTo(rect.size * 0.82, rect.size * 0.5);
+                context.stroke();
+            }
+            if (this.gameMode === 'blocker' || orientation === 'vertical') {
+                context.beginPath();
+                context.moveTo(rect.size * 0.5, rect.size * 0.18);
+                context.lineTo(rect.size * 0.5, rect.size * 0.82);
+                context.stroke();
+            }
+            context.restore();
+            const label = this.gameMode === 'blocker' ? '✣' : orientation === 'vertical' ? '↕' : '↔';
+            this.drawOutlinedText(label, rect, rect.size * 0.4, '#ffffff', '#0b0f1d');
+            return;
+        }
+        if (booster === BOOSTERS.BURST_SMALL) {
+            this.drawGlow(rect, 'rgba(126, 217, 87, 0.38)', 0.16);
+            this.drawOutlinedText('🧨', rect, rect.size * 0.4, '#f8fafc', '#0b0f1d');
+        }
+        if (booster === BOOSTERS.BURST_MEDIUM) {
+            this.drawGlow(rect, 'rgba(255, 87, 34, 0.45)', 0.2);
+            this.drawOutlinedText('💥', rect, rect.size * 0.44, '#f8fafc', '#0b0f1d');
+        }
+        if (booster === BOOSTERS.BURST_LARGE) {
+            this.drawBaseCandy(rect, BLACK_BOMB_COLOR, 'round');
+            this.drawGlow(rect, 'rgba(103, 232, 249, 0.5)', 0.24);
+            this.drawOutlinedText('☢️', rect, rect.size * 0.42, '#f8fafc', '#020617');
+        }
+    }
+
+    private drawSelection(rect: CanvasCellRect): void {
+        const context = this.context;
+        this.drawGlow(rect, 'rgba(255, 255, 255, 0.42)', 0.18);
+        context.save();
+        context.lineWidth = Math.max(3, rect.size * 0.07);
+        context.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+        context.beginPath();
+        context.roundRect(rect.size * 0.04, rect.size * 0.04, rect.size * 0.92, rect.size * 0.92, rect.size * 0.2);
+        context.stroke();
+        context.restore();
+    }
+
+    private drawHint(rect: CanvasCellRect, time: number): void {
+        const pulse = 0.55 + Math.sin(time / 180) * 0.25;
+        const context = this.context;
+        this.drawGlow(rect, `rgba(250, 204, 21, ${pulse * 0.45})`, 0.2);
+        context.save();
+        context.lineWidth = Math.max(2, rect.size * 0.055);
+        context.strokeStyle = `rgba(255, 245, 157, ${pulse})`;
+        context.beginPath();
+        context.roundRect(rect.size * 0.08, rect.size * 0.08, rect.size * 0.84, rect.size * 0.84, rect.size * 0.18);
+        context.stroke();
+        context.restore();
+    }
+
+    private drawHover(rect: CanvasCellRect): void {
+        const context = this.context;
+        context.save();
+        context.lineWidth = Math.max(1, rect.size * 0.025);
+        context.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+        context.beginPath();
+        context.roundRect(rect.size * 0.07, rect.size * 0.07, rect.size * 0.86, rect.size * 0.86, rect.size * 0.2);
+        context.stroke();
+        context.restore();
+    }
+
+    private drawExplosion(rect: CanvasCellRect, progress: number): void {
+        const context = this.context;
+        context.save();
+        context.globalAlpha = 1 - progress * 0.75;
+        context.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+        context.lineWidth = Math.max(2, rect.size * 0.05);
+        context.beginPath();
+        context.arc(rect.size / 2, rect.size / 2, rect.size * (0.18 + progress * 0.42), 0, Math.PI * 2);
+        context.stroke();
+        context.restore();
+    }
+
+    private drawText(text: string, rect: CanvasCellRect, size: number, color: string): void {
+        const context = this.context;
+        context.save();
+        context.font = `${size}px system-ui, "Apple Color Emoji", "Segoe UI Emoji"`;
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillStyle = color;
+        context.fillText(text, rect.size / 2, rect.size / 2 + size * 0.04);
+        context.restore();
+    }
+
+    private drawOutlinedText(text: string, rect: CanvasCellRect, size: number, color: string, outline: string): void {
+        const context = this.context;
+        context.save();
+        context.font = `${size}px system-ui, "Apple Color Emoji", "Segoe UI Emoji"`;
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.lineWidth = Math.max(2, size * 0.12);
+        context.strokeStyle = outline;
+        context.fillStyle = color;
+        const x = rect.size / 2;
+        const y = rect.size / 2 + size * 0.04;
+        context.strokeText(text, x, y);
+        context.fillText(text, x, y);
+        context.restore();
+    }
+
+    private drawCellShadow(rect: CanvasCellRect, color: string): void {
+        const context = this.context;
+        context.save();
+        context.shadowColor = color;
+        context.shadowBlur = rect.size * 0.16;
+        context.shadowOffsetY = rect.size * 0.08;
+        context.fillStyle = color;
+        context.beginPath();
+        context.roundRect(rect.size * 0.08, rect.size * 0.08, rect.size * 0.84, rect.size * 0.84, rect.size * 0.18);
+        context.fill();
+        context.restore();
+    }
+
+    private drawShiftingOverlay(rect: CanvasCellRect, nextColor: string): void {
+        const context = this.context;
+        context.save();
+        context.lineWidth = Math.max(3, rect.size * 0.08);
+        context.strokeStyle = '#05070c';
+        context.beginPath();
+        context.roundRect(rect.size * 0.07, rect.size * 0.07, rect.size * 0.86, rect.size * 0.86, rect.size * 0.18);
+        context.stroke();
+        context.strokeStyle = nextColor;
+        context.lineWidth = Math.max(2, rect.size * 0.045);
+        context.beginPath();
+        context.roundRect(rect.size * 0.13, rect.size * 0.13, rect.size * 0.74, rect.size * 0.74, rect.size * 0.14);
+        context.stroke();
+        context.fillStyle = nextColor;
+        context.globalAlpha = 0.72;
+        context.beginPath();
+        context.moveTo(rect.size * 0.66, rect.size * 0.12);
+        context.lineTo(rect.size * 0.9, rect.size * 0.12);
+        context.lineTo(rect.size * 0.9, rect.size * 0.36);
+        context.closePath();
+        context.fill();
+        context.restore();
+    }
+
+    private drawDiagonalStripes(
+        rect: CanvasCellRect,
+        stripeColor: string,
+        backingColor: string,
+        alpha: number,
+        direction = 1
+    ): void {
+        const context = this.context;
+        const inset = rect.size * 0.08;
+        const width = rect.size - inset * 2;
+        const stripeStep = Math.max(8, rect.size * 0.22);
+        context.save();
+        context.globalAlpha = alpha;
+        context.beginPath();
+        context.roundRect(inset, inset, width, width, rect.size * 0.18);
+        context.clip();
+        context.fillStyle = backingColor;
+        context.fillRect(inset, inset, width, width);
+        context.strokeStyle = stripeColor;
+        context.lineWidth = Math.max(3, rect.size * 0.07);
+        for (let offset = -rect.size; offset <= rect.size * 2; offset += stripeStep) {
+            context.beginPath();
+            if (direction > 0) {
+                context.moveTo(offset, rect.size);
+                context.lineTo(offset + rect.size, 0);
+            } else {
+                context.moveTo(offset, 0);
+                context.lineTo(offset + rect.size, rect.size);
+            }
+            context.stroke();
+        }
+        context.restore();
+    }
+
+    private drawRoundedStroke(rect: CanvasCellRect, inset: number, size: number, color: string, lineWidth: number): void {
+        const context = this.context;
+        context.save();
+        context.lineWidth = lineWidth;
+        context.strokeStyle = color;
+        context.beginPath();
+        context.roundRect(inset, inset, size, size, rect.size * 0.18);
+        context.stroke();
+        context.restore();
+    }
+
+    private drawHardeningCap(x: number, y: number, radius: number): void {
+        const context = this.context;
+        context.beginPath();
+        context.arc(x, y, radius, 0, Math.PI * 2);
+        context.fill();
+    }
+
+    private drawGlow(rect: CanvasCellRect, color: string, spread: number): void {
+        const context = this.context;
+        context.save();
+        context.strokeStyle = color;
+        context.lineWidth = Math.max(3, rect.size * spread);
+        context.beginPath();
+        context.roundRect(rect.size * 0.07, rect.size * 0.07, rect.size * 0.86, rect.size * 0.86, rect.size * 0.2);
+        context.stroke();
+        context.restore();
+    }
+
+    private getIndexAtPoint(clientX: number, clientY: number): number | null {
+        if (this.metrics.rowStep <= 0 || this.metrics.cellSize <= 0) return null;
+        const boardRect = this.gameEl.getBoundingClientRect();
+        const x = clientX - boardRect.left - this.metrics.paddingLeft;
+        const y = clientY - boardRect.top - this.metrics.paddingTop;
+        if (x < 0 || y < 0) return null;
+        const col = Math.floor(x / this.metrics.rowStep);
+        const row = Math.floor(y / this.metrics.rowStep);
+        if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) return null;
+        const cellX = col * this.metrics.rowStep;
+        const cellY = row * this.metrics.rowStep;
+        if (x > cellX + this.metrics.cellSize || y > cellY + this.metrics.cellSize) return null;
+        return row * GRID_SIZE + col;
+    }
+
+    private getCellRect(index: number): CanvasCellRect {
+        const { row, col } = this.getRowCol(index);
+        return {
+            x: this.metrics.paddingLeft + col * this.metrics.rowStep,
+            y: this.metrics.paddingTop + row * this.metrics.rowStep,
+            size: this.metrics.cellSize
+        };
+    }
+
+    private getCellCenter(index: number): { x: number; y: number } | null {
+        if (index < 0 || index >= GRID_SIZE * GRID_SIZE || this.metrics.cellSize <= 0) return null;
+        const rect = this.getCellRect(index);
+        return { x: rect.x + rect.size / 2, y: rect.y + rect.size / 2 };
+    }
+
+    private replaceAnimation(index: number, kind: CellAnimation['kind'], animation: CellAnimation): void {
+        this.removeAnimations(index, kind);
+        this.activeAnimations.push(animation);
+    }
+
+    private removeAnimations(index: number, kind: CellAnimation['kind']): void {
+        for (let i = this.activeAnimations.length - 1; i >= 0; i--) {
+            const animation = this.activeAnimations[i];
+            if (animation?.index === index && animation.kind === kind) {
+                this.activeAnimations.splice(i, 1);
+            }
+        }
+    }
+
+    private hasAnimation(index: number, kind: CellAnimation['kind']): boolean {
+        return this.activeAnimations.some((animation) => animation.index === index && animation.kind === kind);
+    }
+
+    private getAnimationProgress(index: number, kind: CellAnimation['kind'], time: number): number {
+        const animation = this.activeAnimations.find((item) => item.index === index && item.kind === kind);
+        if (!animation) return 1;
+        return this.getProgress(animation, time);
+    }
+
+    private getProgress(animation: CellAnimation, time: number): number {
+        const delay = animation.kind === 'spawn' ? animation.delay : 0;
+        return Math.min(Math.max((time - animation.startedAt - delay) / animation.duration, 0), 1);
+    }
+
+    private easeOutCubic(value: number): number {
+        return 1 - Math.pow(1 - value, 3);
+    }
+
+    private easeOutBack(value: number): number {
+        const overshoot = 1.70158;
+        const shifted = value - 1;
+        return 1 + (overshoot + 1) * shifted * shifted * shifted + overshoot * shifted * shifted;
     }
 
     showSugarCoinReward(index: number, amount: number): void {
         if (amount <= 0) return;
-        const cell = this.getCellElement(index);
+        const center = this.getCellCenter(index);
+        if (!center) return;
         const notification = document.createElement('div');
         notification.className = 'board__sugar-notification';
 
@@ -912,10 +1521,8 @@ class Renderer {
 
         notification.append(icon, value);
 
-        const centerX = cell.offsetLeft + cell.clientWidth / 2;
-        const centerY = cell.offsetTop + cell.clientHeight / 2;
-        notification.style.left = `${centerX}px`;
-        notification.style.top = `${centerY}px`;
+        notification.style.left = `${center.x}px`;
+        notification.style.top = `${center.y}px`;
 
         const removeNotification = (): void => {
             notification.removeEventListener('animationend', removeNotification);
@@ -929,39 +1536,20 @@ class Renderer {
     }
 
     private getRowStep(): number {
-        const firstCell = this.cells[0];
-        const nextRowCell = this.cells[GRID_SIZE];
-        if (!firstCell) return 0;
-        if (nextRowCell) {
-            const delta = nextRowCell.getBoundingClientRect().top - firstCell.getBoundingClientRect().top;
-            if (delta > 0) {
-                return delta;
-            }
-        }
-        return firstCell.getBoundingClientRect().height;
+        return this.metrics.rowStep;
     }
 
-    private applyDropAnimation(index: number, deltaRows: number, rowStep: number): void {
-        if (deltaRows <= 0 || rowStep <= 0) return;
-        const cell = this.getCellElement(index);
-        const distance = deltaRows * rowStep;
+    private applyDropAnimation(index: number, deltaRows: number, startedAt: number): void {
+        if (deltaRows <= 0) return;
         const duration = Math.min(520, 160 + deltaRows * 55);
-        cell.classList.remove('board__cell--drop');
-        cell.style.setProperty('--drop-distance', `${distance}px`);
-        cell.style.animationDuration = `${duration}ms`;
-        void cell.offsetWidth;
-        requestAnimationFrame(() => {
-            cell.classList.add('board__cell--drop');
+        this.replaceAnimation(index, 'drop', {
+            kind: 'drop',
+            index,
+            fromRowOffset: deltaRows,
+            startedAt,
+            duration
         });
-        cell.addEventListener(
-            'animationend',
-            () => {
-                cell.classList.remove('board__cell--drop');
-                cell.style.removeProperty('--drop-distance');
-                cell.style.removeProperty('animation-duration');
-            },
-            { once: true }
-        );
+        this.requestRedraw();
     }
 
     private getRowCol(index: number): { row: number; col: number } {
